@@ -1,34 +1,23 @@
 use std::borrow::Cow;
 use std::sync::OnceLock;
 
-use iced::font;
-
-pub static JETBRAINS_MONO_MEDIUM: Font = Font::new(false);
+pub static JETBRAINS_MONO_MEDIUM: Font = Font::new();
 
 #[derive(Debug, Clone)]
 pub struct Font {
-    bold: bool,
     inner: OnceLock<iced::Font>,
 }
 
 impl Font {
-    const fn new(bold: bool) -> Self {
+    const fn new() -> Self {
         Self {
-            bold,
             inner: OnceLock::new(),
         }
     }
 
     fn set(&self, name: String) {
         let name = Box::leak(name.into_boxed_str());
-        let weight = if self.bold {
-            font::Weight::Bold
-        } else {
-            font::Weight::Normal
-        };
-
         let _ = self.inner.set(iced::Font {
-            weight,
             ..iced::Font::with_name(name)
         });
     }
