@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::sync::OnceLock;
 
-pub static JETBRAINS_MONO_MEDIUM: Font = Font::new();
+pub static UI_FONT: Font = Font::new();
 
 #[derive(Debug, Clone)]
 pub struct Font {
@@ -30,11 +30,9 @@ impl From<Font> for iced::Font {
 }
 
 pub fn set() {
-    JETBRAINS_MONO_MEDIUM.set("JetBrainsMono-Medium".to_string())
+    UI_FONT.set("Consolas".to_string())
 }
 
 pub fn load() -> Vec<Cow<'static, [u8]>> {
-    vec![include_bytes!("../fonts/JetBrainsMono-Medium.ttf")
-        .as_slice()
-        .into()]
+    vec![include_bytes!("../fonts/Consolas.ttf").as_slice().into()]
 }

@@ -11,12 +11,10 @@ use iced::{
 mod fonts;
 
 fn main() -> iced::Result {
-    pretty_env_logger::init();
-
     fonts::set();
 
     Editor::run(Settings {
-        default_font: fonts::JETBRAINS_MONO_MEDIUM.clone().into(),
+        default_font: fonts::UI_FONT.clone().into(),
         fonts: fonts::load(),
         antialiasing: true,
         ..Settings::default()
@@ -75,6 +73,6 @@ impl Application for Editor {
     }
 
     fn theme(&self) -> Theme {
-        Theme::GruvboxDark
+        Theme::Dark
     }
 }
