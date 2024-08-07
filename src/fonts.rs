@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::sync::OnceLock;
 
-use iced::font::{self, Weight};
+use iced::font::Weight;
 
 pub static UI_FONT: Font = Font::new(Weight::Medium);
 
@@ -12,7 +12,7 @@ pub struct Font {
 }
 
 impl Font {
-    const fn new(weight: font::Weight) -> Self {
+    const fn new(weight: Weight) -> Self {
         Self {
             weight,
             inner: OnceLock::new(),
