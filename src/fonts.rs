@@ -30,9 +30,9 @@ impl From<Font> for iced::Font {
 }
 
 pub fn set() {
-    UI_FONT.set("Consolas".to_string())
+    UI_FONT.set("JetBrains Mono Medium".to_string())
 }
 
 pub fn load() -> Vec<Cow<'static, [u8]>> {
-    vec![include_bytes!("../fonts/Consolas.ttf").as_slice().into()]
+    vec![include_bytes!("../fonts/JetBrainsMono-Medium.ttf").as_slice().into()]
 }
