@@ -5,11 +5,21 @@ edition = "2021"
 authors = ["Yaroslav Malykh <fisuri@murena.io>"]
 
 [dependencies]
-iced = { git = "https://github.com/iced-rs/iced.git", tag = "0.12.1", features = [
+anyhow = "1.0.86"
+dark-light = "1.1.1"
+# gilrs = { version = "0.10.9", features = ["xinput"], default-features = false }
+iced = { git = "https://github.com/iced-rs/iced.git", branch = "master", features = [
     "tokio",
+    "image",
 ] }
-# iced = { git = "https://github.com/iced-rs/iced.git", features = ["tokio"] }
-tokio = "1.39.2"
+iced_aw = { git = "https://github.com/iced-rs/iced_aw.git", branch = "main", default-features = false, features = [
+    "sidebar",
+    "icons",
+] }
+# iced_anim = { git = "https://github.com/Brady-Simon/iced_anim.git" }
+image = "0.25.2"
+tokio = { version = "1.39.2", features = ["fs"] }
+tracing = "0.1.40"
 
 [profile.dev]
 opt-level = 0

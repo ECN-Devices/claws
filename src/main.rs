@@ -1,78 +1,59 @@
-// #![windows_subsystem = "windows"]
+// Убираем консоль при старте приложения на windows
+#![windows_subsystem = "windows"]
 
+// use application::Editor; // Импортируем структуру приложения
+use fonts::{load, set, UI_FONT_MEDIUM}; // Загружаем шрифты
 use iced::{
-    executor,
-    widget::{column, container, text, text_editor},
-    Application, Command, Element,
-    Length::Fill,
-    Settings, Theme,
+    window::{self, icon},
+    Pixels, Size,
 };
+use image::ImageFormat;
+use tabs::TabBarExample;
 
-mod fonts;
+mod application; // Импортируем модуль приложения
+mod fonts; // Импортируем модуль шрифтов
+mod tabs; // Импортируем модуль вкладок
+
+static WINDOW_ICON: &[u8] = include_bytes!("../icons/lapa.ico");
 
 fn main() -> iced::Result {
-    fonts::set();
+    // Даем шрифтам имена
+    set();
 
-    Editor::run(Settings {
-        default_font: fonts::UI_FONT.clone().into(),
-        fonts: fonts::load(),
+    let window_icon = match image::load_from_memory_with_format(WINDOW_ICON, ImageFormat::Ico)
+        .map(|i| (i.to_rgba8().into_raw(), i.width(), i.height()))
+        .map_err(anyhow::Error::new)
+        .and_then(|(i, width, height)| {
+            icon::from_rgba(i, width, height).map_err(anyhow::Error::new)
+        }) {
+        Ok(icon) => icon,
+        Err(_e) => todo!(),
+    };
+
+    let iced_settings = iced::Settings {
+        default_text_size: Pixels::from(18),
+        default_font: UI_FONT_MEDIUM.clone().into(),
+        fonts: load(),
         antialiasing: true,
-        ..Settings::default()
-    })
-}
+        ..iced::Settings::default()
+    };
 
-#[derive(Default)]
-struct Editor {
-    content: text_editor::Content,
-}
+    let window_settings = window::Settings {
+        size: Size::new(800., 600.),
+        min_size: Some(Size::new(600., 600.)),
+        resizable: true,
+        exit_on_close_request: true,
+        icon: Some(window_icon),
+        ..window::Settings::default()
+    };
 
-#[derive(Debug, Clone)]
-pub enum Message {
-    ActionPerformed(text_editor::Action),
-}
-
-impl Application for Editor {
-    type Executor = executor::Default;
-    type Flags = ();
-    type Message = Message;
-    type Theme = Theme;
-
-    fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
-        (
-            Self {
-                content: text_editor::Content::with_text(include_str!("main.rs")),
-            },
-            Command::none(),
-        )
-    }
-
-    fn title(&self) -> String {
-        String::from("A cool text editor")
-    }
-
-    fn update(&mut self, message: Message) -> Command<Message> {
-        match message {
-            Message::ActionPerformed(action) => self.content.perform(action),
-        }
-        Command::none()
-    }
-
-    fn view(&self) -> Element<'_, Message> {
-        let editor = text_editor(&self.content)
-            .on_action(Message::ActionPerformed)
-            .height(Fill);
-
-        let cursor_position = {
-            let (line, column) = self.content.cursor_position();
-            text(format!("{}:{}", line + 1, column + 1))
-        };
-
-        container(column![editor, cursor_position])
-            .padding(10)
-            .into()
-    }
-
-    fn theme(&self) -> Theme {
-        Theme::Dark
-    }
+    iced::application(
+        TabBarExample::title,
+        TabBarExample::update,
+        TabBarExample::view,
+    )
+    .settings(iced_settings)
+    .window(window_settings)
+    .theme(TabBarExample::theme)
+    .run()
 }

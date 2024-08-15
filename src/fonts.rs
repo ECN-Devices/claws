@@ -3,7 +3,8 @@ use std::sync::OnceLock;
 
 use iced::font::Weight;
 
-pub static UI_FONT: Font = Font::new(Weight::Medium);
+pub static UI_FONT_MEDIUM: Font = Font::new(Weight::Medium);
+pub static UI_FONT_NORMAL: Font = Font::new(Weight::Normal);
 
 #[derive(Debug, Clone)]
 pub struct Font {
@@ -21,20 +22,8 @@ impl Font {
 
     fn set(&self, name: String) {
         let name = Box::leak(name.into_boxed_str());
-        let weight = match &self.weight {
-            Weight::Thin => Weight::Thin,
-            Weight::ExtraLight => Weight::ExtraLight,
-            Weight::Light => Weight::Light,
-            Weight::Normal => Weight::Normal,
-            Weight::Medium => Weight::Medium,
-            Weight::Semibold => Weight::Semibold,
-            Weight::Bold => Weight::Bold,
-            Weight::ExtraBold => Weight::ExtraBold,
-            Weight::Black => Weight::Black,
-        };
-
         let _ = self.inner.set(iced::Font {
-            weight,
+            weight: self.weight,
             ..iced::Font::with_name(name)
         });
     }
@@ -47,11 +36,12 @@ impl From<Font> for iced::Font {
 }
 
 pub fn set() {
-    UI_FONT.set("JetBrains Mono".to_string())
+    UI_FONT_MEDIUM.set("Inter".to_string());
+    UI_FONT_NORMAL.set("Inter".to_string());
 }
 
 pub fn load() -> Vec<Cow<'static, [u8]>> {
-    vec![include_bytes!("../fonts/JetBrainsMono-Medium.ttf")
+    vec![include_bytes!("../fonts/Inter-Medium.ttf")
         .as_slice()
         .into()]
 }
