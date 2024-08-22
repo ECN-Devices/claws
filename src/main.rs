@@ -1,18 +1,17 @@
 // Убираем консоль при старте приложения на windows
 #![windows_subsystem = "windows"]
 
-// use application::Editor; // Импортируем структуру приложения
+use application::{Lapa, Message}; // Импортируем структуру приложения
 use fonts::{load, set, UI_FONT_MEDIUM}; // Загружаем шрифты
 use iced::{
     window::{self, icon},
     Pixels, Size,
 };
 use image::ImageFormat;
-use tabs::TabBarExample;
 
 mod application; // Импортируем модуль приложения
+mod condition; // Импортируем модуль состояния
 mod fonts; // Импортируем модуль шрифтов
-mod tabs; // Импортируем модуль вкладок
 
 static WINDOW_ICON: &[u8] = include_bytes!("../icons/lapa.ico");
 
@@ -47,13 +46,9 @@ fn main() -> iced::Result {
         ..window::Settings::default()
     };
 
-    iced::application(
-        TabBarExample::title,
-        TabBarExample::update,
-        TabBarExample::view,
-    )
-    .settings(iced_settings)
-    .window(window_settings)
-    .theme(TabBarExample::theme)
-    .run()
+    iced::application(Lapa::title, Lapa::update, Lapa::view)
+        .settings(iced_settings)
+        .window(window_settings)
+        .theme(Lapa::theme)
+        .run_with(Lapa::new)
 }

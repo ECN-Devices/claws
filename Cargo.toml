@@ -11,15 +11,18 @@ dark-light = "1.1.1"
 iced = { git = "https://github.com/iced-rs/iced.git", branch = "master", features = [
     "tokio",
     "image",
+    "wgpu", 
+    "tiny-skia", 
+    "auto-detect-theme"
 ] }
 iced_aw = { git = "https://github.com/iced-rs/iced_aw.git", branch = "main", default-features = false, features = [
-    "sidebar",
     "icons",
+    "card",
 ] }
 # iced_anim = { git = "https://github.com/Brady-Simon/iced_anim.git" }
 image = "0.25.2"
+# lilt = "0.6.1"
 tokio = { version = "1.39.2", features = ["fs"] }
-tracing = "0.1.40"
 
 [profile.dev]
 opt-level = 0
