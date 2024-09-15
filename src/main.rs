@@ -1,17 +1,18 @@
 // Убираем консоль при старте приложения на windows
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 
-use application::{Lapa, Message}; // Импортируем структуру приложения
+use application::Lapa; // Импортируем структуру приложения
 use fonts::{load, set, UI_FONT_MEDIUM}; // Загружаем шрифты
 use iced::{
     window::{self, icon},
     Pixels, Size,
 };
-use image::ImageFormat;
 
 mod application; // Импортируем модуль приложения
-mod condition; // Импортируем модуль состояния
+mod configuration;
 mod fonts; // Импортируем модуль шрифтов
+mod screens; // Импортируем модуль состояния
+mod tests;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../icons/lapa.ico");
 
@@ -19,15 +20,7 @@ fn main() -> iced::Result {
     // Даем шрифтам имена
     set();
 
-    let window_icon = match image::load_from_memory_with_format(WINDOW_ICON, ImageFormat::Ico)
-        .map(|i| (i.to_rgba8().into_raw(), i.width(), i.height()))
-        .map_err(anyhow::Error::new)
-        .and_then(|(i, width, height)| {
-            icon::from_rgba(i, width, height).map_err(anyhow::Error::new)
-        }) {
-        Ok(icon) => icon,
-        Err(_e) => todo!(),
-    };
+    let icon = icon::from_file_data(WINDOW_ICON, None);
 
     let iced_settings = iced::Settings {
         default_text_size: Pixels::from(18),
@@ -42,7 +35,7 @@ fn main() -> iced::Result {
         min_size: Some(Size::new(600., 600.)),
         resizable: true,
         exit_on_close_request: true,
-        icon: Some(window_icon),
+        icon: icon.ok(),
         ..window::Settings::default()
     };
 
