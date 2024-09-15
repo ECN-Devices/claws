@@ -5,27 +5,6 @@ use tokio::{
     io::{AsyncWriteExt, BufWriter},
 };
 
-#[derive(Serialize)]
-struct Config {
-    version: f32,
-    button: Button,
-}
-
-#[derive(Serialize)]
-struct Button {
-    btn1: String,
-    btn2: String,
-    dpad: DPad,
-}
-
-#[derive(Serialize)]
-struct DPad {
-    up: char,
-    left: char,
-    right: char,
-    down: char,
-}
-
 pub async fn get_config_dir() -> PathBuf {
     let config_dir = match OS {
         "linux" => dirs::config_dir()
@@ -67,6 +46,27 @@ pub async fn create_config_file() {
             println!("Файл конфигурации создан.");
         }
     }
+}
+
+#[derive(Serialize)]
+struct Config {
+    version: f32,
+    button: Button,
+}
+
+#[derive(Serialize)]
+struct Button {
+    btn1: String,
+    btn2: String,
+    dpad: DPad,
+}
+
+#[derive(Serialize)]
+struct DPad {
+    up: char,
+    left: char,
+    right: char,
+    down: char,
 }
 
 pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
