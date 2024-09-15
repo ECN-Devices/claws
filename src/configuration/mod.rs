@@ -1,5 +1,30 @@
+use serde::Serialize;
 use std::{env::consts::OS, path::PathBuf};
-use tokio::fs::{self, File};
+use tokio::{
+    fs::{self, File, OpenOptions},
+    io::{AsyncWriteExt, BufWriter},
+};
+
+#[derive(Serialize)]
+struct Config {
+    version: f32,
+    button: Button,
+}
+
+#[derive(Serialize)]
+struct Button {
+    btn1: String,
+    btn2: String,
+    dpad: DPad,
+}
+
+#[derive(Serialize)]
+struct DPad {
+    up: char,
+    left: char,
+    right: char,
+    down: char,
+}
 
 pub async fn get_config_dir() -> PathBuf {
     let config_dir = match OS {
@@ -44,13 +69,37 @@ pub async fn create_config_file() {
     }
 }
 
-// fn get_config_file_path() -> String {
-//     #[cfg(debug_assertions)]
-//     return format!("{}/configurations_debug.json", get_config_dir());
+pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
+    let config_toml = Config {
+        version: 1.0,
+        button: Button {
+            btn1: "Esc".to_string(),
+            btn2: "W+2".to_string(),
+            dpad: DPad {
+                up: 'w',
+                left: 'a',
+                right: 'd',
+                down: 's',
+            },
+        },
+    };
 
-//     #[cfg(not(debug_assertions))]
-//     return format!("{}/configurations.json", get_config_dir());
-// }
+    let toml = toml::to_string(&config_toml).unwrap();
+
+    let config_file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(file_path)
+        .await?;
+    let mut buffer = BufWriter::new(config_file);
+
+    buffer.write_all(toml.as_bytes()).await?;
+    buffer.flush().await?;
+    Ok(())
+}
+
+pub async fn check_config_file() {}
 
 pub async fn command_to_string(array: &[i16; 9], len: usize) -> String {
     let mut command_string = String::new();

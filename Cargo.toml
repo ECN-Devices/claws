@@ -17,7 +17,7 @@ iced = { git = "https://github.com/iced-rs/iced.git", version = "0.13.0-dev", fe
 # ] }
 image = "0.25.2"
 serialport = { version = "4.5.0", features = ["serde"] }
-tokio = { version = "1.39.2", features = ["fs"] }
+tokio = { version = "1.39.2", features = ["fs", "io-util"] }
 lilt = "0.7.0"
 dirs = "5.0.1"
 toml = { version = "0.8.19", features = ["parse", "display"] }

@@ -29,6 +29,7 @@ pub fn get_screen_content(lapa: &Lapa) -> Element<'_, Message, Theme, Renderer> 
                     create_keypad_button("BCDC".to_string(), Message::ButtonConfigDirCreate),
                     create_keypad_button("BCFP".to_string(), Message::ButtonConfigFilePrint),
                     create_keypad_button("BCFC".to_string(), Message::ButtonConfigFileCreate),
+                    create_keypad_button("BTest".to_string(), Message::ButtonTest),
                 ]
                 .spacing(10),
             );

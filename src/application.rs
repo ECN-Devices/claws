@@ -4,10 +4,13 @@ use iced::{
     Length::{self, Fill},
     Task, Theme,
 };
+use tokio::runtime::Builder;
 
 // Импортируем шрифт UI_FONT_NORMAL из модуля fonts
 use crate::{
-    configuration::{create_config_dir, create_config_file, get_config_dir, get_config_file},
+    configuration::{
+        create_config_dir, create_config_file, get_config_dir, get_config_file, update_config_file,
+    },
     screens::{self, Screen},
 };
 
@@ -26,11 +29,14 @@ pub enum Message {
     ButtonConfigDirCreate,
     ButtonConfigFilePrint,
     ButtonConfigFileCreate,
+    ButtonTest,
 }
 
 impl Lapa {
     pub fn new() -> (Self, Task<Message>) {
         let initial_screen = Screen::Profile;
+
+        let runtime = Builder::new_multi_thread().enable_all().build().unwrap();
 
         (
             Self {
@@ -57,7 +63,7 @@ impl Lapa {
             }
             Message::ButtonClicked => println!("Кнопка нажата"),
             Message::ButtonConfigDirPrint => {
-                let config_dir = tokio::runtime::Builder::new_current_thread()
+                let config_dir = Builder::new_current_thread()
                     .enable_all()
                     .build()
                     .unwrap()
@@ -66,7 +72,7 @@ impl Lapa {
                 println!("{:#?}", config_dir)
             }
             Message::ButtonConfigDirCreate => {
-                let config_dir = tokio::runtime::Builder::new_current_thread()
+                let config_dir = Builder::new_current_thread()
                     .enable_all()
                     .build()
                     .unwrap()
@@ -75,7 +81,7 @@ impl Lapa {
                 println!("{:#?}", config_dir)
             }
             Message::ButtonConfigFilePrint => {
-                let config_file = tokio::runtime::Builder::new_current_thread()
+                let config_file = Builder::new_current_thread()
                     .enable_all()
                     .build()
                     .unwrap()
@@ -84,11 +90,19 @@ impl Lapa {
                 println!("{:#?}", config_file)
             }
             Message::ButtonConfigFileCreate => {
-                let config_file = tokio::runtime::Builder::new_current_thread()
+                let config_file = Builder::new_current_thread()
                     .enable_all()
                     .build()
                     .unwrap()
                     .block_on(create_config_file());
+
+                println!("{:#?}", config_file)
+            }
+            Message::ButtonTest => {
+                let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+
+                let config_file =
+                    runtime.block_on(async { update_config_file(get_config_file().await).await });
 
                 println!("{:#?}", config_file)
             }
