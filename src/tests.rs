@@ -5,38 +5,14 @@ mod test_command_to_string {
 
     #[test]
     fn positive_numbers() {
-        let array: [i16; 9] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
+        let array: [u16; 9] = [11, 0, 10, 0, 100, 0, 4, 0, 0];
         let result = Builder::new_current_thread()
             .enable_all()
             .build()
             .unwrap()
-            .block_on(command_to_string(&array, array.len()));
+            .block_on(command_to_string(&array));
 
-        assert_eq!(result, "11,0,0,0,0,0,0,0,0;")
-    }
-
-    #[test]
-    fn negative_numbers() {
-        let array: [i16; 9] = [-11, -1, -1, -1, -1, -1, -1, -1, -1];
-        let result = Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(command_to_string(&array, array.len()));
-
-        assert_eq!(result, "-11,-1,-1,-1,-1,-1,-1,-1,-1;")
-    }
-
-    #[test]
-    fn mixed_numbers() {
-        let array: [i16; 9] = [-11, 0, -1, 0, -1, 0, -1, 0, -1];
-        let result = Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(command_to_string(&array, array.len()));
-
-        assert_eq!(result, "-11,0,-1,0,-1,0,-1,0,-1;")
+        assert_eq!(result, "11,0,10,0,100,0,4,0,0;")
     }
 }
 
@@ -79,13 +55,13 @@ mod test_config_dir {
         assert_eq!(config_file_path.display().to_string(), result)
     }
 
-    #[test]
+    // #[test]
     fn test_create_config_dir_linux() {
         todo!()
     }
 
     #[cfg(windows)]
-    #[test]
+    // #[test]
     fn test_create_config_dir_windows() {
         todo!()
     }

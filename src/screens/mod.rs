@@ -1,7 +1,9 @@
 use iced::{
-    widget::{button, column, container, row, text, Button},
+    widget::{button, column, container, row, text, Button, Column, Text},
     Alignment::Center,
-    Element, Length, Renderer, Theme,
+    Element,
+    Length::{self, Shrink},
+    Renderer, Theme,
 };
 
 use crate::application::{Lapa, Message};
@@ -25,11 +27,7 @@ pub fn get_screen_content(lapa: &Lapa) -> Element<'_, Message, Theme, Renderer> 
             let buttons = container(
                 row![
                     create_keypad_button("btn1".to_string(), Message::ButtonClicked),
-                    create_keypad_button("BCDP".to_string(), Message::ButtonConfigDirPrint),
-                    create_keypad_button("BCDC".to_string(), Message::ButtonConfigDirCreate),
-                    create_keypad_button("BCFP".to_string(), Message::ButtonConfigFilePrint),
-                    create_keypad_button("BCFC".to_string(), Message::ButtonConfigFileCreate),
-                    create_keypad_button("BTest".to_string(), Message::ButtonTest),
+                    create_keypad_button("UpdateConfigFile".to_string(), Message::UpdateConfigFile),
                 ]
                 .spacing(10),
             );
@@ -64,6 +62,8 @@ pub fn get_screen_content(lapa: &Lapa) -> Element<'_, Message, Theme, Renderer> 
 fn create_keypad_button<'a>(button_text: String, on_press: Message) -> Button<'a, Message> {
     button(text(button_text).align_x(Center).align_y(Center))
         .on_press(on_press)
-        .height(100)
-        .width(80)
+        .height(Shrink)
+        .width(Shrink)
+    // .height(100)
+    // .width(80)
 }

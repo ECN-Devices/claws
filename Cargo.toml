@@ -10,6 +10,7 @@ iced = { git = "https://github.com/iced-rs/iced.git", version = "0.13.0-dev", fe
     "tokio",
     "image",
     "svg",
+    "advanced",
 ] }
 # iced_aw = { git = "https://github.com/iced-rs/iced_aw.git", branch = "main", default-features = false, features = [
 #     "icons",
@@ -23,6 +24,9 @@ dirs = "5.0.1"
 toml = { version = "0.8.19", features = ["parse", "display"] }
 serde = { version = "1.0.210", features = ["derive"] }
 whoami = "1.5.2"
+log = "0.4.22"
+env_logger = "0.11.5"
+toml_edit = { version = "0.22.21", features = ["serde"] }
 
 [profile.dev]
 opt-level = 0

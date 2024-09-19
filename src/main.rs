@@ -17,6 +17,8 @@ mod tests;
 static WINDOW_ICON: &[u8] = include_bytes!("../icons/lapa.ico");
 
 fn main() -> iced::Result {
+    env_logger::init();
+
     // Даем шрифтам имена
     set();
 
