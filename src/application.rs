@@ -1,5 +1,4 @@
 use iced::{
-    alignment::Vertical::Bottom,
     widget::{column, container, row, svg, tooltip, Button, Tooltip},
     Alignment, Element,
     Length::{self, Fill},

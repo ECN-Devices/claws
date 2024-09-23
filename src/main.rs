@@ -1,8 +1,8 @@
 // Убираем консоль при старте приложения на windows
 // #![windows_subsystem = "windows"]
 
-use application::Lapa; // Импортируем структуру приложения
-use fonts::{load, set, UI_FONT_MEDIUM}; // Загружаем шрифты
+use application::Lapa;
+use fonts::{load, set, UI_FONT_MEDIUM};
 use iced::{
     window::{self, icon},
     Pixels, Size,
