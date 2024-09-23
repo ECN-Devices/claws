@@ -8,7 +8,7 @@ use tokio::{
 
 const MAX_PROFILE_NAME: usize = 15;
 const MAX_KEYVALUE: usize = 6;
-const MAX_SWITCH_PINS: usize = 4;
+const MAX_SWITCH_COUNT: usize = 4;
 
 pub async fn get_config_dir() -> PathBuf {
     let config_dir = match OS {
@@ -80,14 +80,14 @@ pub async fn check_config_file() {
 #[derive(Debug, Serialize)]
 struct Profile {
     name: String,
-    switch_key_value: [[Button; MAX_KEYVALUE]; MAX_SWITCH_PINS],
+    buttons: [[u16; MAX_KEYVALUE]; MAX_SWITCH_COUNT],
     joystick_key_value: [u16; 4],
 }
 
-#[derive(Clone, Copy, Debug, Serialize)]
-struct Button {
-    btn: [u16; MAX_KEYVALUE],
-}
+// #[derive(Clone, Copy, Debug, Serialize)]
+// struct Button {
+//     btn: [u16; MAX_KEYVALUE],
+// }
 
 // #[derive(Serialize)]
 // struct DPad {
@@ -101,19 +101,19 @@ impl Default for Profile {
     fn default() -> Self {
         Profile {
             name: "".to_string(),
-            switch_key_value: [[Button::default(); MAX_KEYVALUE]; MAX_SWITCH_PINS],
+            buttons: [[0; MAX_KEYVALUE]; MAX_SWITCH_COUNT],
             joystick_key_value: [0; 4],
         }
     }
 }
 
-impl Default for Button {
-    fn default() -> Self {
-        Button {
-            btn: [0; MAX_KEYVALUE],
-        }
-    }
-}
+// impl Default for Button {
+//     fn default() -> Self {
+//         Button {
+//             btn: [0; MAX_KEYVALUE],
+//         }
+//     }
+// }
 
 pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
     let config_toml = Profile {
@@ -122,10 +122,7 @@ pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
 
     println!("{:#?}", config_toml);
 
-    let toml = match toml::to_string_pretty(&config_toml) {
-        Ok(file) => file,
-        Err(_) => todo!(),
-    };
+    let toml = toml::to_string(&config_toml).unwrap();
 
     let config_file = OpenOptions::new()
         .read(true)
@@ -167,12 +164,12 @@ pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
 
 pub async fn command_to_string(array: &[u16; 9]) -> String {
     let mut command_string = String::new();
-    let len: usize = 9;
+    const ARRAY_LEN: usize = 9;
 
-    for (i, &value) in array.iter().take(len).enumerate() {
+    for (i, &value) in array.iter().take(ARRAY_LEN).enumerate() {
         command_string.push_str(&value.to_string());
 
-        if i + 1 != len {
+        if i + 1 != ARRAY_LEN {
             command_string.push(',')
         } else {
             command_string.push(';')
