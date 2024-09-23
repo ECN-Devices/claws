@@ -6,7 +6,6 @@ use iced::{
 };
 use tokio::runtime::Builder;
 
-// Импортируем шрифт UI_FONT_NORMAL из модуля fonts
 use crate::{
     configuration::{
         check_config_file, create_config_dir, create_config_file, get_config_dir, get_config_file,
@@ -15,13 +14,13 @@ use crate::{
     screens::{self, Screen},
 };
 
-// Определяем структуру приложения
+// Определение структуры приложения
 #[derive(Default, Clone)]
 pub struct Lapa {
     pub screen: Screen,
 }
 
-// Определяем возможные действий в приложении
+// Определение возможных действий в приложении
 #[derive(Debug, Clone)]
 pub enum Message {
     ChangeScreen(Screen),
@@ -31,8 +30,7 @@ pub enum Message {
 
 impl Lapa {
     pub fn new() -> (Self, Task<Message>) {
-        let initial_screen = Screen::Profile;
-
+        let initial_screen = Screen::Profile; // Установка стартового экрана
         (
             Self {
                 screen: initial_screen,
@@ -41,13 +39,16 @@ impl Lapa {
         )
     }
 
+    // Определение названия приложения
     pub fn title(&self) -> String {
         String::from("Lapa")
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
+            // Обработка сообщения Message::ChangeScreen
             Message::ChangeScreen(new_screen) => {
+                // Определение текущего экран
                 self.screen = new_screen.clone();
 
                 match new_screen {
@@ -56,15 +57,22 @@ impl Lapa {
                     Screen::Updater => println!("change screen to Updater"),
                 }
             }
+            // Обработка сообщения Message::ButtonClicked
             Message::ButtonClicked => println!("Кнопка нажата"),
+            // Обработка сообщения Message::UpdateConfigFile
             Message::UpdateConfigFile => {
+                // Создание runtime для асинхронных операций
                 let runtime = Builder::new_current_thread().enable_all().build().unwrap();
 
+                // Асинхронная операция обновления конфигурационного файла
                 let config_file = runtime.block_on(async {
+                    // Проверка наличия конфигурационного файла
                     check_config_file().await;
+                    // Обновление конфигурационного файла
                     update_config_file(get_config_file().await).await
                 });
 
+                // Вывод обновленного конфигурационного файла
                 println!("{:#?}", config_file)
             }
         }
