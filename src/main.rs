@@ -17,33 +17,38 @@ mod tests;
 static WINDOW_ICON: &[u8] = include_bytes!("../icons/lapa.ico");
 
 fn main() -> iced::Result {
+    // Инициализация логгера env_logger
     env_logger::init();
 
-    // Даем шрифтам имена
+    // Загрузка шрифтов
     set();
 
+    // Импорт иконки приложения из файла
     let icon = icon::from_file_data(WINDOW_ICON, None);
 
+    // Создание настроек приложения iced
     let iced_settings = iced::Settings {
-        default_text_size: Pixels::from(18),
-        default_font: UI_FONT_MEDIUM.clone().into(),
-        fonts: load(),
-        antialiasing: true,
+        default_text_size: Pixels::from(18), // Установка размера шрифта по умолчанию
+        default_font: UI_FONT_MEDIUM.clone().into(), // Установка шрифта по умолчанию
+        fonts: load(),                       // Загрузка шрифтов
+        antialiasing: true,                  // Включение сглаживания
         ..iced::Settings::default()
     };
 
+    // Создание настроек окна
     let window_settings = window::Settings {
-        size: Size::new(800., 600.),
-        min_size: Some(Size::new(600., 600.)),
-        resizable: true,
-        exit_on_close_request: true,
-        icon: icon.ok(),
+        size: Size::new(800., 600.),           // Установка размера окна
+        min_size: Some(Size::new(600., 600.)), // Установка минимального размера окна
+        resizable: true,                       // Включение масштабируемости приложения
+        exit_on_close_request: true,           // Включение запроса выхода
+        icon: icon.ok(),                       // Установка иконки приложения
         ..window::Settings::default()
     };
 
+    // Создание приложения iced с указанными настройками
     iced::application(Lapa::title, Lapa::update, Lapa::view)
-        .settings(iced_settings)
-        .window(window_settings)
-        .theme(Lapa::theme)
-        .run_with(Lapa::new)
+        .settings(iced_settings) // Установка настроек приложения
+        .window(window_settings) // Установка настроек окна
+        .theme(Lapa::theme) // Установка темы приложения
+        .run_with(Lapa::new) // Запуск приложения с указанным стартовым состоянием
 }
