@@ -8,8 +8,9 @@ use tokio::runtime::Builder;
 
 use crate::{
     configuration::{
-        check_config_file, create_config_dir, create_config_file, get_config_dir, get_config_file,
-        update_config_file,
+        check_config_file, get_config_file,
+        port::{get_keypad_port, read_keypad_port, write_keypad_port},
+        update_config_file, ARRAY_LEN,
     },
     screens::{self, Screen},
 };
@@ -26,6 +27,8 @@ pub enum Message {
     ChangeScreen(Screen),
     ButtonClicked,
     UpdateConfigFile,
+    WriteAndReadPort,
+    ReadPort,
 }
 
 impl Lapa {
@@ -74,6 +77,23 @@ impl Lapa {
 
                 // Вывод обновленного конфигурационного файла
                 println!("{:#?}", config_file)
+            }
+            Message::WriteAndReadPort => {
+                let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+                let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
+
+                runtime.block_on(async {
+                    let keypad_port = get_keypad_port();
+                    write_keypad_port(keypad_port, write_data_array).await;
+                });
+            }
+            Message::ReadPort => {
+                let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+
+                runtime.block_on(async {
+                    let keypad_port = get_keypad_port();
+                    read_keypad_port(keypad_port).await
+                });
             }
         }
         Task::none()

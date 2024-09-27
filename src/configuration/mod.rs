@@ -9,6 +9,7 @@ use tokio::{
 const MAX_PROFILE_NAME: usize = 15;
 const MAX_KEYVALUE: usize = 6;
 const MAX_SWITCH_COUNT: usize = 4;
+pub mod port;
 
 pub async fn get_config_dir() -> PathBuf {
     let config_dir = match OS {
@@ -80,6 +81,7 @@ pub async fn check_config_file() {
 #[derive(Debug, Serialize)]
 struct Profile {
     name: String,
+    port: String,
     buttons: [[u16; MAX_KEYVALUE]; MAX_SWITCH_COUNT],
     joystick_key_value: [u16; 4],
 }
@@ -101,6 +103,7 @@ impl Default for Profile {
     fn default() -> Self {
         Profile {
             name: "".to_string(),
+            port: "/dev/ttyACM0".to_string(),
             buttons: [[0; MAX_KEYVALUE]; MAX_SWITCH_COUNT],
             joystick_key_value: [0; 4],
         }

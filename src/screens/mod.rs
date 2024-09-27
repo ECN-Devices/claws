@@ -28,6 +28,8 @@ pub fn get_screen_content(lapa: &Lapa) -> Element<'_, Message, Theme, Renderer> 
                 row![
                     create_keypad_button("btn1".to_string(), Message::ButtonClicked),
                     create_keypad_button("UpdateConfigFile".to_string(), Message::UpdateConfigFile),
+                    create_keypad_button("WriteAndReadPort".to_string(), Message::WriteAndReadPort),
+                    create_keypad_button("ReadPort".to_string(), Message::ReadPort)
                 ]
                 .spacing(10),
             );
