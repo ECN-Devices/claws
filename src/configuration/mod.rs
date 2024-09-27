@@ -9,6 +9,8 @@ use tokio::{
 const MAX_PROFILE_NAME: usize = 15;
 const MAX_KEYVALUE: usize = 6;
 const MAX_SWITCH_COUNT: usize = 4;
+pub const ARRAY_LEN: usize = 9;
+
 pub mod port;
 
 pub async fn get_config_dir() -> PathBuf {
@@ -123,7 +125,7 @@ pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
         ..Default::default()
     };
 
-    println!("{:#?}", config_toml);
+    // println!("{:#?}", config_toml);
 
     let toml = toml::to_string(&config_toml).unwrap();
 
@@ -167,7 +169,6 @@ pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
 
 pub async fn command_to_string(array: &[u16; 9]) -> String {
     let mut command_string = String::new();
-    const ARRAY_LEN: usize = 9;
 
     for (i, &value) in array.iter().take(ARRAY_LEN).enumerate() {
         command_string.push_str(&value.to_string());
