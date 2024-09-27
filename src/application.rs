@@ -114,9 +114,9 @@ impl Lapa {
 
     pub fn theme(&self) -> Theme {
         let theme = match dark_light::detect() {
-            dark_light::Mode::Dark => Theme::Nord,
-            dark_light::Mode::Light => Theme::Nord,
-            dark_light::Mode::Default => Theme::Nord,
+            dark_light::Mode::Dark => Theme::Dark,
+            dark_light::Mode::Light => Theme::Light,
+            dark_light::Mode::Default => Theme::Dark,
         };
 
         theme
