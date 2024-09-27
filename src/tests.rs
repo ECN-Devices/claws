@@ -5,16 +5,32 @@ mod test_command_to_string {
 
     #[test]
     fn positive_numbers() {
+        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+
         let array: [u16; 9] = [11, 0, 10, 0, 100, 0, 4, 0, 0];
-        let result = Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(command_to_string(&array));
+        let result = runtime.block_on(command_to_string(&array));
 
         assert_eq!(result, "11,0,10,0,100,0,4,0,0;")
     }
 }
+
+// #[cfg(test)]
+// mod test_get_keypad_port {
+//     use tokio::runtime::Builder;
+
+//     use crate::configuration::{command_to_string, ARRAY_LEN};
+
+//     #[test]
+//     fn keypad_port() {
+//         let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+
+//         runtime.block_on({
+//             let write_data_array: [u16; ARRAY_LEN] = [101, 0, 0, 0, 0, 0, 0, 0, 0];
+//             let write_data = command_to_string(&write_data_array).await;
+//             write_data
+//         })
+//     }
+// }
 
 #[cfg(test)]
 mod test_config_dir {
@@ -26,11 +42,9 @@ mod test_config_dir {
     fn test_get_config_dir_linux() {
         set_var("OS", "linux");
 
-        let config_file_path = Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(get_config_dir());
+        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+
+        let config_file_path = runtime.block_on(get_config_dir());
 
         let username = whoami::username();
         let result = format!("/home/{}/.config/Lapa", username);
@@ -42,12 +56,9 @@ mod test_config_dir {
     #[test]
     fn test_get_config_dir_windows() {
         set_var("OS", "windows");
+        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
 
-        let config_file_path = Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(get_config_dir());
+        let config_file_path = runtime.block_on(get_config_dir());
 
         let username = whoami::username();
         let result = format!("C:/Users/{}/Documents/Lapa", username);
@@ -76,12 +87,9 @@ mod test_config_file {
     #[test]
     fn test_get_config_file_linux() {
         set_var("OS", "linux");
+        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
 
-        let config_file_path = Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(get_config_file());
+        let config_file_path = runtime.block_on(get_config_file());
 
         let username = whoami::username();
         let result = format!("/home/{}/.config/Lapa/lapa.toml", username);
@@ -94,11 +102,9 @@ mod test_config_file {
     fn test_get_config_file_windows() {
         set_var("OS", "windows");
 
-        let config_file_path = Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(get_config_file());
+        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+
+        let config_file_path = runtime.block_on(get_config_file());
 
         let username = whoami::username();
         let result = format!("C:/Users/{}/Documents/Lapa/lapa.toml", username);
