@@ -8,10 +8,10 @@ use iced::{
     Pixels, Size,
 };
 
-mod application; // Импортируем модуль приложения
+mod application;
 mod configuration;
-mod fonts; // Импортируем модуль шрифтов
-mod screens; // Импортируем модуль состояния
+mod fonts;
+mod screens;
 mod tests;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../icons/lapa.ico");
