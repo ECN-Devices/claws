@@ -17,7 +17,7 @@ use crate::{
 
 // Определение структуры приложения
 #[derive(Default, Clone)]
-pub struct Lapa {
+pub struct Claws {
     pub screen: Screen,
 }
 
@@ -31,7 +31,7 @@ pub enum Message {
     ReadPort,
 }
 
-impl Lapa {
+impl Claws {
     pub fn new() -> (Self, Task<Message>) {
         let initial_screen = Screen::Profile; // Установка стартового экрана
         (

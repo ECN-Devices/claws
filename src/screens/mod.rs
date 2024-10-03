@@ -6,7 +6,7 @@ use iced::{
     Renderer, Theme,
 };
 
-use crate::application::{Lapa, Message};
+use crate::application::{Claws, Message};
 
 #[derive(Debug, Clone, Default)]
 pub enum Screen {
@@ -18,6 +18,8 @@ pub enum Screen {
 
 pub fn get_screen_content(lapa: &Lapa) -> Element<'_, Message, Theme, Renderer> {
     match lapa.screen {
+pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer> {
+    match claws.screen {
         Screen::Profile => {
             let screen_name = text("Профили")
                 .size(30)

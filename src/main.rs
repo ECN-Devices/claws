@@ -1,7 +1,7 @@
 // Убираем консоль при старте приложения на windows
 // #![windows_subsystem = "windows"]
 
-use application::Lapa;
+use application::Claws;
 use fonts::{load, set, UI_FONT_MEDIUM};
 use iced::{
     window::{self, icon},
@@ -46,9 +46,9 @@ fn main() -> iced::Result {
     };
 
     // Создание приложения iced с указанными настройками
-    iced::application(Lapa::title, Lapa::update, Lapa::view)
+    iced::application(Claws::title, Claws::update, Claws::view)
         .settings(iced_settings) // Установка настроек приложения
         .window(window_settings) // Установка настроек окна
-        .theme(Lapa::theme) // Установка темы приложения
-        .run_with(Lapa::new) // Запуск приложения с указанным стартовым состоянием
+        .theme(Claws::theme) // Установка темы приложения
+        .run_with(Claws::new) // Запуск приложения с указанным стартовым состоянием
 }
