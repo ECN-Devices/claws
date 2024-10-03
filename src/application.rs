@@ -59,9 +59,13 @@ impl Claws {
                     Screen::Settings => println!("change screen to Settings"),
                     Screen::Updater => println!("change screen to Updater"),
                 }
+                Task::none()
             }
             // Обработка сообщения Message::ButtonClicked
-            Message::ButtonClicked => println!("Кнопка нажата"),
+            Message::ButtonClicked => {
+                println!("Кнопка нажата");
+                Task::none()
+            }
             // Обработка сообщения Message::UpdateConfigFile
             Message::UpdateConfigFile => {
                 // Создание runtime для асинхронных операций
@@ -76,7 +80,8 @@ impl Claws {
                 });
 
                 // Вывод обновленного конфигурационного файла
-                println!("{:#?}", config_file)
+                println!("{:#?}", config_file);
+                Task::none()
             }
             Message::WriteAndReadPort => {
                 let runtime = Builder::new_current_thread().enable_all().build().unwrap();
@@ -86,6 +91,7 @@ impl Claws {
                     let keypad_port = get_keypad_port();
                     write_keypad_port(keypad_port, write_data_array).await;
                 });
+                Task::none()
             }
             Message::ReadPort => {
                 let runtime = Builder::new_current_thread().enable_all().build().unwrap();
@@ -94,9 +100,9 @@ impl Claws {
                     let keypad_port = get_keypad_port();
                     read_keypad_port(keypad_port).await
                 });
+                Task::none()
             }
         }
-        Task::none()
     }
 
     pub fn view(&self) -> Element<'_, Message> {
