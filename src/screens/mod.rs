@@ -6,7 +6,7 @@ use iced::{
     Renderer, Theme,
 };
 
-use crate::application::{Lapa, Message};
+use crate::application::{Claws, Message};
 
 #[derive(Debug, Clone, Default)]
 pub enum Screen {
@@ -16,10 +16,20 @@ pub enum Screen {
     Updater,
 }
 
-pub fn get_screen_content(lapa: &Lapa) -> Element<'_, Message, Theme, Renderer> {
-    match lapa.screen {
+impl Screen {
+    fn name(&self) -> String {
+        match self {
+            Screen::Profile => "Профили".to_string(),
+            Screen::Settings => "Настройки".to_string(),
+            Screen::Updater => "Обновление".to_string(),
+        }
+    }
+}
+
+pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer> {
+    match claws.screen {
         Screen::Profile => {
-            let screen_name = text("Профили")
+            let screen_name = text(claws.screen.name())
                 .size(30)
                 .width(Length::Fill)
                 .height(Length::Fixed(40.));
@@ -39,7 +49,7 @@ pub fn get_screen_content(lapa: &Lapa) -> Element<'_, Message, Theme, Renderer> 
                 .into()
         }
         Screen::Settings => {
-            let screen_name = text("Настройки")
+            let screen_name = text(claws.screen.name())
                 .size(30)
                 .width(Length::Fill)
                 .height(Length::Fill);
@@ -49,7 +59,7 @@ pub fn get_screen_content(lapa: &Lapa) -> Element<'_, Message, Theme, Renderer> 
                 .into()
         }
         Screen::Updater => {
-            let screen_name = text("Обновление")
+            let screen_name = text(claws.screen.name())
                 .size(30)
                 .width(Length::Fill)
                 .height(Length::Fill);
