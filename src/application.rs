@@ -58,6 +58,7 @@ impl Claws {
                     Screen::Profile => println!("change screen to Profile"),
                     Screen::Settings => println!("change screen to Settings"),
                     Screen::Updater => println!("change screen to Updater"),
+                    Screen::DebugTest => println!("change screen to DebugTest"),
                 }
                 Task::none()
             }
@@ -124,6 +125,12 @@ impl Claws {
                     "Обновление",
                     include_bytes!("../icons/updater.svg"),
                     Message::ChangeScreen(Screen::Updater)
+                ),
+                // DebugTest
+                create_button_with_svg_and_text(
+                    "Тест нововведений",
+                    include_bytes!("../icons/test.svg"),
+                    Message::ChangeScreen(Screen::DebugTest)
                 )
             ]
             .spacing(20)
