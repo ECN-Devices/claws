@@ -14,7 +14,7 @@ mod fonts;
 mod screens;
 mod tests;
 
-static WINDOW_ICON: &[u8] = include_bytes!("../icons/lapa.ico");
+static WINDOW_ICON: &[u8] = include_bytes!("../icons/claws.ico");
 
 fn main() -> iced::Result {
     // Инициализация логгера env_logger

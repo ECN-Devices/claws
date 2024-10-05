@@ -23,7 +23,7 @@ pub async fn write_keypad_port(port: String, write_data_array: [u16; ARRAY_LEN])
         .open()
         .expect("Failed to open port");
 
-    command.write(write_data.as_bytes()).expect("Write failed!");
+    command.write_all(write_data.as_bytes()).expect("Write failed!");
 
     read_keypad_port(port).await;
 }

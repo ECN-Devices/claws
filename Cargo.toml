@@ -1,5 +1,5 @@
 [package]
-name = "lapa-rs"
+name = "claws"
 version = "0.1.0"
 edition = "2021"
 authors = ["Yaroslav Malykh <fisuri@murena.io>"]

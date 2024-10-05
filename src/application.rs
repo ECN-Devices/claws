@@ -44,7 +44,7 @@ impl Claws {
 
     // Определение названия приложения
     pub fn title(&self) -> String {
-        String::from("Lapa")
+        String::from("Claws")
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -58,6 +58,7 @@ impl Claws {
                     Screen::Profile => println!("change screen to Profile"),
                     Screen::Settings => println!("change screen to Settings"),
                     Screen::Updater => println!("change screen to Updater"),
+                    Screen::DebugTest => println!("change screen to DebugTest"),
                 }
                 Task::none()
             }
@@ -124,6 +125,12 @@ impl Claws {
                     "Обновление",
                     include_bytes!("../icons/updater.svg"),
                     Message::ChangeScreen(Screen::Updater)
+                ),
+                // DebugTest
+                create_button_with_svg_and_text(
+                    "Тест нововведений",
+                    include_bytes!("../icons/test.svg"),
+                    Message::ChangeScreen(Screen::DebugTest)
                 )
             ]
             .spacing(20)
@@ -139,13 +146,11 @@ impl Claws {
     }
 
     pub fn theme(&self) -> Theme {
-        let theme = match dark_light::detect() {
+        match dark_light::detect() {
             dark_light::Mode::Dark => Theme::Dark,
             dark_light::Mode::Light => Theme::Light,
             dark_light::Mode::Default => Theme::Dark,
-        };
-
-        theme
+        }
     }
 }
 
