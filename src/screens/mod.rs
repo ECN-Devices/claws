@@ -14,6 +14,7 @@ pub enum Screen {
     Profile,
     Settings,
     Updater,
+    DebugTest,
 }
 
 impl Screen {
@@ -22,6 +23,7 @@ impl Screen {
             Screen::Profile => "Профили".to_string(),
             Screen::Settings => "Настройки".to_string(),
             Screen::Updater => "Обновление".to_string(),
+            Screen::DebugTest => "Тест нововведений".to_string(),
         }
     }
 }
@@ -37,9 +39,9 @@ pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer
             let buttons = container(
                 row![
                     create_keypad_button("btn1".to_string(), Message::ButtonClicked),
-                    create_keypad_button("UpdateConfigFile".to_string(), Message::UpdateConfigFile),
-                    create_keypad_button("WriteAndReadPort".to_string(), Message::WriteAndReadPort),
-                    create_keypad_button("ReadPort".to_string(), Message::ReadPort)
+                    create_keypad_button("btn2".to_string(), Message::ButtonClicked),
+                    create_keypad_button("btn3".to_string(), Message::ButtonClicked),
+                    create_keypad_button("btn4".to_string(), Message::ButtonClicked),
                 ]
                 .spacing(10),
             );
@@ -65,6 +67,25 @@ pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer
                 .height(Length::Fill);
 
             container(column![screen_name].spacing(10))
+                .padding(10)
+                .into()
+        }
+        Screen::DebugTest => {
+            let screen_name = text(claws.screen.name())
+                .size(30)
+                .width(Length::Fill)
+                .height(Length::Fixed(40.));
+
+            let buttons = container(
+                row![
+                    create_keypad_button("UpdateConfigFile".to_string(), Message::UpdateConfigFile),
+                    create_keypad_button("WriteAndReadPort".to_string(), Message::WriteAndReadPort),
+                    create_keypad_button("ReadPort".to_string(), Message::ReadPort)
+                ]
+                .spacing(10),
+            );
+
+            container(column![screen_name, buttons].spacing(10))
                 .padding(10)
                 .into()
         }
