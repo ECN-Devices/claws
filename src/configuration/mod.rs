@@ -14,7 +14,7 @@ pub const ARRAY_LEN: usize = 9;
 pub mod port;
 
 pub async fn get_config_dir() -> PathBuf {
-    let config_dir = match OS {
+    match OS {
         "linux" => dirs::document_dir()
             .expect("Не могу найти папку Документы")
             .join("Lapa"),
@@ -22,9 +22,7 @@ pub async fn get_config_dir() -> PathBuf {
             .expect("Не могу найти папку Документы")
             .join("Lapa"),
         _ => panic!("Система не поддерживается: {}.", OS),
-    };
-
-    config_dir
+    }
 }
 
 // pub async fn get_config_dir() -> PathBuf {
