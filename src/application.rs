@@ -44,7 +44,7 @@ impl Claws {
 
     // Определение названия приложения
     pub fn title(&self) -> String {
-        String::from("Lapa")
+        String::from("Claws")
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {

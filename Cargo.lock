@@ -631,6 +631,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
+name = "claws"
+version = "0.1.0"
+dependencies = [
+ "dark-light",
+ "dirs 5.0.1",
+ "env_logger",
+ "iced",
+ "image 0.25.2",
+ "log",
+ "serde",
+ "serialport",
+ "tokio",
+ "toml",
+ "whoami",
+]
+
+[[package]]
 name = "clipboard-win"
 version = "5.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2045,23 +2062,6 @@ checksum = "89234b2cc610a7dd927ebde6b41dd1a5d4214cffaef4cf1fb2195d592f92518f"
 dependencies = [
  "arrayvec",
  "smallvec",
-]
-
-[[package]]
-name = "lapa-rs"
-version = "0.1.0"
-dependencies = [
- "dark-light",
- "dirs 5.0.1",
- "env_logger",
- "iced",
- "image 0.25.2",
- "log",
- "serde",
- "serialport",
- "tokio",
- "toml",
- "whoami",
 ]
 
 [[package]]
