@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use super::{command_to_string, ARRAY_LEN};
+use super::{command::command_to_string, ARRAY_LEN};
 
 pub fn get_keypad_port() -> String {
     // Порт Linux /dev/ttyACM0
@@ -23,7 +23,9 @@ pub async fn write_keypad_port(port: String, write_data_array: [u16; ARRAY_LEN])
         .open()
         .expect("Failed to open port");
 
-    command.write_all(write_data.as_bytes()).expect("Write failed!");
+    command
+        .write_all(write_data.as_bytes())
+        .expect("Write failed!");
 
     read_keypad_port(port).await;
 }
