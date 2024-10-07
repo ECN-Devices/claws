@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod test_config_dir {
-    use crate::configuration::{create_config_dir, get_config_dir};
     use std::env::set_var;
     use tokio::runtime::Builder;
+
+    use crate::configuration::config::get_config_dir;
 
     #[test]
     fn test_get_config_dir_linux() {
@@ -46,9 +47,11 @@ mod test_config_dir {
 
 #[cfg(test)]
 mod test_config_file {
-    use crate::configuration::{create_config_file, get_config_file};
+
     use std::env::set_var;
     use tokio::runtime::Builder;
+
+    use crate::configuration::config::get_config_file;
 
     #[test]
     fn test_get_config_file_linux() {

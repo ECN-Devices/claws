@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod test_command_to_string {
-    use crate::configuration::command_to_string;
     use tokio::runtime::Builder;
+
+    use crate::configuration::command::command_to_string;
 
     #[test]
     fn positive_numbers() {
