@@ -8,9 +8,9 @@ use tokio::runtime::Builder;
 
 use crate::{
     configuration::{
-        check_config_file, get_config_file,
+        config::{check_config_file, get_config_file, update_config_file},
         port::{get_keypad_port, read_keypad_port, write_keypad_port},
-        update_config_file, ARRAY_LEN,
+        ARRAY_LEN,
     },
     screens::{self, Screen},
 };
