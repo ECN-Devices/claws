@@ -1,3 +1,5 @@
+use std::{rc::Rc, time::Duration};
+
 use iced::{
     widget::{column, container, row, svg, tooltip, Button, Tooltip},
     Alignment, Element,
@@ -5,6 +7,7 @@ use iced::{
     Task, Theme,
 };
 use tokio::runtime::Builder;
+use tokio_serial::SerialPort;
 
 use crate::{
     configuration::{
@@ -16,9 +19,23 @@ use crate::{
 };
 
 // Определение структуры приложения
-#[derive(Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct Claws {
     pub screen: Screen,
+    pub keypad: Keypad,
+}
+
+#[derive(Debug)]
+pub struct Keypad {
+    pub serial_port: Rc<Box<dyn SerialPort>>,
+}
+
+impl Clone for Keypad {
+    fn clone(&self) -> Self {
+        Keypad {
+            serial_port: self.serial_port.clone(),
+        }
+    }
 }
 
 // Определение возможных действий в приложении
@@ -27,16 +44,30 @@ pub enum Message {
     ChangeScreen(Screen),
     ButtonClicked,
     UpdateConfigFile,
-    WriteAndReadPort,
+    GetKeypadPort,
+    TaskGetKeypadPort(Vec<String>),
     ReadPort,
+    WritePort,
+    WriteAndReadPort,
+    TaskWriteAndReadPort(String),
 }
 
 impl Claws {
     pub fn new() -> (Self, Task<Message>) {
         let initial_screen = Screen::Profile; // Установка стартового экрана
+
+        let serial_port: Rc<Box<dyn SerialPort>> = tokio_serial::new("/dev/ttyACM0", 115_200)
+            .timeout(Duration::from_millis(10))
+            .open()
+            .expect("Failed to open port")
+            .into();
+
+        let keypad = Keypad { serial_port };
+
         (
             Self {
                 screen: initial_screen,
+                keypad,
             },
             Task::none(),
         )
@@ -84,25 +115,41 @@ impl Claws {
                 println!("{:#?}", config_file);
                 Task::none()
             }
-            Message::WriteAndReadPort => {
-                let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+            Message::GetKeypadPort => {
+                let keypad_port = get_keypad_port();
+                Task::perform(keypad_port, Message::TaskGetKeypadPort)
+            }
+            Message::TaskGetKeypadPort(_s) => Task::none(),
+            Message::WritePort => {
+                let serial_port = self.keypad.serial_port.try_clone();
                 let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
+                let write_port = write_keypad_port(serial_port, write_data_array);
 
-                runtime.block_on(async {
-                    let keypad_port = get_keypad_port();
-                    write_keypad_port(keypad_port, write_data_array).await;
-                });
-                Task::none()
+                Task::perform(write_port, Message::TaskWriteAndReadPort)
+                // Task::none()
             }
             Message::ReadPort => {
-                let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+                let serial_port = self.keypad.serial_port.try_clone();
+                let read_port = read_keypad_port(serial_port);
 
-                runtime.block_on(async {
-                    let keypad_port = get_keypad_port();
-                    read_keypad_port(keypad_port).await
-                });
+                Task::perform(read_port, Message::TaskWriteAndReadPort)
+                // Task::none()
+            }
+            Message::WriteAndReadPort => {
+                // let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
+                // let write_port =
+                //     write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array);
+                // let read_port = read_keypad_port(self.keypad.serial_port.try_clone());
+
+                // let write_and_read_port = {
+                //     write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array);
+                //     read_keypad_port(self.keypad.serial_port.try_clone())
+                // };
+
+                // Task::batch(write_and_read_port).map(Message::TaskWriteAndReadPort)
                 Task::none()
             }
+            Message::TaskWriteAndReadPort(_string) => Task::none(),
         }
     }
 
