@@ -79,8 +79,9 @@ pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer
             let buttons = container(
                 row![
                     create_keypad_button("UpdateConfigFile".to_string(), Message::UpdateConfigFile),
-                    create_keypad_button("WriteAndReadPort".to_string(), Message::WriteAndReadPort),
-                    create_keypad_button("ReadPort".to_string(), Message::ReadPort)
+                    create_keypad_button("WritePort".to_string(), Message::WritePort),
+                    create_keypad_button("ReadPort".to_string(), Message::ReadPort),
+                    create_keypad_button("GetKeypadPort".to_string(), Message::GetKeypadPort),
                 ]
                 .spacing(10),
             );
