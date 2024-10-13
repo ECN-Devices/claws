@@ -17,7 +17,6 @@ dark-light = "1.1.1"
 #     "card",
 # ] }
 image = "0.25.2"
-serialport = { version = "4.5.0", features = ["serde"] }
 tokio = { version = "1.39.2", features = ["full"] }
 # lilt = "0.7.0"
 dirs = "5.0.1"
