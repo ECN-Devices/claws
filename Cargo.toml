@@ -26,6 +26,7 @@ whoami = "1.5.2"
 log = "0.4.22"
 env_logger = "0.11.5"
 tokio-serial = { version = "5.4.4", features = ["bytes", "tokio-util"] }
+regex = "1.11.0"
 
 [profile.dev]
 opt-level = 0
