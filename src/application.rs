@@ -53,16 +53,17 @@ pub enum Message {
 
 impl Claws {
     pub fn new() -> (Self, Task<Message>) {
-        let initial_screen = Screen::Profile; // Установка стартового экрана
-
-        let serial_port: Rc<Box<dyn SerialPort>> = tokio_serial::new("/dev/ttyACM0", 115_200)
+        let initial_screen = Screen::default(); // Установка стартового экрана
+        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+        let port_name = runtime.block_on(async move { get_keypad_port().await });
+        let serial_port: Rc<Box<dyn SerialPort>> = tokio_serial::new(port_name, 115_200)
             .timeout(Duration::from_millis(10))
             .open()
             .expect("Failed to open port")
             .into();
 
         let keypad = Keypad { serial_port };
-
+        
         (
             Self {
                 screen: initial_screen,
