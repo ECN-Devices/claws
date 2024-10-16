@@ -136,20 +136,33 @@ impl Claws {
                 // Task::none()
             }
             Message::WriteAndReadPort => {
+                // let runtime = Builder::new_current_thread().enable_all().build().unwrap();
                 // let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
                 // let write_port =
                 //     write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array);
+
                 // let read_port = read_keypad_port(self.keypad.serial_port.try_clone());
 
-                // let write_and_read_port = {
-                //     write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array);
-                //     read_keypad_port(self.keypad.serial_port.try_clone())
+                // // let (write_port_result, read_port_result) = tokio::join!(write_port, read_port);
+
+                // // println!("{}", write)
+
+                // let write_and_read_port = async {
+                //     let _ =
+                //         write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array)
+                //             .await;
+                //     read_keypad_port(self.keypad.serial_port.try_clone()).await
                 // };
 
-                // Task::batch(write_and_read_port).map(Message::TaskWriteAndReadPort)
+                // runtime.block_on(async move { write_and_read_port.await });
+
+                // Task::batch(vec![write_port, read_port]).map(Message::TaskWriteAndReadPort)
                 Task::none()
             }
-            Message::TaskWriteAndReadPort(_string) => Task::none(),
+            Message::TaskWriteAndReadPort(_r) => Task::none(),
+            Message::PrintAny => {
+                Task::none()
+            }
         }
     }
 
