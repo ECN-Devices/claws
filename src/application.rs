@@ -114,11 +114,6 @@ impl Claws {
                 println!("{:#?}", config_file);
                 Task::none()
             }
-            Message::GetKeypadPort => {
-                let keypad_port = get_keypad_port();
-                Task::perform(keypad_port, Message::TaskGetKeypadPort)
-            }
-            Message::TaskGetKeypadPort(_s) => Task::none(),
             Message::WritePort => {
                 let serial_port = self.keypad.serial_port.try_clone();
                 let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
