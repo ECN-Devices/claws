@@ -44,12 +44,11 @@ pub enum Message {
     ChangeScreen(Screen),
     ButtonClicked,
     UpdateConfigFile,
-    GetKeypadPort,
-    TaskGetKeypadPort(Vec<String>),
     ReadPort,
     WritePort,
     WriteAndReadPort,
-    TaskWriteAndReadPort(String),
+    TaskWriteAndReadPort(Result<String, tokio_serial::Error>),
+    PrintAny,
 }
 
 impl Claws {
