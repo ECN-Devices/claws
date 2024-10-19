@@ -44,26 +44,26 @@ pub enum Message {
     ChangeScreen(Screen),
     ButtonClicked,
     UpdateConfigFile,
-    GetKeypadPort,
-    TaskGetKeypadPort(Vec<String>),
     ReadPort,
     WritePort,
     WriteAndReadPort,
-    TaskWriteAndReadPort(String),
+    TaskWriteAndReadPort(Result<String, tokio_serial::Error>),
+    PrintAny,
 }
 
 impl Claws {
     pub fn new() -> (Self, Task<Message>) {
-        let initial_screen = Screen::Profile; // Установка стартового экрана
-
-        let serial_port: Rc<Box<dyn SerialPort>> = tokio_serial::new("/dev/ttyACM0", 115_200)
+        let initial_screen = Screen::default(); // Установка стартового экрана
+        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+        let port_name = runtime.block_on(async move { get_keypad_port().await });
+        let serial_port: Rc<Box<dyn SerialPort>> = tokio_serial::new(port_name, 115_200)
             .timeout(Duration::from_millis(10))
             .open()
             .expect("Failed to open port")
             .into();
 
         let keypad = Keypad { serial_port };
-
+        
         (
             Self {
                 screen: initial_screen,
@@ -115,11 +115,6 @@ impl Claws {
                 println!("{:#?}", config_file);
                 Task::none()
             }
-            Message::GetKeypadPort => {
-                let keypad_port = get_keypad_port();
-                Task::perform(keypad_port, Message::TaskGetKeypadPort)
-            }
-            Message::TaskGetKeypadPort(_s) => Task::none(),
             Message::WritePort => {
                 let serial_port = self.keypad.serial_port.try_clone();
                 let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -136,20 +131,33 @@ impl Claws {
                 // Task::none()
             }
             Message::WriteAndReadPort => {
+                // let runtime = Builder::new_current_thread().enable_all().build().unwrap();
                 // let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
                 // let write_port =
                 //     write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array);
+
                 // let read_port = read_keypad_port(self.keypad.serial_port.try_clone());
 
-                // let write_and_read_port = {
-                //     write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array);
-                //     read_keypad_port(self.keypad.serial_port.try_clone())
+                // // let (write_port_result, read_port_result) = tokio::join!(write_port, read_port);
+
+                // // println!("{}", write)
+
+                // let write_and_read_port = async {
+                //     let _ =
+                //         write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array)
+                //             .await;
+                //     read_keypad_port(self.keypad.serial_port.try_clone()).await
                 // };
 
-                // Task::batch(write_and_read_port).map(Message::TaskWriteAndReadPort)
+                // runtime.block_on(async move { write_and_read_port.await });
+
+                // Task::batch(vec![write_port, read_port]).map(Message::TaskWriteAndReadPort)
                 Task::none()
             }
-            Message::TaskWriteAndReadPort(_string) => Task::none(),
+            Message::TaskWriteAndReadPort(_r) => Task::none(),
+            Message::PrintAny => {
+                Task::none()
+            }
         }
     }
 
