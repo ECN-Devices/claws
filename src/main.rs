@@ -28,11 +28,11 @@ fn main() -> iced::Result {
 
     // Создание настроек приложения iced
     let iced_settings = iced::Settings {
+        id: Some(String::from("Claws")),
         default_text_size: Pixels::from(18), // Установка размера шрифта по умолчанию
         default_font: UI_FONT_MEDIUM.clone().into(), // Установка шрифта по умолчанию
         fonts: load(),                       // Загрузка шрифтов
         antialiasing: true,                  // Включение сглаживания
-        ..iced::Settings::default()
     };
 
     // Создание настроек окна
