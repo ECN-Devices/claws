@@ -96,15 +96,8 @@ impl Claws {
         match message {
             // Обработка сообщения Message::ChangeScreen
             Message::ChangeScreen(new_screen) => {
-                // Определение текущего экран
                 self.screen = new_screen.clone();
-
-                match new_screen {
-                    Screen::Profile => println!("change screen to Profile"),
-                    Screen::Settings => println!("change screen to Settings"),
-                    Screen::Updater => println!("change screen to Updater"),
-                    Screen::DebugTest => println!("change screen to DebugTest"),
-                }
+                // Определение текущего экран
                 Task::none()
             }
             // Обработка сообщения Message::ButtonClicked
@@ -118,7 +111,7 @@ impl Claws {
                 let runtime = Builder::new_current_thread().enable_all().build().unwrap();
 
                 // Асинхронная операция обновления конфигурационного файла
-                let config_file = runtime.block_on(async {
+                let _ = runtime.block_on(async {
                     // Проверка наличия конфигурационного файла
                     check_config_file().await;
                     // Обновление конфигурационного файла
@@ -169,9 +162,7 @@ impl Claws {
                 Task::none()
             }
             Message::TaskWriteAndReadPort(_r) => Task::none(),
-            Message::PrintAny => {
-                Task::none()
-            }
+            Message::PrintAny => Task::none(),
         }
     }
 
@@ -200,7 +191,7 @@ impl Claws {
                     "Тест нововведений",
                     include_bytes!("../icons/test.svg"),
                     Message::ChangeScreen(Screen::DebugTest)
-                )
+                ),
             ]
             .spacing(20)
             .align_x(Alignment::Center),
