@@ -14,6 +14,7 @@ pub enum Screen {
     Profile,
     Settings,
     Updater,
+    ConnectedKeypadNotFound,
     DebugTest,
 }
 
@@ -23,6 +24,7 @@ impl Screen {
             Screen::Profile => "Профили".to_string(),
             Screen::Settings => "Настройки".to_string(),
             Screen::Updater => "Обновление".to_string(),
+            Screen::ConnectedKeypadNotFound => "Подключенный кеймпад не найден ".to_string(),
             Screen::DebugTest => "Тест нововведений".to_string(),
         }
     }
@@ -70,22 +72,31 @@ pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer
                 .padding(10)
                 .into()
         }
+        Screen::ConnectedKeypadNotFound => {
+            let text_on_screen = text(claws.screen.name())
+                .size(30)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center();
+
+            container(column![text_on_screen].spacing(10))
+                .padding(10)
+                .into()
+        }
         Screen::DebugTest => {
             let screen_name = text(claws.screen.name())
                 .size(30)
                 .width(Length::Fill)
                 .height(Length::Fixed(40.));
 
-            let buttons = container(
-                row![
-                    create_keypad_button("UpdateConfigFile".to_string(), Message::UpdateConfigFile),
-                    create_keypad_button("WritePort".to_string(), Message::WritePort),
-                    create_keypad_button("ReadPort".to_string(), Message::ReadPort),
-                    create_keypad_button("WriteAndReadPort".to_string(), Message::WriteAndReadPort),
-                    create_keypad_button("PrintAny".to_string(), Message::PrintAny),
-                ]
-                .spacing(10),
-            );
+            let buttons = container(column![row![
+                create_keypad_button("UpdateConfigFile".to_string(), Message::UpdateConfigFile),
+                create_keypad_button("WritePort".to_string(), Message::WritePort),
+                create_keypad_button("ReadPort".to_string(), Message::ReadPort),
+                create_keypad_button("WriteAndReadPort".to_string(), Message::WriteAndReadPort),
+                create_keypad_button("PrintAny".to_string(), Message::PrintAny),
+            ]
+            .spacing(10),]);
 
             container(column![screen_name, buttons].spacing(10))
                 .padding(10)
