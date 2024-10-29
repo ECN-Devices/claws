@@ -1,4 +1,4 @@
-use std::{rc::Rc, time::Duration};
+use std::{sync::Arc, time::Duration};
 
 use iced::{
     widget::{column, container, row, svg, tooltip, Button, Tooltip},
@@ -6,7 +6,7 @@ use iced::{
     Length::{self, Fill},
     Task, Theme,
 };
-use tokio::runtime::Builder;
+use tokio::{runtime::Builder, sync::Mutex};
 use tokio_serial::SerialPort;
 
 use crate::{
@@ -27,7 +27,7 @@ pub struct Claws {
 
 #[derive(Debug)]
 pub struct Keypad {
-    pub serial_port: Rc<Box<dyn SerialPort>>,
+    pub serial_port: Arc<Mutex<Box<dyn SerialPort>>>,
 }
 
 impl Clone for Keypad {
@@ -47,23 +47,37 @@ pub enum Message {
     ReadPort,
     WritePort,
     WriteAndReadPort,
-    TaskWriteAndReadPort(Result<String, tokio_serial::Error>),
     PrintAny,
+
+    TaskWriteAndReadPort(Result<String, tokio_serial::Error>),
 }
 
 impl Claws {
     pub fn new() -> (Self, Task<Message>) {
         let initial_screen = Screen::default(); // Установка стартового экрана
         let runtime = Builder::new_current_thread().enable_all().build().unwrap();
-        let port_name = runtime.block_on(async move { get_keypad_port().await });
-        let serial_port: Rc<Box<dyn SerialPort>> = tokio_serial::new(port_name, 115_200)
-            .timeout(Duration::from_millis(10))
-            .open()
-            .expect("Failed to open port")
-            .into();
+        let port_name = runtime.block_on(async { get_keypad_port().await });
+        // let serial_port: Rc<Box<dyn SerialPort>> = tokio_serial::new(port_name, 115_200)
+        //     .timeout(Duration::from_millis(10))
+        //     .open()
+        //     .expect("Failed to open port")
+        //     .into();
+
+        let serial_port: Arc<Mutex<Box<dyn SerialPort>>> = Arc::new(Mutex::new(
+            tokio_serial::new(port_name, 115_200)
+                .timeout(Duration::from_millis(10))
+                .open()
+                .expect("Failed to open port"),
+        ));
+
+        let _ = runtime.block_on(async {
+            let mut port = serial_port.lock().await; // Ожидаем получения блокировки
+
+            port.write_data_terminal_ready(true)
+        });
 
         let keypad = Keypad { serial_port };
-        
+
         (
             Self {
                 screen: initial_screen,
@@ -112,11 +126,11 @@ impl Claws {
                 });
 
                 // Вывод обновленного конфигурационного файла
-                println!("{:#?}", config_file);
+                //println!("{:#?}", config_file);
                 Task::none()
             }
             Message::WritePort => {
-                let serial_port = self.keypad.serial_port.try_clone();
+                let serial_port = self.keypad.serial_port.clone();
                 let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
                 let write_port = write_keypad_port(serial_port, write_data_array);
 
@@ -124,7 +138,7 @@ impl Claws {
                 // Task::none()
             }
             Message::ReadPort => {
-                let serial_port = self.keypad.serial_port.try_clone();
+                let serial_port = self.keypad.serial_port.clone();
                 let read_port = read_keypad_port(serial_port);
 
                 Task::perform(read_port, Message::TaskWriteAndReadPort)
