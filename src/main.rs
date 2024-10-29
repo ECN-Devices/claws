@@ -2,6 +2,7 @@
 // #![windows_subsystem = "windows"]
 
 use application::Claws;
+use dotenvy::dotenv;
 use fonts::{load, set, UI_FONT_MEDIUM};
 use iced::{
     window::{self, icon},
@@ -17,6 +18,7 @@ mod tests;
 static WINDOW_ICON: &[u8] = include_bytes!("../icons/claws.ico");
 
 fn main() -> iced::Result {
+    dotenv().expect("Failed to load .env file");
     // Инициализация логгера env_logger
     env_logger::init();
 
