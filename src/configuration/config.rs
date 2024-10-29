@@ -12,29 +12,20 @@ const MAX_SWITCH_COUNT: usize = 4;
 
 pub async fn get_config_dir() -> PathBuf {
     match OS {
-        "linux" => dirs::document_dir()
-            .expect("Не могу найти папку Документы")
-            .join("Lapa"),
+        "linux" => dirs::config_dir()
+            .expect("Не могу найти папку .config")
+            .join("Claws"),
         "windows" => dirs::document_dir()
             .expect("Не могу найти папку Документы")
-            .join("Lapa"),
+            .join("Claws"),
         _ => panic!("Система не поддерживается: {}.", OS),
     }
 }
 
-// pub async fn get_config_dir() -> PathBuf {
-//     let config_dir = match OS {
-//         "linux" => dirs::config_dir()
-//             .expect("Не могу найти папку .config")
-//             .join("Lapa"),
-//         "windows" => dirs::document_dir()
-//             .expect("Не могу найти папку Документы")
-//             .join("Lapa"),
-//         _ => panic!("Система не поддерживается: {}.", OS),
-//     };
-
-//     config_dir
-// }
+pub async fn get_config_file() -> PathBuf {
+    let config_file_path = get_config_dir().await;
+    config_file_path.join("claws.toml")
+}
 
 pub async fn check_config_file() {
     let config_dir_path = get_config_dir().await;
@@ -58,11 +49,6 @@ pub async fn check_config_file() {
             create_config_file().await;
         }
     };
-}
-
-pub async fn get_config_file() -> PathBuf {
-    let config_file_path = get_config_dir().await;
-    config_file_path.join("lapa.toml")
 }
 
 pub async fn create_config_dir() {
