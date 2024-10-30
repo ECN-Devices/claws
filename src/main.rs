@@ -1,8 +1,9 @@
 // Убираем консоль при старте приложения на windows
 // #![windows_subsystem = "windows"]
 
+use std::env;
+
 use application::Claws;
-use dotenvy::dotenv;
 use fonts::{load, set, UI_FONT_MEDIUM};
 use iced::{
     window::{self, icon},
@@ -16,9 +17,9 @@ mod screens;
 mod tests;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../icons/claws.ico");
-
 fn main() -> iced::Result {
-    dotenv().expect("Failed to load .env file");
+    env::set_var("RUST_LOG", "claws");
+
     // Инициализация логгера env_logger
     env_logger::init();
 
