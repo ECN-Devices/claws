@@ -47,7 +47,6 @@ async fn process_ports(ports: Vec<String>) -> String {
                 continue;
             }
         };
-        std::mem::drop(port)
     }
     result
 }
@@ -105,6 +104,8 @@ pub async fn write_keypad_port(
 
     port_lock.flush()?;
 
+    std::mem::drop(port_lock);
+
     debug!(
         "Write data: {}, bytes: {:?}",
         write_data,
@@ -128,11 +129,14 @@ pub async fn read_keypad_port(
             let buf = String::from_utf8(serial_buf).unwrap();
             let trimmed_buf = buf.trim_end_matches(|c: char| c.is_control()).to_string();
 
+            std::mem::drop(port_lock);
+
             debug!(
                 "Trimed data: {:?}, bytes: {:?}",
                 trimmed_buf,
                 trimmed_buf.as_bytes()
             );
+
             Ok(trimmed_buf)
         }
         Err(err) => {
