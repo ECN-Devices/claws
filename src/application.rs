@@ -59,17 +59,16 @@ impl Claws {
     pub fn new() -> (Self, Task<Message>) {
         let initial_screen = Screen::default(); // Установка стартового экрана
         let runtime = Builder::new_multi_thread().enable_all().build().unwrap();
-        let port_name = runtime.block_on(get_keypad_port());
-        let prln_port_name = port_name.clone();
-        //let prln_port_name = "COM3".to_string();
+        let port_name = runtime.block_on(get_keypad_port()).clone();
 
         debug!(
             "Port name: {:?}, bytes: {:?}",
-            prln_port_name,
-            prln_port_name.as_bytes()
+            port_name,
+            port_name.as_bytes()
         );
+
         let serial_port = Arc::new(Mutex::new(
-            serialport::new(prln_port_name, 115_200)
+            serialport::new(port_name, 115_200)
                 .timeout(Duration::from_millis(100))
                 .open()
                 .expect("Failed to open port"),

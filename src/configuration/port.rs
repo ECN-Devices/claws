@@ -21,7 +21,7 @@ async fn process_ports(ports: Vec<String>) -> String {
         // Открываем порт
         let port = match new(port_name, 115_200)
             .timeout(Duration::from_millis(10))
-            .open_native_async()
+            .open()
         {
             Ok(port) => Arc::new(Mutex::new(port)),
             Err(err) => {
