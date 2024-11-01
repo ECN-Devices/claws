@@ -24,7 +24,7 @@ impl Screen {
             Screen::Profile => "Профили".to_string(),
             Screen::Settings => "Настройки".to_string(),
             Screen::Updater => "Обновление".to_string(),
-            Screen::ConnectedKeypadNotFound => "Подключенный кеймпад не найден ".to_string(),
+            Screen::ConnectedKeypadNotFound => "Устройство не найдено".to_string(),
             Screen::DebugTest => "Тест нововведений".to_string(),
         }
     }
