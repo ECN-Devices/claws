@@ -69,7 +69,7 @@ impl Claws {
 
         let serial_port = Arc::new(Mutex::new(
             serialport::new(port_name, 115_200)
-                .timeout(Duration::from_millis(100))
+                .timeout(Duration::from_millis(10))
                 .open()
                 .expect("Failed to open port"),
         ));
