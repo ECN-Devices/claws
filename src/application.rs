@@ -8,8 +8,8 @@ use iced::{
 };
 use log::debug;
 
+use serialport::SerialPort;
 use tokio::{runtime::Builder, sync::Mutex};
-use tokio_serial::{SerialPortBuilderExt, SerialStream};
 
 use crate::{
     configuration::{
@@ -29,7 +29,7 @@ pub struct Claws {
 
 #[derive(Debug)]
 pub struct Keypad {
-    pub serial_port: Arc<Mutex<SerialStream>>,
+    pub serial_port: Arc<Mutex<Box<dyn SerialPort>>>,
 }
 
 impl Clone for Keypad {
@@ -51,8 +51,8 @@ pub enum Message {
     WriteAndReadPort,
     PrintAny,
 
-    TaskReadPort(Result<String, tokio_serial::Error>),
-    TaskWritePort(Result<(), tokio_serial::Error>),
+    TaskReadPort(Result<String, serialport::Error>),
+    TaskWritePort(Result<(), serialport::Error>),
 }
 
 impl Claws {
@@ -68,17 +68,12 @@ impl Claws {
             prln_port_name,
             prln_port_name.as_bytes()
         );
-        let serial_port: Arc<Mutex<SerialStream>> = Arc::new(Mutex::new(
-            tokio_serial::new(prln_port_name, 9600)
-                .timeout(Duration::from_millis(10))
-                .open_native_async()
+        let serial_port = Arc::new(Mutex::new(
+            serialport::new(prln_port_name, 115_200)
+                .timeout(Duration::from_millis(100))
+                .open()
                 .expect("Failed to open port"),
         ));
-        //debug!(
-        //    "Port name: {:?}, bytes: {:?}",
-        //    prln_port_name,
-        //    prln_port_name.as_bytes()
-        //);
 
         let keypad = Keypad { serial_port };
 
@@ -166,8 +161,8 @@ impl Claws {
                 Task::none()
             }
             Message::PrintAny => Task::none(),
-            Message::TaskReadPort(_) => Task::none(),
-            Message::TaskWritePort(_) => Task::none(),
+            Message::TaskReadPort(_r) => Task::none(),
+            Message::TaskWritePort(_r) => Task::none(),
         }
     }
 

@@ -1,12 +1,17 @@
-use std::{sync::Arc, time::Duration};
+use std::{
+    io::{Read, Write},
+    sync::Arc,
+    time::Duration,
+};
 
-use regex::Regex;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use serialport::{available_ports, new, SerialPort};
 use tokio::sync::Mutex;
-use tokio_serial::{available_ports, new, SerialPortBuilderExt, SerialStream};
 
 use super::{command::command_to_string, ARRAY_LEN};
 use log::{debug, error};
+
+#[cfg(target_os = "linux")]
+use regex::Regex;
 
 async fn process_ports(ports: Vec<String>) -> String {
     let mut result = String::new();
@@ -14,11 +19,11 @@ async fn process_ports(ports: Vec<String>) -> String {
     for port_name in ports.iter() {
         debug!("Port: {}; bytes: {:?}", port_name, port_name.as_bytes());
         // Открываем порт
-        let port = match new(port_name, 9600)
+        let port = match new(port_name, 115_200)
             .timeout(Duration::from_millis(10))
             .open_native_async()
         {
-            Ok(port) => Arc::new(Mutex::new(port)), // Оборачиваем в Arc и AsyncMutex
+            Ok(port) => Arc::new(Mutex::new(port)),
             Err(err) => {
                 error!("Ошибка открытия порта {}: {}", port_name, err);
                 continue;
@@ -42,6 +47,7 @@ async fn process_ports(ports: Vec<String>) -> String {
                 continue;
             }
         };
+        std::mem::drop(port)
     }
     result
 }
@@ -84,15 +90,20 @@ pub async fn get_keypad_port() -> String {
 }
 
 pub async fn write_keypad_port(
-    port: Arc<Mutex<SerialStream>>,
+    port: Arc<Mutex<Box<dyn SerialPort>>>,
     write_data_array: [u16; ARRAY_LEN],
-) -> Result<(), tokio_serial::Error> {
+) -> Result<(), serialport::Error> {
     let write_data = command_to_string(&write_data_array).await;
     let mut port_lock = port.lock().await; // Ожидаем получения блокировки
 
-    if let Err(e) = port_lock.write_all(write_data.as_bytes()).await {
+    #[cfg(target_os = "windows")]
+    let _ = port_lock.write_data_terminal_ready(true);
+
+    if let Err(e) = port_lock.write_all(write_data.as_bytes()) {
         error!("Failed to write to port: {}", e);
-    }; // Используем await для асинхронного вызова
+    };
+
+    port_lock.flush()?;
 
     debug!(
         "Write data: {}, bytes: {:?}",
@@ -104,22 +115,29 @@ pub async fn write_keypad_port(
 }
 
 pub async fn read_keypad_port(
-    port: Arc<Mutex<SerialStream>>,
-) -> Result<String, tokio_serial::Error> {
+    port: Arc<Mutex<Box<dyn SerialPort>>>,
+) -> Result<String, serialport::Error> {
     let mut serial_buf = vec![0; 256];
     let mut port_lock = port.lock().await;
 
-    match port_lock.read(serial_buf.as_mut_slice()).await {
-        Ok(_m) => {
+    #[cfg(target_os = "windows")]
+    let _ = port_lock.write_data_terminal_ready(true);
+
+    match port_lock.read(serial_buf.as_mut_slice()) {
+        Ok(_n) => {
             let buf = String::from_utf8(serial_buf).unwrap();
             let trimmed_buf = buf.trim_end_matches(|c: char| c.is_control()).to_string();
 
-            debug!("{:?}", trimmed_buf);
+            debug!(
+                "Trimed data: {:?}, bytes: {:?}",
+                trimmed_buf,
+                trimmed_buf.as_bytes()
+            );
             Ok(trimmed_buf)
         }
         Err(err) => {
             // eprintln!("Ошибка чтения из порта: {}", err);
-            Err(tokio_serial::Error::from(err))
+            Err(serialport::Error::from(err))
         }
     }
 }
