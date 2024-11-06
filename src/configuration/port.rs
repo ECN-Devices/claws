@@ -96,15 +96,15 @@ pub async fn write_keypad_port(
     let mut port_lock = port.lock().await; // Ожидаем получения блокировки
 
     #[cfg(target_os = "windows")]
-    let _ = port_lock.write_data_terminal_ready(true);
+    if let Err(e) = port_lock.write_data_terminal_ready(true) {
+        error!("Ошибка при установке DTR: {}", e);
+    }
 
     if let Err(e) = port_lock.write_all(write_data.as_bytes()) {
         error!("Failed to write to port: {}", e);
     };
 
     port_lock.flush()?;
-
-    std::mem::drop(port_lock);
 
     debug!(
         "Write data: {}, bytes: {:?}",
@@ -122,14 +122,14 @@ pub async fn read_keypad_port(
     let mut port_lock = port.lock().await;
 
     #[cfg(target_os = "windows")]
-    let _ = port_lock.write_data_terminal_ready(true);
+    if let Err(e) = port_lock.write_data_terminal_ready(true) {
+        error!("Ошибка при установке DTR: {}", e);
+    }
 
     match port_lock.read(serial_buf.as_mut_slice()) {
         Ok(_n) => {
             let buf = String::from_utf8(serial_buf).unwrap();
             let trimmed_buf = buf.trim_end_matches(|c: char| c.is_control()).to_string();
-
-            std::mem::drop(port_lock);
 
             debug!(
                 "Trimed data: {:?}, bytes: {:?}",
@@ -140,7 +140,7 @@ pub async fn read_keypad_port(
             Ok(trimmed_buf)
         }
         Err(err) => {
-            // eprintln!("Ошибка чтения из порта: {}", err);
+            error!("Ошибка чтения из порта: {}", err);
             Err(serialport::Error::from(err))
         }
     }
