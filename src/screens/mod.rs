@@ -1,12 +1,15 @@
+use iced::Alignment;
 use iced::{
     widget::{button, column, container, row, text, Button},
-    Alignment::Center,
-    Element,
-    Length::{self, Shrink},
-    Renderer, Theme,
+    Element, Length, Pixels, Renderer, Theme,
 };
 
 use crate::application::{Claws, Message};
+
+const BUTTON_SPACING: u16 = 30;
+const BUTTON_PADDING: u16 = 10;
+
+const HEADING_SIZE: u16 = 30;
 
 #[derive(Debug, Clone, Default)]
 pub enum Screen {
@@ -14,8 +17,8 @@ pub enum Screen {
     Profile,
     Settings,
     Updater,
-    ConnectedKeypadNotFound,
-    DebugTest,
+    ConnectedDeviceNotFound,
+    ExperimentalTab,
 }
 
 impl Screen {
@@ -24,8 +27,8 @@ impl Screen {
             Screen::Profile => "Профили".to_string(),
             Screen::Settings => "Настройки".to_string(),
             Screen::Updater => "Обновление".to_string(),
-            Screen::ConnectedKeypadNotFound => "Устройство не найдено".to_string(),
-            Screen::DebugTest => "Тест нововведений".to_string(),
+            Screen::ConnectedDeviceNotFound => "Устройство не найдено".to_string(),
+            Screen::ExperimentalTab => "Экспериментальные настройки".to_string(),
         }
     }
 }
@@ -34,27 +37,60 @@ pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer
     match claws.screen {
         Screen::Profile => {
             let screen_name = text(claws.screen.name())
-                .size(30)
+                .size(HEADING_SIZE)
                 .width(Length::Fill)
                 .height(Length::Fixed(40.));
 
-            let buttons = container(
-                row![
-                    create_keypad_button("btn1".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn2".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn3".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn4".to_string(), Message::ButtonClicked),
-                ]
-                .spacing(10),
-            );
+            let buttons_row_top = column![
+                create_keypad_button("btn1".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn2".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn3".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn4".to_string(), Message::ButtonClicked),
+            ]
+            .spacing(Pixels::from(BUTTON_SPACING))
+            .padding(BUTTON_PADDING);
 
-            container(column![screen_name, buttons].spacing(10))
+            let buttons_row_middle = column![
+                create_keypad_button("btn5".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn6".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn7".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn8".to_string(), Message::ButtonClicked),
+            ]
+            .spacing(Pixels::from(BUTTON_SPACING))
+            .padding(BUTTON_PADDING);
+
+            let buttons_row_bottom = column![
+                create_keypad_button("btn9".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn10".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn11".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn12".to_string(), Message::ButtonClicked),
+            ]
+            .spacing(Pixels::from(BUTTON_SPACING))
+            .padding(BUTTON_PADDING);
+
+            let buttons_row_underground = column![
+                create_keypad_button("btn13".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn14".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn15".to_string(), Message::ButtonClicked),
+                create_keypad_button("btn16".to_string(), Message::ButtonClicked),
+            ]
+            .spacing(Pixels::from(BUTTON_SPACING))
+            .padding(BUTTON_PADDING);
+
+            let buttons_container = row![
+                buttons_row_top,
+                buttons_row_middle,
+                buttons_row_bottom,
+                buttons_row_underground
+            ];
+
+            container(column![screen_name, buttons_container].spacing(10))
                 .padding(10)
                 .into()
         }
         Screen::Settings => {
             let screen_name = text(claws.screen.name())
-                .size(30)
+                .size(HEADING_SIZE)
                 .width(Length::Fill)
                 .height(Length::Fill);
 
@@ -64,7 +100,7 @@ pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer
         }
         Screen::Updater => {
             let screen_name = text(claws.screen.name())
-                .size(30)
+                .size(HEADING_SIZE)
                 .width(Length::Fill)
                 .height(Length::Fill);
 
@@ -72,20 +108,18 @@ pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer
                 .padding(10)
                 .into()
         }
-        Screen::ConnectedKeypadNotFound => {
+        Screen::ConnectedDeviceNotFound => {
             let text_on_screen = text(claws.screen.name())
-                .size(30)
+                .size(HEADING_SIZE)
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .center();
 
-            container(column![text_on_screen].spacing(10))
-                .padding(10)
-                .into()
+            container(column![text_on_screen]).padding(10).into()
         }
-        Screen::DebugTest => {
+        Screen::ExperimentalTab => {
             let screen_name = text(claws.screen.name())
-                .size(30)
+                .size(HEADING_SIZE)
                 .width(Length::Fill)
                 .height(Length::Fixed(40.));
 
@@ -106,10 +140,13 @@ pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer
 }
 
 fn create_keypad_button<'a>(button_text: String, on_press: Message) -> Button<'a, Message> {
-    button(text(button_text).align_x(Center).align_y(Center))
-        .on_press(on_press)
-        .height(Shrink)
-        .width(Shrink)
-    // .height(100)
-    // .width(80)
+    button(
+        text(button_text)
+            .size(10)
+            .align_x(Alignment::End)
+            .align_y(Alignment::End),
+    )
+    .on_press(on_press)
+    .height(110)
+    .width(80)
 }
