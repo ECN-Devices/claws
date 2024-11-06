@@ -17,6 +17,7 @@ mod screens;
 mod tests;
 
 static WINDOW_ICON: &[u8] = include_bytes!("../icons/claws.ico");
+
 fn main() -> iced::Result {
     env::set_var("RUST_LOG", "claws");
 
