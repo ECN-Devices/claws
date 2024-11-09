@@ -13,7 +13,7 @@ default:
       - $CARGO_TARGET_DIR
 
 before_script:
-  - dnf install -y gcc gcc-c++ systemd-devel
+  - dnf install -y gcc gcc-c++ systemd-devel mingw64-gcc
   - dnf clean all
   - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   - source $HOME/.cargo/env
