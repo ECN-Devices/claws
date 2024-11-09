@@ -50,6 +50,6 @@ test_job:
         - cargo test --workspace --verbose
     dependencies:
         - build_debug_job_linux
-        - build_debug_job_windows:
+        - build_debug_job_windows
         - build_release_job_linux
         - build_release_job_windows
