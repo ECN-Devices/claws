@@ -1,4 +1,4 @@
-image: "rust:latest"
+image: fedora:latest
 
 variables:
     CARGO_TARGET_DIR: "target"
@@ -8,50 +8,52 @@ stages:
   - test
 
 default:
-    artifacts:
-        paths:
-            - $CARGO_TARGET_DIR
+  artifacts:
+    paths:
+      - $CARGO_TARGET_DIR
+
+before_script:
+  - dnf install -y \
+      systemd-devel \
+      && dnf clean all
+  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  - source $HOME/.cargo/env
 
 build_debug_job_linux:
-    stage: build
-    rules:
-        - if: $CI_COMMIT_BRANCH == "dev"
-    script:
-        - rustc --version && cargo --version
-        - cargo build
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+  script:
+    - rustc --version && cargo --version
+    - cargo build
 
 build_debug_job_windows:
-    stage: build
-    rules:
-        - if: $CI_COMMIT_BRANCH == "dev"
-    script:
-        - rustc --version && cargo --version
-        - rustup target add x86_64-pc-windows-gnu
-        - cargo build --target x86_64-pc-windows-gnu
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+  script:
+    - rustc --version && cargo --version
+    - rustup target add x86_64-pc-windows-gnu
+    - cargo build --target x86_64-pc-windows-gnu
 
 build_release_job_linux:
-    stage: build
-    rules:
-        - if: $CI_COMMIT_BRANCH == "master"
-    script:
-        - rustc --version && cargo --version
-        - cargo build --release
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  script:
+    - rustc --version && cargo --version
+    - cargo build --release
 
 build_release_job_windows:
-    stage: build
-    rules:
-        - if: $CI_COMMIT_BRANCH == "master"
-    script:
-        - rustc --version && cargo --version
-        - rustup target add x86_64-pc-windows-gnu
-        - cargo build --release --target x86_64-pc-windows-gnu
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  script:
+    - rustc --version && cargo --version
+    - rustup target add x86_64-pc-windows-gnu
+    - cargo build --release --target x86_64-pc-windows-gnu
 
 test_job:
-    stage: test
-    script:
-        - cargo test --workspace --verbose
-    dependencies:
-        - build_debug_job_linux
-        - build_debug_job_windows
-        - build_release_job_linux
-        - build_release_job_windows
+  stage: test
+  script:
+    - cargo test --workspace --verbose
