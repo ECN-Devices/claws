@@ -6,44 +6,30 @@ use iced::{
     Length::{self, Fill},
     Task, Theme,
 };
-use log::debug;
+use log::{debug, error};
 
-use serialport::SerialPort;
 use tokio::{runtime::Builder, sync::Mutex};
 
 use crate::{
     configuration::{
         config::{check_config_file, get_config_file, update_config_file},
-        port::{get_keypad_port, read_keypad_port, write_keypad_port},
+        port::Keypad,
         ARRAY_LEN,
     },
-    screens::{self, Screen},
+    screens::Screens,
 };
 
 // Определение структуры приложения
 #[derive(Debug, Clone)]
 pub struct Claws {
-    pub screen: Screen,
+    pub screen: Screens,
     pub keypad: Keypad,
-}
-
-#[derive(Debug)]
-pub struct Keypad {
-    pub serial_port: Arc<Mutex<Box<dyn SerialPort>>>,
-}
-
-impl Clone for Keypad {
-    fn clone(&self) -> Self {
-        Keypad {
-            serial_port: self.serial_port.clone(),
-        }
-    }
 }
 
 // Определение возможных действий в приложении
 #[derive(Debug, Clone)]
 pub enum Message {
-    ChangeScreen(Screen),
+    ChangeScreen(Screens),
     ButtonClicked,
     UpdateConfigFile,
     ReadPort,
@@ -57,9 +43,14 @@ pub enum Message {
 
 impl Claws {
     pub fn new() -> (Self, Task<Message>) {
-        let initial_screen = Screen::default(); // Установка стартового экрана
         let runtime = Builder::new_multi_thread().enable_all().build().unwrap();
-        let port_name = runtime.block_on(get_keypad_port()).clone();
+        let port_name = runtime.block_on(self::Keypad::get_keypad_port()).clone();
+
+        let initial_screen = if port_name.is_empty() {
+            Screens::ConnectedDeviceNotFound
+        } else {
+            Screens::default()
+        };
 
         debug!(
             "Port name: {:?}, bytes: {:?}",
@@ -67,14 +58,32 @@ impl Claws {
             port_name.as_bytes()
         );
 
-        let serial_port = Arc::new(Mutex::new(
-            serialport::new(port_name, 115_200)
-                .timeout(Duration::from_millis(10))
-                .open()
-                .expect("Failed to open port"),
-        ));
+        let keypad = if !port_name.is_empty() {
+            let serial_port = Arc::new(Mutex::new(
+                serialport::new(port_name, 115_200)
+                    .timeout(Duration::from_millis(10))
+                    .open()
+                    .expect("Failed to open port"),
+            ));
 
-        let keypad = Keypad { serial_port };
+            #[cfg(target_os = "windows")]
+            {
+                let mut port_lock = runtime.block_on(async { serial_port.lock().await });
+                if let Err(e) = port_lock.write_data_terminal_ready(true) {
+                    error!("Ошибка при установке DTR: {}", e);
+                }
+            }
+
+            Keypad {
+                port: Some(serial_port),
+                is_open: true,
+            }
+        } else {
+            Keypad {
+                port: None,
+                is_open: false,
+            }
+        };
 
         (
             Self {
@@ -109,7 +118,7 @@ impl Claws {
                 let runtime = Builder::new_current_thread().enable_all().build().unwrap();
 
                 // Асинхронная операция обновления конфигурационного файла
-                let _ = runtime.block_on(async {
+                let config_file = runtime.block_on(async {
                     // Проверка наличия конфигурационного файла
                     check_config_file().await;
                     // Обновление конфигурационного файла
@@ -117,20 +126,26 @@ impl Claws {
                 });
 
                 // Вывод обновленного конфигурационного файла
-                //println!("{:#?}", config_file);
+                debug!("{:#?}", config_file);
                 Task::none()
             }
             Message::WritePort => {
-                let serial_port = self.keypad.serial_port.clone();
+                let serial_port = match self.keypad.is_open {
+                    true => self.keypad.port.clone().unwrap(),
+                    false => todo!(),
+                };
                 let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
-                let write_port = write_keypad_port(serial_port, write_data_array);
+                let write_port = self::Keypad::write_keypad_port(serial_port, write_data_array);
 
                 Task::perform(write_port, Message::TaskWritePort)
                 // Task::none()
             }
             Message::ReadPort => {
-                let serial_port = self.keypad.serial_port.clone();
-                let read_port = read_keypad_port(serial_port);
+                let serial_port = match self.keypad.is_open {
+                    true => self.keypad.port.clone().unwrap(),
+                    false => todo!(),
+                };
+                let read_port = self::Keypad::read_keypad_port(serial_port);
 
                 Task::perform(read_port, Message::TaskReadPort)
                 // Task::none()
@@ -172,24 +187,24 @@ impl Claws {
                 create_button_with_svg_and_text(
                     "Профили",
                     include_bytes!("../icons/profiles.svg"),
-                    Message::ChangeScreen(Screen::Profile)
+                    Message::ChangeScreen(Screens::Profile)
                 ),
                 create_button_with_svg_and_text(
                     "Настройки",
                     include_bytes!("../icons/settings.svg"),
-                    Message::ChangeScreen(Screen::Settings)
+                    Message::ChangeScreen(Screens::Settings)
                 ),
                 // Updater
                 create_button_with_svg_and_text(
                     "Обновление",
                     include_bytes!("../icons/updater.svg"),
-                    Message::ChangeScreen(Screen::Updater)
+                    Message::ChangeScreen(Screens::Updater)
                 ),
                 // DebugTest
                 create_button_with_svg_and_text(
-                    "Тест нововведений",
+                    "Экспериментальные настройки",
                     include_bytes!("../icons/test.svg"),
-                    Message::ChangeScreen(Screen::DebugTest)
+                    Message::ChangeScreen(Screens::ExperimentalTab)
                 ),
             ]
             .spacing(20)
@@ -199,9 +214,16 @@ impl Claws {
         .width(100)
         .height(Length::Fill);
 
-        let screen = screens::get_screen_content(self);
-
-        container(row![sidebar, screen].spacing(20)).into()
+        match self.keypad.is_open {
+            true => {
+                let screen = self::Screens::get_screen_content(self);
+                container(row![sidebar, screen].spacing(20)).into()
+            }
+            false => {
+                let screen = self::Screens::get_screen_content(self);
+                container(row![screen]).into()
+            }
+        }
     }
 
     pub fn theme(&self) -> Theme {

@@ -6,7 +6,7 @@ use tokio::{
     io::{AsyncWriteExt, BufWriter},
 };
 
-const MAX_PROFILE_NAME: usize = 15;
+const _MAX_PROFILE_NAME: usize = 15;
 const MAX_KEYVALUE: usize = 6;
 const MAX_SWITCH_COUNT: usize = 4;
 
@@ -64,7 +64,6 @@ pub async fn create_config_file() {
 #[derive(Debug, Serialize)]
 struct Profile {
     name: String,
-    port: Vec<String>,
     buttons: [[u16; MAX_KEYVALUE]; MAX_SWITCH_COUNT],
     joystick_key_value: [u16; 4],
 }
@@ -73,7 +72,6 @@ impl Default for Profile {
     fn default() -> Self {
         Profile {
             name: "".to_string(),
-            port: vec![],
             buttons: [[0; MAX_KEYVALUE]; MAX_SWITCH_COUNT],
             joystick_key_value: [0; 4],
         }
@@ -93,7 +91,6 @@ pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
         .read(true)
         .write(true)
         .create(true)
-        .truncate(true)
         .open(file_path)
         .await?;
     let mut buffer = BufWriter::new(config_file);
