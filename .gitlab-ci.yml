@@ -14,10 +14,13 @@ default:
 
 before_script:
   - dnf install -y \
-      systemd-devel \
-      && dnf clean all
+    gcc \
+    gcc-c++ \
+    systemd-devel \
+    && dnf clean all
   - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   - source $HOME/.cargo/env
+  - rustup target add x86_64-pc-windows-gnu
 
 build_debug_job_linux:
   stage: build
@@ -33,7 +36,6 @@ build_debug_job_windows:
     - if: $CI_COMMIT_BRANCH == "dev"
   script:
     - rustc --version && cargo --version
-    - rustup target add x86_64-pc-windows-gnu
     - cargo build --target x86_64-pc-windows-gnu
 
 build_release_job_linux:
@@ -50,7 +52,6 @@ build_release_job_windows:
     - if: $CI_COMMIT_BRANCH == "master"
   script:
     - rustc --version && cargo --version
-    - rustup target add x86_64-pc-windows-gnu
     - cargo build --release --target x86_64-pc-windows-gnu
 
 test_job:
