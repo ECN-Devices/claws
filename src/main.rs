@@ -1,9 +1,8 @@
-// Убираем консоль при старте приложения на windows
-// #![windows_subsystem = "windows"]
-
-use std::env;
+//Убираем консоль при старте приложения на windows
+#![windows_subsystem = "windows"]
 
 use application::Claws;
+use configuration::logger::init_logger;
 use fonts::{load, set, UI_FONT_MEDIUM};
 use iced::{
     window::{self, icon},
@@ -19,10 +18,8 @@ mod tests;
 static WINDOW_ICON: &[u8] = include_bytes!("../icons/claws.ico");
 
 fn main() -> iced::Result {
-    env::set_var("RUST_LOG", "claws");
-
     // Инициализация логгера env_logger
-    env_logger::init();
+    init_logger();
 
     // Загрузка шрифтов
     set();
