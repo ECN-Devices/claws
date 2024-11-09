@@ -120,13 +120,13 @@ impl Claws {
                 // Асинхронная операция обновления конфигурационного файла
                 let config_file = runtime.block_on(async {
                     // Проверка наличия конфигурационного файла
-                    check_config_file().await;
+                    check_config_file().await?;
                     // Обновление конфигурационного файла
                     update_config_file(get_config_file().await).await
                 });
 
                 // Вывод обновленного конфигурационного файла
-                debug!("{:#?}", config_file);
+                debug!("{:?}", config_file);
                 Task::none()
             }
             Message::WritePort => {
