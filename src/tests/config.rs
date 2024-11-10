@@ -5,7 +5,10 @@ use log::error;
 #[cfg(test)]
 mod test_config_dir {
     use crate::{
-        configuration::config::{create_config_dir, get_config_dir},
+        configuration::{
+            config::{create_config_dir, get_config_dir},
+            APPLICATION_NAME,
+        },
         tests::config::cleanup_config,
     };
     use std::env::set_var;
@@ -16,7 +19,7 @@ mod test_config_dir {
 
         let config_path = get_config_dir().await;
         let username = whoami::username();
-        let result = format!("/home/{}/.config/Claws", username);
+        let result = format!("/home/{}/.config/{}", username, APPLICATION_NAME);
 
         assert_eq!(config_path.display().to_string(), result)
     }
@@ -29,7 +32,7 @@ mod test_config_dir {
 
         let config_path = get_config_dir().await;
         let username = whoami::username();
-        let result = format!("C:/Users/{}/Documents/Claws", username);
+        let result = format!("C:/Users/{}/Documents/{}", username, APPLICATION_NAME);
 
         assert_eq!(config_path.display().to_string(), result)
     }
@@ -69,8 +72,9 @@ mod test_config_dir {
 #[cfg(test)]
 mod test_config_file {
     use crate::{
-        configuration::config::{
-            create_config_dir, create_config_file, get_config_dir, get_config_file,
+        configuration::{
+            config::{create_config_dir, create_config_file, get_config_dir, get_config_file},
+            APPLICATION_NAME,
         },
         tests::config::cleanup_config,
     };
@@ -82,7 +86,7 @@ mod test_config_file {
 
         let config_file_path = get_config_file().await;
         let username = whoami::username();
-        let result = format!("/home/{}/.config/Claws/claws.toml", username);
+        let result = format!("/home/{}/.config/{}/claws.toml", username, APPLICATION_NAME);
 
         assert_eq!(config_file_path.display().to_string(), result)
     }
@@ -94,7 +98,10 @@ mod test_config_file {
 
         let config_file_path = get_config_file().await;
         let username = whoami::username();
-        let result = format!("C:/Users/{}/Documents/Claws/claws.toml", username);
+        let result = format!(
+            "C:/Users/{}/Documents/{}/claws.toml",
+            username, APPLICATION_NAME
+        );
 
         assert_eq!(config_file_path.display().to_string(), result)
     }

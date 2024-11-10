@@ -6,6 +6,8 @@ use tokio::{
     io::{AsyncWriteExt, BufWriter},
 };
 
+use super::APPLICATION_NAME;
+
 const _MAX_PROFILE_NAME: usize = 15;
 const MAX_KEYVALUE: usize = 6;
 const MAX_SWITCH_COUNT: usize = 4;
@@ -14,10 +16,10 @@ pub async fn get_config_dir() -> PathBuf {
     match OS {
         "linux" => dirs::config_dir()
             .expect("Не могу найти папку .config")
-            .join("Claws"),
+            .join(APPLICATION_NAME),
         "windows" => dirs::document_dir()
             .expect("Не могу найти папку Документы")
-            .join("Claws"),
+            .join(APPLICATION_NAME),
         _ => panic!("Система не поддерживается: {}.", OS),
     }
 }
