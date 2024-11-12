@@ -21,7 +21,7 @@ tokio = { version = "1.41.1", features = ["full", "io-std", "io-util"] }
 # lilt = "0.7.0"
 dirs = "5.0.1"
 toml = { version = "0.8.19", features = ["parse", "display"] }
-serde = { version = "1.0.214", features = ["derive"] }
+serde = { version = "1.0.215", features = ["derive"] }
 whoami = "1.5.2"
 log = "0.4.22"
 regex = "1.11.1"
