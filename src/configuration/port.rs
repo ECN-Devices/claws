@@ -37,6 +37,14 @@ impl Keypad {
                 }
             };
 
+            #[cfg(target_os = "windows")]
+            {
+                let mut port_lock = port.lock().await;
+                if let Err(e) = port_lock.write_data_terminal_ready(true) {
+                    error!("Ошибка при установке DTR: {}", e);
+                }
+            }
+
             // Пишем данные в порт
             match Self::write_keypad_port(port.clone(), write_data_array).await {
                 Ok(_) => {
@@ -102,11 +110,6 @@ impl Keypad {
         let write_data = command_to_string(&write_data_array).await;
         let mut port_lock = port.lock().await; // Ожидаем получения блокировки
 
-        #[cfg(target_os = "windows")]
-        if let Err(e) = port_lock.write_data_terminal_ready(true) {
-            error!("Ошибка при установке DTR: {}", e);
-        }
-
         if let Err(e) = port_lock.write_all(write_data.as_bytes()) {
             error!("Failed to write to port: {}", e);
         };
@@ -127,11 +130,6 @@ impl Keypad {
     ) -> Result<String, serialport::Error> {
         let mut serial_buf = vec![0; 256];
         let mut port_lock = port.lock().await;
-
-        #[cfg(target_os = "windows")]
-        if let Err(e) = port_lock.write_data_terminal_ready(true) {
-            error!("Ошибка при установке DTR: {}", e);
-        }
 
         match port_lock.read(serial_buf.as_mut_slice()) {
             Ok(_n) => {

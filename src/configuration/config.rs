@@ -1,10 +1,12 @@
-use log::info;
+use log::{error, info};
 use serde::Serialize;
 use std::{env::consts::OS, fmt::Debug, path::PathBuf};
 use tokio::{
     fs::{self, File, OpenOptions},
     io::{AsyncWriteExt, BufWriter},
 };
+
+use super::APPLICATION_NAME;
 
 const _MAX_PROFILE_NAME: usize = 15;
 const MAX_KEYVALUE: usize = 6;
@@ -14,10 +16,10 @@ pub async fn get_config_dir() -> PathBuf {
     match OS {
         "linux" => dirs::config_dir()
             .expect("Не могу найти папку .config")
-            .join("Claws"),
+            .join(APPLICATION_NAME),
         "windows" => dirs::document_dir()
             .expect("Не могу найти папку Документы")
-            .join("Claws"),
+            .join(APPLICATION_NAME),
         _ => panic!("Система не поддерживается: {}.", OS),
     }
 }
@@ -27,38 +29,51 @@ pub async fn get_config_file() -> PathBuf {
     config_file_path.join("claws.toml")
 }
 
-pub async fn check_config_file() {
+pub async fn check_config_file() -> Result<(), std::io::Error> {
     let config_dir_path = get_config_dir().await;
     let config_file_path = get_config_file().await;
 
     match config_dir_path.exists() {
         true => {
-            info!("Конфигурационная папку уже сущевствует");
+            info!("Конфигурационная папка уже сущевствует");
             match config_file_path.exists() {
                 true => info!("Конфигурационный файл уже сущесвтует"),
                 false => {
                     info!("Создаю конфигурационный файл");
-                    create_config_file().await
+                    create_config_file().await?
                 }
             }
         }
         false => {
             info!("Создаю конфигурационную папку");
-            create_config_dir().await;
+            create_config_dir().await?;
             info!("Создаю конфигурационный файл");
-            create_config_file().await;
+            create_config_file().await?;
         }
-    };
+    }
+    Ok(())
 }
 
-pub async fn create_config_dir() {
+pub async fn create_config_dir() -> Result<(), std::io::Error> {
     let config_dir_path = get_config_dir().await;
-    let _ = fs::create_dir_all(config_dir_path).await;
+    match fs::create_dir_all(config_dir_path).await {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            error!("Ошибка создания папки конфигурации: {}", e);
+            Err(e)
+        }
+    }
 }
 
-pub async fn create_config_file() {
+pub async fn create_config_file() -> Result<(), std::io::Error> {
     let config_file_path = get_config_file().await;
-    let _ = File::create(config_file_path).await;
+    match File::create(config_file_path).await {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            error!("Ошибка создания конфигурационного файла: {}", e);
+            Err(e)
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]

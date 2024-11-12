@@ -2,7 +2,7 @@
 #![windows_subsystem = "windows"]
 
 use application::Claws;
-use configuration::logger::init_logger;
+use configuration::{logger::init_logger, APPLICATION_NAME, WINDOW_ICON};
 use fonts::{load, set, UI_FONT_MEDIUM};
 use iced::{
     window::{self, icon},
@@ -14,8 +14,6 @@ mod configuration;
 mod fonts;
 mod screens;
 mod tests;
-
-static WINDOW_ICON: &[u8] = include_bytes!("../icons/claws.ico");
 
 fn main() -> iced::Result {
     // Инициализация логгера env_logger
@@ -29,7 +27,7 @@ fn main() -> iced::Result {
 
     // Создание настроек приложения iced
     let iced_settings = iced::Settings {
-        id: Some(String::from("Claws")),
+        id: Some(APPLICATION_NAME.to_string()),
         default_text_size: Pixels::from(18), // Установка размера шрифта по умолчанию
         default_font: UI_FONT_MEDIUM.clone().into(), // Установка шрифта по умолчанию
         fonts: load(),                       // Загрузка шрифтов

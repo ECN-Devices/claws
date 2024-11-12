@@ -1,34 +1,31 @@
-// #[cfg(test)]
-// mod test_command_to_string {
-//     use tokio::runtime::Builder;
+#[cfg(test)]
+mod test_command_to_string {
+    use crate::configuration::{command::command_to_string, ARRAY_LEN};
 
-//     use crate::configuration::command::command_to_string;
+    #[tokio::test]
 
-//     #[test]
-//     fn positive_numbers() {
-//         let runtime = Builder::new_current_thread().enable_all().build().unwrap();
+    async fn test_command_to_string_normal() {
+        let array: [u16; ARRAY_LEN] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let result = command_to_string(&array).await;
+        assert_eq!(result, "1,2,3,4,5,6,7,8,9;");
+    }
 
-//         let array: [u16; 9] = [11, 0, 10, 0, 100, 0, 4, 0, 0];
-//         let result = runtime.block_on(command_to_string(&array));
+    #[tokio::test]
 
-//         assert_eq!(result, "11,0,10,0,100,0,4,0,0;")
-//     }
-// }
+    async fn test_command_to_string_with_zeros() {
+        let array: [u16; ARRAY_LEN] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let result = command_to_string(&array).await;
+        assert_eq!(result, "0,0,0,0,0,0,0,0,0;");
+    }
 
-// #[cfg(test)]
-// mod test_get_keypad_port {
-//     use tokio::runtime::Builder;
+    #[tokio::test]
 
-//     use crate::configuration::{command_to_string, ARRAY_LEN};
-
-//     #[test]
-//     fn keypad_port() {
-//         let runtime = Builder::new_current_thread().enable_all().build().unwrap();
-
-//         runtime.block_on({
-//             let write_data_array: [u16; ARRAY_LEN] = [101, 0, 0, 0, 0, 0, 0, 0, 0];
-//             let write_data = command_to_string(&write_data_array).await;
-//             write_data
-//         })
-//     }
-// }
+    async fn test_command_to_string_with_max_values() {
+        let array: [u16; ARRAY_LEN] = [u16::MAX; ARRAY_LEN];
+        let result = command_to_string(&array).await;
+        assert_eq!(
+            result,
+            "65535,65535,65535,65535,65535,65535,65535,65535,65535;"
+        );
+    }
+}

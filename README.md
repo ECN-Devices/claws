@@ -1,7 +1,7 @@
 [[ru](./README_ru.md)]
 
 # Claws
-Claws is an application for managing and interacting with the ipad.
+Claws is an application for managing and interacting with the keypad.
 
 ## Installation
 ### Dependencies
