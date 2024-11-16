@@ -32,7 +32,6 @@ impl Screens {
         }
     }
 
-
     pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer> {
         match claws.screen {
             Screens::Profile => {
@@ -42,37 +41,37 @@ impl Screens {
                     .height(Length::Fixed(40.));
 
                 let buttons_top = column![
-                    create_keypad_button("btn1".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn2".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn3".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn4".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#1".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#2".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#3".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#4".to_string(), Message::ButtonClicked),
                 ]
                 .spacing(Pixels::from(BUTTON_SPACING))
                 .padding(BUTTON_PADDING);
 
                 let buttons_middle = column![
-                    create_keypad_button("btn5".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn6".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn7".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn8".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#5".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#6".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#7".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#8".to_string(), Message::ButtonClicked),
                 ]
                 .spacing(Pixels::from(BUTTON_SPACING))
                 .padding(BUTTON_PADDING);
 
                 let buttons_bottom = column![
-                    create_keypad_button("btn9".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn10".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn11".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn12".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#9".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#10".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#11".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#12".to_string(), Message::ButtonClicked),
                 ]
                 .spacing(Pixels::from(BUTTON_SPACING))
                 .padding(BUTTON_PADDING);
 
                 let buttons_underground = column![
-                    create_keypad_button("btn13".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn14".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn15".to_string(), Message::ButtonClicked),
-                    create_keypad_button("btn16".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#13".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#14".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#15".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#16".to_string(), Message::ButtonClicked),
                 ]
                 .spacing(Pixels::from(BUTTON_SPACING))
                 .padding(BUTTON_PADDING);
