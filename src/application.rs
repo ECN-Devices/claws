@@ -46,10 +46,17 @@ impl Claws {
         let runtime = Builder::new_multi_thread().enable_all().build().unwrap();
         let port_name = runtime.block_on(self::Keypad::get_keypad_port()).clone();
 
-        let initial_screen = if port_name.is_empty() {
-            Screens::ConnectedDeviceNotFound
-        } else {
-            Screens::default()
+        let initial_screen = match port_name.is_empty() {
+            true => {
+                #[cfg(debug_assertions)]
+                {
+                    Screens::default()
+                }
+
+                #[cfg(not(debug_assertions))]
+                Screens::ConnectedDeviceNotFound
+            }
+            false => Screens::default(),
         };
 
         debug!(
@@ -58,31 +65,32 @@ impl Claws {
             port_name.as_bytes()
         );
 
-        let keypad = if !port_name.is_empty() {
-            let serial_port = Arc::new(Mutex::new(
-                serialport::new(port_name, 115_200)
-                    .timeout(Duration::from_millis(10))
-                    .open()
-                    .expect("Failed to open port"),
-            ));
+        let keypad = match !port_name.is_empty() {
+            true => {
+                let serial_port = Arc::new(Mutex::new(
+                    serialport::new(port_name, 115_200)
+                        .timeout(Duration::from_millis(10))
+                        .open()
+                        .expect("Failed to open port"),
+                ));
 
-            #[cfg(target_os = "windows")]
-            {
-                let mut port_lock = runtime.block_on(async { serial_port.lock().await });
-                if let Err(e) = port_lock.write_data_terminal_ready(true) {
-                    error!("Ошибка при установке DTR: {}", e);
+                #[cfg(target_os = "windows")]
+                {
+                    let mut port_lock = runtime.block_on(async { serial_port.lock().await });
+                    if let Err(e) = port_lock.write_data_terminal_ready(true) {
+                        error!("Ошибка при установке DTR: {}", e);
+                    }
+                }
+
+                Keypad {
+                    port: Some(serial_port),
+                    is_open: true,
                 }
             }
-
-            Keypad {
-                port: Some(serial_port),
-                is_open: true,
-            }
-        } else {
-            Keypad {
+            false => Keypad {
                 port: None,
                 is_open: false,
-            }
+            },
         };
 
         (
@@ -214,16 +222,22 @@ impl Claws {
         .width(100)
         .height(Length::Fill);
 
-        match self.keypad.is_open {
-            true => {
-                let screen = self::Screens::get_screen_content(self);
-                container(row![sidebar, screen].spacing(20)).into()
-            }
+        let screen = self::Screens::get_screen_content(self);
+        let container_content = match self.keypad.is_open {
+            true => row![sidebar, screen].spacing(20),
             false => {
-                let screen = self::Screens::get_screen_content(self);
-                container(row![screen]).into()
+                #[cfg(debug_assertions)]
+                {
+                    row![sidebar, screen].spacing(20)
+                }
+
+                #[cfg(not(debug_assertions))]
+                {
+                    row![screen].spacing(20)
+                }
             }
-        }
+        };
+        container(container_content).into()
     }
 
     pub fn theme(&self) -> Theme {
