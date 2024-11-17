@@ -1,5 +1,6 @@
 pub mod command;
 pub mod config;
+pub mod keypad_port_commands;
 pub mod logger;
 pub mod port;
 
