@@ -261,37 +261,37 @@ impl StickCommands {
 impl SwitchCommands {
     pub fn value(&self) -> [u16; ARRAY_LEN] {
         match self {
-            SwitchCommands::RequestingTheStatusOfTheSwitch => [7, 0, 0, 0, 0, 0, 0, 0, 0],
-            SwitchCommands::RequestingAsciiSwitchCodes => [8, 0, 0, 0, 0, 0, 0, 0, 0],
-            SwitchCommands::ConfiguringAsciiSwitchCodes => [9, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::RequestingTheStatusOfTheSwitch => [7, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::RequestingAsciiSwitchCodes => [8, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::ConfiguringAsciiSwitchCodes => [9, 0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
 }
 impl ProfileCommands {
     pub fn value(&self) -> [u16; ARRAY_LEN] {
         match self {
-            ProfileCommands::RequestingTheCurrentActiveProfile => [10, 0, 0, 0, 0, 0, 0, 0, 0],
-            ProfileCommands::RequestForAProfileName => [11, 0, 0, 0, 0, 0, 0, 0, 0],
-            ProfileCommands::WriteDownTheNameOfTheProfile => [12, 0, 0, 0, 0, 0, 0, 0, 0],
-            ProfileCommands::WriteTheCurrentProfileToRam => [13, 0, 0, 0, 0, 0, 0, 0, 0],
-            ProfileCommands::WriteTheCurrentProfileInFlash => [14, 0, 0, 0, 0, 0, 0, 0, 0],
-            ProfileCommands::UploadAProfileFromRamToTheCurrentOne => [15, 0, 0, 0, 0, 0, 0, 0, 0],
-            ProfileCommands::LoadingProfilesFromFlashToRam => [16, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::RequestingTheCurrentActiveProfile => [10, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::RequestForAProfileName => [11, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::WriteDownTheNameOfTheProfile => [12, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::WriteTheCurrentProfileToRam => [13, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::WriteTheCurrentProfileInFlash => [14, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::UploadAProfileFromRamToTheCurrentOne => [15, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::LoadingProfilesFromFlashToRam => [16, 0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
 }
 impl DeviceCommands {
     pub fn value(&self) -> [u16; ARRAY_LEN] {
         match self {
-            DeviceCommands::RequestingDeviceInformation => [17, 0, 0, 0, 0, 0, 0, 0, 0],
-            DeviceCommands::RecordDeviceInformation => [18, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::RequestingDeviceInformation => [17, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::RecordDeviceInformation => [18, 0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
 }
 impl EmptyCommand {
     pub fn value(&self) -> [u16; ARRAY_LEN] {
         match self {
-            EmptyCommand::Empty => [101, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::Empty => [101, 0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
 }
