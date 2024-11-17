@@ -6,11 +6,19 @@ use iced::{
 
 use crate::application::{Claws, Message};
 
+/// `BUTTON_SPACING` определяет расстояние между кнопками в пикселях.
 const BUTTON_SPACING: u16 = 30;
+
+/// `BUTTON_PADDING` определяет отступ вокруг кнопок в пикселях.
 const BUTTON_PADDING: u16 = 10;
 
+/// `HEADING_SIZE` определяет размер заголовка в пикселях.
 const HEADING_SIZE: u16 = 30;
 
+/** Перечисление `Screens` представляет различные экраны приложения.
+ * Каждый вариант перечисления соответствует отдельному экрану, который может быть
+ * отображен в пользовательском интерфейсе. По умолчанию выбран экран `Profile`.
+ */
 #[derive(Debug, Clone, Default)]
 pub enum Screens {
     #[default]
@@ -22,6 +30,7 @@ pub enum Screens {
 }
 
 impl Screens {
+    /// Возвращает имя текущего экрана в виде строки.
     fn name(&self) -> String {
         match self {
             Screens::Profile => "Профили".to_string(),
@@ -31,7 +40,12 @@ impl Screens {
             Screens::ExperimentalTab => "Экспериментальные настройки".to_string(),
         }
     }
-
+    /** Генерирует содержимое экрана в зависимости от текущего состояния приложения.
+     * # Параметры
+     * `claws`: Ссылка на экземпляр `Claws`, который содержит текущее состояние приложения.
+     * # Возвращает
+     * Возвращает элемент типа `Element`, который представляет содержимое текущего экрана.
+     */
     pub fn get_screen_content(claws: &Claws) -> Element<'_, Message, Theme, Renderer> {
         match claws.screen {
             Screens::Profile => {
@@ -127,7 +141,6 @@ impl Screens {
                     create_keypad_button("WritePort".to_string(), Message::WritePort),
                     create_keypad_button("ReadPort".to_string(), Message::ReadPort),
                     create_keypad_button("WriteAndReadPort".to_string(), Message::WriteAndReadPort),
-                    create_keypad_button("PrintAny".to_string(), Message::PrintAny),
                 ]
                 .spacing(10),]);
 
@@ -139,6 +152,13 @@ impl Screens {
     }
 }
 
+/** Создает кнопку для клавиатуры.
+ * # Параметры
+ * `button_text`: Текст, который будет отображаться на кнопке.
+ * `on_press`: Сообщение, которое будет отправлено при нажатии на кнопку.
+ * # Возвращает
+ * Возвращает экземпляр `Button`, который можно использовать в пользовательском интерфейсе.
+ */
 fn create_keypad_button<'a>(button_text: String, on_press: Message) -> Button<'a, Message> {
     button(
         text(button_text)

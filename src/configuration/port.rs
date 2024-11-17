@@ -7,22 +7,32 @@ use std::{
 use serialport::{available_ports, new, SerialPort};
 use tokio::sync::Mutex;
 
-use super::{command::command_to_string, ARRAY_LEN};
+use super::{command::command_to_string, keypad_port_commands::EmptyCommand, ARRAY_LEN};
 use log::{debug, error};
 
 #[cfg(target_os = "linux")]
 use regex::Regex;
 
+/** Структура `Keypad` представляет клавиатуру, подключенную к приложению.
+ * Она содержит информацию о порте, к которому подключена клавиатура, и статус открытия порта.
+ */
 #[derive(Debug, Clone)]
 pub struct Keypad {
+    /// Используется `Arc<Mutex<>>` для обеспечения безопасного доступа из разных потоков.
     pub port: Option<Arc<Mutex<Box<dyn SerialPort>>>>,
     pub is_open: bool,
 }
 
 impl Keypad {
+    /** Асинхронная функция для обработки доступных портов.
+     *
+     * Эта функция принимает список портов, пытается открыть каждый из них и записать данные.
+     *
+     * Возвращает строку с именами успешно открытых портов.
+     */
     async fn process_ports(ports: Vec<String>) -> String {
         let mut result = String::new();
-        let write_data_array: [u16; ARRAY_LEN] = [101, 0, 0, 0, 0, 0, 0, 0, 0];
+        let write_data_array = EmptyCommand::value(&EmptyCommand::Empty);
         for port_name in ports.iter() {
             debug!("Port: {}; bytes: {:?}", port_name, port_name.as_bytes());
             // Открываем порт
@@ -66,6 +76,10 @@ impl Keypad {
         result
     }
 
+    /** Асинхронная функция для получения порта на Linux.
+     *
+     * Эта функция ищет доступные порты и фильтрует их по регулярному выражению.
+     */
     #[cfg(target_os = "linux")]
     pub async fn get_keypad_port() -> String {
         let ports = available_ports().expect("No ports found!");
@@ -85,6 +99,10 @@ impl Keypad {
         Self::process_ports(filtered_ports).await
     }
 
+    /** Асинхронная функция для получения порта на Windows.
+     *
+     * Эта функция ищет доступные порты и фильтрует их, исключая COM1(материнская плата).
+     */
     #[cfg(target_os = "windows")]
     pub async fn get_keypad_port() -> String {
         let mut vec_ports_str: Vec<String> = Vec::new();
@@ -103,6 +121,12 @@ impl Keypad {
         Self::process_ports(filtered_ports).await
     }
 
+    /** Асинхронная функция для записи данных в порт.
+     *
+     * Эта функция принимает порт и массив данных для записи.
+     *
+     * Возвращает `Result`, указывающий на успех или ошибку операции.
+     */
     pub async fn write_keypad_port(
         port: Arc<Mutex<Box<dyn SerialPort>>>,
         write_data_array: [u16; ARRAY_LEN],
@@ -125,6 +149,10 @@ impl Keypad {
         Ok(())
     }
 
+    /** Асинхронная функция для чтения данных из порта клавиатуры.
+     *
+     * Эта функция принимает порт и возвращает строку с прочитанными данными или ошибку.
+     */
     pub async fn read_keypad_port(
         port: Arc<Mutex<Box<dyn SerialPort>>>,
     ) -> Result<String, serialport::Error> {
