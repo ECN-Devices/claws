@@ -23,6 +23,12 @@ cargo build --release
 cargo run
 ```
 
+### View the documentation
+
+```bash
+cargo doc --open
+```
+
 ## Usage
 1. Connect your device to your computer via USB.
 2. Launch the application.
