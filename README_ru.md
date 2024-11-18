@@ -26,7 +26,7 @@ cargo run
 ### Посмотреть документацию
 
 ```bash
-cargo doc --open
+cargo doc --no-deps --open
 ```
 
 ## Использование
