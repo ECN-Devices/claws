@@ -32,7 +32,7 @@ impl Keypad {
      */
     async fn process_ports(ports: Vec<String>) -> String {
         let mut result = String::new();
-        let write_data_array = EmptyCommand::value(&EmptyCommand::Empty);
+        let write_data_array = EmptyCommand::Empty.value();
         for port_name in ports.iter() {
             debug!("Port: {}; bytes: {:?}", port_name, port_name.as_bytes());
             // Открываем порт

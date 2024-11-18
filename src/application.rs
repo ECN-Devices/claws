@@ -144,8 +144,7 @@ impl Claws {
                     true => self.keypad.port.clone().unwrap(),
                     false => todo!(),
                 };
-                let write_data_array =
-                    ProfileCommands::value(&ProfileCommands::WriteDownTheNameOfTheProfile);
+                let write_data_array = ProfileCommands::WriteDownTheNameOfTheProfile.value();
                 let write_port = self::Keypad::write_keypad_port(serial_port, write_data_array);
 
                 Task::perform(write_port, Message::TaskWritePort)
