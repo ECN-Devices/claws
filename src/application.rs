@@ -4,7 +4,7 @@ use iced::{
     widget::{column, container, row, svg, tooltip, Button, Tooltip},
     Alignment, Element,
     Length::{self, Fill},
-    Task, Theme,
+    Subscription, Task,
 };
 use log::debug;
 
@@ -244,14 +244,6 @@ impl Claws {
             }
         };
         container(container_content).into()
-    }
-
-    pub fn theme(&self) -> Theme {
-        match dark_light::detect() {
-            dark_light::Mode::Dark => Theme::Dark,
-            dark_light::Mode::Light => Theme::Light,
-            dark_light::Mode::Default => Theme::Dark,
-        }
     }
 }
 
