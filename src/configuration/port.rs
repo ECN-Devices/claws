@@ -172,10 +172,7 @@ impl Keypad {
 
                 Ok(trimmed_buf)
             }
-            Err(err) => {
-                error!("Ошибка чтения из порта: {}", err);
-                Err(serialport::Error::from(err))
-            }
+            Err(err) => Err(serialport::Error::from(err)),
         }
     }
 }
