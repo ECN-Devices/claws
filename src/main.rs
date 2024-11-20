@@ -42,8 +42,8 @@ fn main() -> iced::Result {
 
     // Создание настроек окна
     let window_settings = window::Settings {
-        size: Size::new(800., 600.),           // Установка размера окна
-        min_size: Some(Size::new(600., 600.)), // Установка минимального размера окна
+        size: Size::new(800., 660.),           // Установка размера окна
+        min_size: Some(Size::new(600., 660.)), // Установка минимального размера окна
         resizable: true,                       // Включение масштабируемости приложения
         exit_on_close_request: true,           // Включение запроса выхода
         icon: icon.ok(),                       // Установка иконки приложения
