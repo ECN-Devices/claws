@@ -136,13 +136,21 @@ impl Screens {
                     .width(Length::Fill)
                     .height(Length::Fixed(40.));
 
-                let buttons = container(column![row![
-                    create_keypad_button("UpdateConfigFile".to_string(), Message::UpdateConfigFile),
-                    create_keypad_button("WritePort".to_string(), Message::WritePort),
-                    create_keypad_button("ReadPort".to_string(), Message::ReadPort),
-                    create_keypad_button("WriteAndReadPort".to_string(), Message::WriteAndReadPort),
-                ]
-                .spacing(10),]);
+                let buttons = container(
+                    row![
+                        create_keypad_button(
+                            "UpdateConfigFile".to_string(),
+                            Message::UpdateConfigFile
+                        ),
+                        create_keypad_button("WritePort".to_string(), Message::WritePort),
+                        create_keypad_button("ReadPort".to_string(), Message::ReadPort),
+                        create_keypad_button(
+                            "TaskRequestingAsciiSwitchCodes".to_string(),
+                            Message::RequestingAsciiSwitchCodes
+                        )
+                    ]
+                    .spacing(10),
+                );
 
                 container(column![screen_name, buttons].spacing(10))
                     .padding(10)
