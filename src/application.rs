@@ -171,8 +171,11 @@ impl Claws {
                                 SwitchCommands::RequestingAsciiSwitchCodes(button_number).value();
 
                             let _ = runtime.block_on(async {
-                                self::Keypad::write_read_port(serial_port.clone(), write_data_array)
-                                    .await
+                                self::Keypad::write_keypad_port(
+                                    serial_port.clone(),
+                                    write_data_array,
+                                )
+                                .await
                             });
                         }
                         Task::none()
