@@ -136,7 +136,7 @@ pub async fn create_config_file() -> Result<(), std::io::Error> {
  * - `joystick_key_value`: массив, представляющий значения джойстика.
  */
 #[derive(Debug, Serialize)]
-struct Profile {
+pub struct Profile {
     name: String,
     buttons: [[u16; MAX_KEYVALUE]; MAX_SWITCH_COUNT],
     joystick_key_value: [u16; 4],
