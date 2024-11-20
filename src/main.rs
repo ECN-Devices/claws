@@ -1,5 +1,5 @@
 //Убираем консоль при старте приложения на windows
-#![windows_subsystem = "windows"]
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use application::Claws;
 use configuration::{logger::init_logger, APPLICATION_NAME, WINDOW_ICON};
