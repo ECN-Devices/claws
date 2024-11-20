@@ -156,7 +156,7 @@ impl Keypad {
     pub async fn read_keypad_port(
         port: Arc<Mutex<Box<dyn SerialPort>>>,
     ) -> Result<String, serialport::Error> {
-        let mut serial_buf = vec![0; 256];
+        let mut serial_buf = vec![0; 1024];
         let mut port_lock = port.lock().await;
 
         match port_lock.read(serial_buf.as_mut_slice()) {
