@@ -169,7 +169,7 @@ impl Default for Profile {
  * Возвращает `Result<(), tokio::io::Error>`, где `Ok(())` указывает на успешное выполнение,
  * а `Err(e)` содержит информацию об ошибке, если что-то пошло не так.
  */
-pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
+pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<Profile> {
     let config_toml = Profile {
         ..Default::default()
     };
@@ -182,11 +182,12 @@ pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<()> {
         .read(true)
         .write(true)
         .create(true)
+        .truncate(false)
         .open(file_path)
         .await?;
     let mut buffer = BufWriter::new(config_file);
 
     buffer.write_all(toml.as_bytes()).await?;
     buffer.flush().await?;
-    Ok(())
+    Ok(config_toml)
 }
