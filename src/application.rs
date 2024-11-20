@@ -233,19 +233,21 @@ impl Claws {
 
         let screen = self::Screens::get_screen_content(self);
         let container_content = match self.keypad.is_open {
-            true => row![sidebar, screen].spacing(20),
+            true => row![sidebar, screen],
             false => {
                 #[cfg(debug_assertions)]
                 {
-                    row![sidebar, screen].spacing(20)
+                    row![sidebar, screen]
                 }
 
                 #[cfg(not(debug_assertions))]
                 {
-                    row![screen].spacing(20)
+                    row![screen]
                 }
             }
-        };
+        }
+        .spacing(20);
+
         container(container_content).into()
     }
 
