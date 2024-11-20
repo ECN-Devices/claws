@@ -115,6 +115,7 @@ impl Claws {
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
+        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
         match message {
             Message::ChangeScreen(new_screen) => {
                 // Определение текущего экран
@@ -126,9 +127,6 @@ impl Claws {
                 Task::none()
             }
             Message::UpdateConfigFile => {
-                // Создание runtime для асинхронных операций
-                let runtime = Builder::new_current_thread().enable_all().build().unwrap();
-
                 // Асинхронная операция обновления конфигурационного файла
                 let config_file = runtime.block_on(async {
                     check_config_file().await?;
