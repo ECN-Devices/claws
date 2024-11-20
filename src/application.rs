@@ -16,7 +16,7 @@ use tokio::{runtime::Builder, sync::Mutex};
 use crate::{
     configuration::{
         config::{check_config_file, get_config_file, update_config_file},
-        keypad_port_commands::ProfileCommands,
+        keypad_port_commands::{ProfileCommands, SwitchCommands},
         port::Keypad,
     },
     screens::Screens,
@@ -40,8 +40,9 @@ pub enum Message {
     UpdateConfigFile,
     ReadPort,
     WritePort,
-    WriteAndReadPort,
+    RequestingAsciiSwitchCodes,
 
+    TaskRequestingAsciiSwitchCodes(Result<String, serialport::Error>),
     TaskReadPort(Result<String, serialport::Error>),
     TaskWritePort(Result<(), serialport::Error>),
 }
@@ -140,51 +141,55 @@ impl Claws {
             }
             Message::WritePort => {
                 // Проверяю открыт ли порт
-                let serial_port = match self.keypad.is_open {
-                    true => self.keypad.port.clone().unwrap(),
-                    false => todo!(),
-                };
-                let write_data_array = ProfileCommands::WriteDownTheNameOfTheProfile.value();
-                let write_port = self::Keypad::write_keypad_port(serial_port, write_data_array);
-
-                Task::perform(write_port, Message::TaskWritePort)
-                // Task::none()
+                match self.keypad.is_open {
+                    true => {
+                        let serial_port = self.keypad.port.clone().unwrap();
+                        let write_data_array = ProfileCommands::RequestForAProfileName.value();
+                        //let write_data_array = SwitchCommands::RequestingAsciiSwitchCodes(1).value();
+                        let write_port =
+                            self::Keypad::write_keypad_port(serial_port, write_data_array);
+                        Task::perform(write_port, Message::TaskWritePort)
+                    }
+                    false => Task::none(),
+                }
             }
             Message::ReadPort => {
                 // Проверяю открыт ли порт
-                let serial_port = match self.keypad.is_open {
-                    true => self.keypad.port.clone().unwrap(),
-                    false => todo!(),
-                };
-                let read_port = self::Keypad::read_keypad_port(serial_port);
-
-                Task::perform(read_port, Message::TaskReadPort)
-                // Task::none()
+                match self.keypad.is_open {
+                    true => {
+                        let serial_port = self.keypad.port.clone().unwrap();
+                        let read_port = self::Keypad::read_keypad_port(serial_port);
+                        Task::perform(read_port, Message::TaskReadPort)
+                    }
+                    false => Task::none(),
+                }
             }
-            Message::WriteAndReadPort => {
-                // let runtime = Builder::new_current_thread().enable_all().build().unwrap();
-                // let write_data_array: [u16; ARRAY_LEN] = [11, 0, 0, 0, 0, 0, 0, 0, 0];
-                // let write_port =
-                //     write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array);
+            Message::RequestingAsciiSwitchCodes => {
+                match self.keypad.is_open {
+                    true => {
+                        let serial_port = self.keypad.port.clone().unwrap();
+                        for button_number in 1..=4 {
+                            let write_data_array =
+                                SwitchCommands::RequestingAsciiSwitchCodes(button_number).value();
 
-                // let read_port = read_keypad_port(self.keypad.serial_port.try_clone());
+                            let _ = runtime.block_on(async {
+                                self::Keypad::write_read_port(serial_port.clone(), write_data_array)
+                                    .await
+                            });
+                        }
+                        Task::none()
+                    }
+                    false => Task::none(),
+                }
 
-                // // let (write_port_result, read_port_result) = tokio::join!(write_port, read_port);
+                //let write_data_array = DeviceCommands::RequestingDeviceInformation.value();
 
-                // // println!("{}", write)
+                //let write_data_array = SwitchCommands::RequestingAsciiSwitchCodes.value();
+                //let write_port = self::Keypad::write_keypad_port(serial_port, write_data_array);
 
-                // let write_and_read_port = async {
-                //     let _ =
-                //         write_keypad_port(self.keypad.serial_port.try_clone(), write_data_array)
-                //             .await;
-                //     read_keypad_port(self.keypad.serial_port.try_clone()).await
-                // };
-
-                // runtime.block_on(async move { write_and_read_port.await });
-
-                // Task::batch(vec![write_port, read_port]).map(Message::TaskWriteAndReadPort)
-                Task::none()
+                //Task::perform(write_read_port, Message::TaskRequestingAsciiSwitchCodes)
             }
+            Message::TaskRequestingAsciiSwitchCodes(_r) => Task::none(),
             Message::TaskReadPort(_r) => Task::none(),
             Message::TaskWritePort(_r) => Task::none(),
         }
@@ -244,6 +249,13 @@ impl Claws {
             }
         };
         container(container_content).into()
+    }
+
+    pub fn subscription(&self) -> Subscription<Message> {
+        match self.keypad.is_open {
+            true => iced::time::every(Duration::from_millis(10)).map(|_| Message::ReadPort),
+            false => Subscription::none(),
+        }
     }
 }
 

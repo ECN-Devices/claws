@@ -54,6 +54,6 @@ fn main() -> iced::Result {
     iced::application(Claws::title, Claws::update, Claws::view)
         .settings(iced_settings) // Установка настроек приложения
         .window(window_settings) // Установка настроек окна
-        .theme(Claws::theme) // Установка темы приложения
+        .subscription(Claws::subscription)
         .run_with(Claws::new) // Запуск приложения с указанным стартовым состоянием
 }
