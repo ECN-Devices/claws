@@ -115,7 +115,7 @@ pub enum SwitchCommands {
      *
      * > **_NOTE:_** Коды в формате dec ascii.
      */
-    RequestingAsciiSwitchCodes,
+    RequestingAsciiSwitchCodes(u16),
 
     /// # Настройка ascii кодов переключателя
     /**
@@ -262,7 +262,9 @@ impl SwitchCommands {
     pub fn value(&self) -> [u16; ARRAY_LEN] {
         match self {
             Self::RequestingTheStatusOfTheSwitch => [7, 0, 0, 0, 0, 0, 0, 0, 0],
-            Self::RequestingAsciiSwitchCodes => [8, 0, 0, 0, 0, 0, 0, 0, 0],
+            Self::RequestingAsciiSwitchCodes(button_number) => {
+                [8, *button_number, 0, 0, 0, 0, 0, 0, 0]
+            }
             Self::ConfiguringAsciiSwitchCodes => [9, 0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
