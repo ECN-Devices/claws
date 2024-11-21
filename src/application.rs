@@ -16,7 +16,7 @@ use tokio::{runtime::Builder, sync::Mutex};
 use crate::{
     configuration::{
         config::{check_config_file, get_config_file, update_config_file},
-        keypad_port_commands::{ProfileCommands, SwitchCommands},
+        keypad_port_commands::{ProfileCommands, SwitchCommands, Value},
         port::Keypad,
     },
     screens::Screens,
@@ -142,7 +142,7 @@ impl Claws {
                 match self.keypad.is_open {
                     true => {
                         let serial_port = self.keypad.port.clone().unwrap();
-                        let write_data_array = ProfileCommands::RequestForAProfileName.value();
+                        let write_data_array = ProfileCommands::RequestForAProfileName.get_value();
                         //let write_data_array = SwitchCommands::RequestingAsciiSwitchCodes(1).value();
                         let write_port =
                             self::Keypad::write_keypad_port(serial_port, write_data_array);
@@ -168,7 +168,8 @@ impl Claws {
                         let serial_port = self.keypad.port.clone().unwrap();
                         for button_number in 1..=4 {
                             let write_data_array =
-                                SwitchCommands::RequestingAsciiSwitchCodes(button_number).value();
+                                SwitchCommands::RequestingAsciiSwitchCodes(button_number)
+                                    .get_value();
 
                             let _ = runtime.block_on(async {
                                 self::Keypad::write_keypad_port(

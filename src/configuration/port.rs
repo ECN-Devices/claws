@@ -7,7 +7,11 @@ use std::{
 use serialport::{available_ports, new, SerialPort};
 use tokio::sync::Mutex;
 
-use super::{command::command_to_string, keypad_port_commands::EmptyCommand, ARRAY_LEN};
+use super::{
+    command::command_to_string,
+    keypad_port_commands::{EmptyCommand, Value},
+    ARRAY_LEN,
+};
 use log::{debug, error};
 
 #[cfg(target_os = "linux")]
@@ -32,7 +36,7 @@ impl Keypad {
      */
     async fn process_ports(ports: Vec<String>) -> String {
         let mut result = String::new();
-        let write_data_array = EmptyCommand::Empty.value();
+        let write_data_array = EmptyCommand::Empty.get_value();
         for port_name in ports.iter() {
             debug!("Port: {}; bytes: {:?}", port_name, port_name.as_bytes());
             // Открываем порт

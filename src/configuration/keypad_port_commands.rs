@@ -247,8 +247,12 @@ pub enum EmptyCommand {
     Empty,
 }
 
-impl StickCommands {
-    pub fn value(&self) -> [u16; ARRAY_LEN] {
+pub trait Value {
+    fn get_value(&self) -> [u16; ARRAY_LEN];
+}
+
+impl Value for StickCommands {
+    fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
             Self::RequestingThePositionOfTheStick => [1, 0, 0, 0, 0, 0, 0, 0, 0],
             Self::RequestForParameters => [2, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -259,8 +263,9 @@ impl StickCommands {
         }
     }
 }
-impl SwitchCommands {
-    pub fn value(&self) -> [u16; ARRAY_LEN] {
+
+impl Value for SwitchCommands {
+    fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
             Self::RequestingTheStatusOfTheSwitch => [7, 0, 0, 0, 0, 0, 0, 0, 0],
             Self::RequestingAsciiSwitchCodes(button_number) => {
@@ -270,8 +275,9 @@ impl SwitchCommands {
         }
     }
 }
-impl ProfileCommands {
-    pub fn value(&self) -> [u16; ARRAY_LEN] {
+
+impl Value for ProfileCommands {
+    fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
             Self::RequestingTheCurrentActiveProfile => [10, 0, 0, 0, 0, 0, 0, 0, 0],
             Self::RequestForAProfileName => [11, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -283,16 +289,18 @@ impl ProfileCommands {
         }
     }
 }
-impl DeviceCommands {
-    pub fn value(&self) -> [u16; ARRAY_LEN] {
+
+impl Value for DeviceCommands {
+    fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
             Self::RequestingDeviceInformation => [17, 0, 0, 0, 0, 0, 0, 0, 0],
             Self::RecordDeviceInformation => [18, 0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
 }
-impl EmptyCommand {
-    pub fn value(&self) -> [u16; ARRAY_LEN] {
+
+impl Value for EmptyCommand {
+    fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
             Self::Empty => [101, 0, 0, 0, 0, 0, 0, 0, 0],
         }
