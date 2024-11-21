@@ -31,13 +31,13 @@ pub enum Screens {
 
 impl Screens {
     /// Возвращает имя текущего экрана в виде строки.
-    fn name(&self) -> String {
+    fn name(&self) -> &str {
         match self {
-            Screens::Profile => "Профили".to_string(),
-            Screens::Settings => "Настройки".to_string(),
-            Screens::Updater => "Обновление".to_string(),
-            Screens::ConnectedDeviceNotFound => "Устройство не найдено".to_string(),
-            Screens::ExperimentalTab => "Экспериментальные настройки".to_string(),
+            Screens::Profile => "Профили",
+            Screens::Settings => "Настройки",
+            Screens::Updater => "Обновление",
+            Screens::ConnectedDeviceNotFound => "Устройство не найдено",
+            Screens::ExperimentalTab => "Экспериментальные настройки",
         }
     }
     /** Генерирует содержимое экрана в зависимости от текущего состояния приложения.
