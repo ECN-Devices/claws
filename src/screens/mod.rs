@@ -55,37 +55,37 @@ impl Screens {
                     .height(Length::Fixed(40.));
 
                 let buttons_top = column![
-                    create_keypad_button("#1".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#2".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#3".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#4".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#1", Message::ButtonClicked),
+                    create_keypad_button("#2", Message::ButtonClicked),
+                    create_keypad_button("#3", Message::ButtonClicked),
+                    create_keypad_button("#4", Message::ButtonClicked),
                 ]
                 .spacing(Pixels::from(BUTTON_SPACING))
                 .padding(BUTTON_PADDING);
 
                 let buttons_middle = column![
-                    create_keypad_button("#5".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#6".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#7".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#8".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#5", Message::ButtonClicked),
+                    create_keypad_button("#6", Message::ButtonClicked),
+                    create_keypad_button("#7", Message::ButtonClicked),
+                    create_keypad_button("#8", Message::ButtonClicked),
                 ]
                 .spacing(Pixels::from(BUTTON_SPACING))
                 .padding(BUTTON_PADDING);
 
                 let buttons_bottom = column![
-                    create_keypad_button("#9".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#10".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#11".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#12".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#9", Message::ButtonClicked),
+                    create_keypad_button("#10", Message::ButtonClicked),
+                    create_keypad_button("#11", Message::ButtonClicked),
+                    create_keypad_button("#12", Message::ButtonClicked),
                 ]
                 .spacing(Pixels::from(BUTTON_SPACING))
                 .padding(BUTTON_PADDING);
 
                 let buttons_underground = column![
-                    create_keypad_button("#13".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#14".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#15".to_string(), Message::ButtonClicked),
-                    create_keypad_button("#16".to_string(), Message::ButtonClicked),
+                    create_keypad_button("#13", Message::ButtonClicked),
+                    create_keypad_button("#14", Message::ButtonClicked),
+                    create_keypad_button("#15", Message::ButtonClicked),
+                    create_keypad_button("#16", Message::ButtonClicked),
                 ]
                 .spacing(Pixels::from(BUTTON_SPACING))
                 .padding(BUTTON_PADDING);
@@ -138,14 +138,11 @@ impl Screens {
 
                 let buttons = container(
                     row![
+                        create_keypad_button("UpdateConfigFile", Message::UpdateConfigFile),
+                        create_keypad_button("WritePort", Message::WritePort),
+                        create_keypad_button("ReadPort", Message::ReadPort),
                         create_keypad_button(
-                            "UpdateConfigFile".to_string(),
-                            Message::UpdateConfigFile
-                        ),
-                        create_keypad_button("WritePort".to_string(), Message::WritePort),
-                        create_keypad_button("ReadPort".to_string(), Message::ReadPort),
-                        create_keypad_button(
-                            "TaskRequestingAsciiSwitchCodes".to_string(),
+                            "TaskRequestingAsciiSwitchCodes",
                             Message::RequestingAsciiSwitchCodes
                         )
                     ]
@@ -167,7 +164,7 @@ impl Screens {
  * # Возвращает
  * Возвращает экземпляр `Button`, который можно использовать в пользовательском интерфейсе.
  */
-fn create_keypad_button<'a>(button_text: String, on_press: Message) -> Button<'a, Message> {
+fn create_keypad_button(button_text: &str, on_press: Message) -> Button<'_, Message> {
     button(
         text(button_text)
             .size(10)
