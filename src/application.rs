@@ -19,7 +19,7 @@ use crate::{
         keypad_port_commands::{ProfileCommands, SwitchCommands, Value},
         port::Keypad,
     },
-    screens::Screens,
+    screens::Screens
 };
 
 /// Структура приложения
