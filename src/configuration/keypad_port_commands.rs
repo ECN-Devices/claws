@@ -247,10 +247,29 @@ pub enum EmptyCommand {
     Empty,
 }
 
+/**
+# Трейт `Value` определяет метод для получения значения в виде массива `u16`.
+ *
+ * Этот трейт используется для различных команд, чтобы получить соответствующее
+ * значение в виде массива фиксированной длины. Реализации этого трейта должны
+ * возвращать массив, который представляет команду.
+*/
 pub trait Value {
+    /**
+    Получает значение команды в виде массива `u16`.
+
+    # Возвращаемое значение
+    Возвращает массив `[u16; ARRAY_LEN]`, представляющий значение команды.
+    */
     fn get_value(&self) -> [u16; ARRAY_LEN];
 }
 
+/**
+# Реализация трейта `Value` для `StickCommands`.
+ *
+ * Эта реализация возвращает массив значений, соответствующий командам,
+ * связанным со стиком.
+*/
 impl Value for StickCommands {
     fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
@@ -264,6 +283,12 @@ impl Value for StickCommands {
     }
 }
 
+/**
+# Реализация трейта `Value` для `SwitchCommands`.
+ *
+ * Эта реализация возвращает массив значений, соответствующий командам,
+ * связанным с кнопками.
+*/
 impl Value for SwitchCommands {
     fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
@@ -276,6 +301,12 @@ impl Value for SwitchCommands {
     }
 }
 
+/**
+# Реализация трейта `Value` для `ProfileCommands`.
+ *
+ * Эта реализация возвращает массив значений, соответствующий командам,
+ * связанным с профилями.
+*/
 impl Value for ProfileCommands {
     fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
@@ -290,6 +321,12 @@ impl Value for ProfileCommands {
     }
 }
 
+/**
+# Реализация трейта `Value` для `DeviceCommands`.
+ *
+ * Эта реализация возвращает массив значений, соответствующий командам,
+ * связанным с устройством.
+*/
 impl Value for DeviceCommands {
     fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
@@ -299,6 +336,11 @@ impl Value for DeviceCommands {
     }
 }
 
+/**
+# Реализация трейта `Value` для `EmptyCommand`.
+*
+* Эта реализация возвращает массив значений, соответствующий пустой команде.
+*/
 impl Value for EmptyCommand {
     fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
