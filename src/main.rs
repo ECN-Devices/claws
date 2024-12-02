@@ -13,6 +13,7 @@ mod application;
 mod configuration;
 mod fonts;
 mod screens;
+mod style;
 mod tests;
 
 /** Главная функция приложения.
