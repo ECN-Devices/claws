@@ -16,10 +16,10 @@ use tokio::{runtime::Builder, sync::Mutex};
 use crate::{
     configuration::{
         config::{check_config_file, get_config_file, update_config_file},
-        keypad_port_commands::{ProfileCommands, SwitchCommands, Value},
-        port::Keypad,
+        keypad_port_commands::{KeypadCommands, SwitchCommands, Value},
+        port::{get_buffer, Keypad},
     },
-    screens::Screens
+    screens::Screens,
 };
 
 /// Структура приложения
@@ -39,7 +39,7 @@ pub enum Message {
     ButtonClicked,
     UpdateConfigFile,
     ReadPort,
-    WritePort,
+    WritePort(KeypadCommands),
     RequestingAsciiSwitchCodes,
 
     TaskRequestingAsciiSwitchCodes(Result<String, serialport::Error>),
@@ -137,13 +137,12 @@ impl Claws {
                 debug!("{:?}", config_file);
                 Task::none()
             }
-            Message::WritePort => {
+            Message::WritePort(data) => {
                 // Проверяю открыт ли порт
                 match self.keypad.is_open {
                     true => {
                         let serial_port = self.keypad.port.clone().unwrap();
-                        let write_data_array = ProfileCommands::RequestForAProfileName.get_value();
-                        //let write_data_array = SwitchCommands::RequestingAsciiSwitchCodes(1).value();
+                        let write_data_array = data.get_value();
                         let write_port =
                             self::Keypad::write_keypad_port(serial_port, write_data_array);
                         Task::perform(write_port, Message::TaskWritePort)

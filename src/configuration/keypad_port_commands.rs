@@ -2,7 +2,16 @@
 
 use super::ARRAY_LEN;
 
+#[derive(Debug, Clone)]
+pub enum KeypadCommands {
+    StickCommands(StickCommands),
+    SwitchCommands(SwitchCommands),
+    ProfileCommands(ProfileCommands),
+    DeviceCommands(DeviceCommands),
+    EmptyCommand(EmptyCommand),
+}
 /// #  Обращение к структуре стика
+#[derive(Debug, Clone)]
 pub enum StickCommands {
     /// # Запрос положения стика
     /**
@@ -93,6 +102,7 @@ pub enum StickCommands {
 }
 
 /// # Обращение к структуре переключателя
+#[derive(Debug, Clone)]
 pub enum SwitchCommands {
     /// # Запрос состояния переключателя
     /**
@@ -130,6 +140,7 @@ pub enum SwitchCommands {
 }
 
 /// # Обращение к структуре профиля
+#[derive(Debug, Clone)]
 pub enum ProfileCommands {
     /// # Запрос текущего активного профиля
     /**
@@ -216,6 +227,7 @@ pub enum ProfileCommands {
 }
 
 /// # Обращение к устройству
+#[derive(Debug, Clone)]
 pub enum DeviceCommands {
     /// # Запрос информации об устройстве
     /**
@@ -236,6 +248,7 @@ pub enum DeviceCommands {
 }
 
 /// # Пустой запрос
+#[derive(Debug, Clone)]
 pub enum EmptyCommand {
     /// Проверка на подключено ли устройство.
     /**
@@ -262,6 +275,18 @@ pub trait Value {
     Возвращает массив `[u16; ARRAY_LEN]`, представляющий значение команды.
     */
     fn get_value(&self) -> [u16; ARRAY_LEN];
+}
+
+impl Value for KeypadCommands {
+    fn get_value(&self) -> [u16; ARRAY_LEN] {
+        match self {
+            Self::StickCommands(command) => command.get_value(),
+            Self::SwitchCommands(command) => command.get_value(),
+            Self::ProfileCommands(command) => command.get_value(),
+            Self::DeviceCommands(command) => command.get_value(),
+            Self::EmptyCommand(command) => command.get_value(),
+        }
+    }
 }
 
 /**

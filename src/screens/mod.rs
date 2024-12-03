@@ -5,6 +5,7 @@ use iced::{
 };
 
 use crate::application::{Claws, Message};
+use crate::configuration::keypad_port_commands::{DeviceCommands, KeypadCommands, ProfileCommands};
 
 /// `BUTTON_SPACING` определяет расстояние между кнопками в пикселях.
 const BUTTON_SPACING: u16 = 30;
@@ -139,8 +140,19 @@ impl Screens {
                 let buttons = container(
                     row![
                         create_keypad_button("UpdateConfigFile", Message::UpdateConfigFile),
-                        create_keypad_button("WritePort", Message::WritePort),
-                        create_keypad_button("ReadPort", Message::ReadPort),
+                        create_keypad_button(
+                            "WritePortProfile",
+                            Message::WritePort(KeypadCommands::ProfileCommands(
+                                ProfileCommands::RequestForAProfileName
+                            ))
+                        ),
+                        create_keypad_button(
+                            "WritePortDevice",
+                            Message::WritePort(KeypadCommands::DeviceCommands(
+                                DeviceCommands::RequestingDeviceInformation
+                            ))
+                        ),
+                        create_keypad_button("PrintBuffer", Message::PrintBuffer),
                         create_keypad_button(
                             "TaskRequestingAsciiSwitchCodes",
                             Message::RequestingAsciiSwitchCodes
