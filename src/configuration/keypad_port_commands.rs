@@ -2,6 +2,7 @@
 
 use super::ARRAY_LEN;
 
+/// # Обращение к перечислений команд кейпада
 #[derive(Debug, Clone)]
 pub enum KeypadCommands {
     StickCommands(StickCommands),
@@ -10,6 +11,7 @@ pub enum KeypadCommands {
     DeviceCommands(DeviceCommands),
     EmptyCommand(EmptyCommand),
 }
+
 /// #  Обращение к структуре стика
 #[derive(Debug, Clone)]
 pub enum StickCommands {
@@ -277,6 +279,12 @@ pub trait Value {
     fn get_value(&self) -> [u16; ARRAY_LEN];
 }
 
+/**
+# Реализация трейта `Value` для `KeypadCommands`.
+ *
+ * Эта реализация возвращает массив значений, соответствующий командам,
+ * связанным с перечислением команд.
+*/
 impl Value for KeypadCommands {
     fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {

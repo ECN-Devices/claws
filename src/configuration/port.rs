@@ -1,9 +1,12 @@
+#![allow(unused_doc_comments)]
+
 use std::{
     io::{Read, Write},
     sync::Arc,
     time::Duration,
 };
 
+use lazy_static::lazy_static;
 use serialport::{available_ports, new, SerialPort};
 use tokio::sync::Mutex;
 
@@ -25,6 +28,25 @@ pub struct Keypad {
     /// Используется `Arc<Mutex<>>` для обеспечения безопасного доступа из разных потоков.
     pub port: Option<Arc<Mutex<Box<dyn SerialPort>>>>,
     pub is_open: bool,
+}
+
+/**
+# Глобальный буфер для хранения сообщений
+
+Используется для хранения строковых сообщений, полученных из порта.
+*/
+lazy_static! {
+    #[derive(Debug)]
+    pub static ref BUFFER: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+}
+
+/**
+# Получение содержимого буфера
+
+Асинхронная функция для вывода содержимого буфера.
+*/
+pub async fn get_buffer() {
+    println!("{:?}", BUFFER.lock().await);
 }
 
 impl Keypad {
@@ -153,30 +175,95 @@ impl Keypad {
         Ok(())
     }
 
-    /** Асинхронная функция для чтения данных из порта клавиатуры.
-     *
-     * Эта функция принимает порт и возвращает строку с прочитанными данными или ошибку.
-     */
+    /**
+    # Чтение данных из последовательного порта
+
+    Асинхронная функция для чтения данных из заданного последовательного порта.
+
+    # Параметры
+    - `port`: Arc<Mutex<Box<dyn SerialPort>>>, содержащая заблокированный доступ к последовательному порту.
+
+    # Возвращаемое значение
+    Возвращает результат в виде строки, содержащей прочитанные сообщения, или ошибку.
+    */
     pub async fn read_keypad_port(
         port: Arc<Mutex<Box<dyn SerialPort>>>,
     ) -> Result<String, serialport::Error> {
+        // Создаем буфер для чтения данных из порта
         let mut serial_buf = vec![0; 1024];
+        // Блокируем доступ к порту для безопасного чтения
         let mut port_lock = port.lock().await;
 
-        match port_lock.read(serial_buf.as_mut_slice()) {
-            Ok(_n) => {
-                let buf = String::from_utf8(serial_buf).unwrap();
-                let trimmed_buf = buf.trim_end_matches(|c: char| c.is_control()).to_string();
+        // Проверяем, сколько байтов доступно для чтения
+        let available_bytes = port_lock.bytes_to_read()?;
+        if available_bytes == 0 {
+            return Ok(String::new()); // Если нет доступных байтов, возвращаем пустую строку
+        }
 
-                debug!(
-                    "Trimed data: {:?}, bytes: {:?}",
-                    trimmed_buf,
-                    trimmed_buf.as_bytes()
-                );
+        // Читаем данные из порта
+        let n = port_lock.read(serial_buf.as_mut_slice())?;
+        if n == 0 {
+            return Ok(String::new()); // Если ничего не прочитано, возвращаем пустую строку
+        }
 
-                Ok(trimmed_buf)
+        // Обрабатываем прочитанные данные и получаем сообщения
+        let messages = Self::process_data(&serial_buf[..n]).await;
+        // Сохраняем сообщения в буфер
+        Self::save_messages(&messages).await;
+
+        Ok(messages) // Возвращаем обработанные сообщения
+    }
+
+    /**
+    # Обработка прочитанных данных
+    Асинхронная функция для обработки данных, полученных из порта.
+
+    # Параметры
+    - `data`: Срез байтов, содержащий прочитанные данные.
+
+    # Возвращаемое значение
+    Возвращает строку, содержащую обработанные сообщения.
+    */
+    async fn process_data(data: &[u8]) -> String {
+        // Преобразуем данные в строку
+        let buf = String::from_utf8_lossy(data);
+        let mut messages = String::new(); // Для хранения сообщений
+        let mut complete_data = buf.to_string(); // Полные данные для обработки
+
+        // Извлекаем сообщения, разделенные символом ';'
+        while let Some(pos) = complete_data.find(';') {
+            let message = complete_data[..pos + 1].to_string(); // Извлекаем сообщение
+            if !message.trim().is_empty() {
+                messages.push_str(&message); // Добавляем непустое сообщение в результат
             }
-            Err(err) => Err(serialport::Error::from(err)),
+            complete_data = complete_data[pos + 1..].to_string(); // Обновляем полные данные
+        }
+
+        // Обрабатываем оставшиеся данные, если они есть
+        //if !complete_data.is_empty() {
+        //    let trimmed_data = complete_data.trim_end_matches(|c: char| c.is_control()); // Удаляем управляющие символы
+        //    if !trimmed_data.is_empty() {
+        //        messages.push_str(trimmed_data); // Добавляем оставшиеся данные, если они не пустые
+        //    }
+        //}
+
+        messages // Возвращаем все обработанные сообщения
+    }
+
+    /**
+    # Сохранение сообщений в буфер
+
+    Асинхронная функция для сохранения сообщений в глобальный буфер.
+
+    # Параметры
+    - `messages`: Строка, содержащая сообщения для сохранения.
+    */
+    async fn save_messages(messages: &str) {
+        if !messages.is_empty() {
+            // Блокируем доступ к глобальному буферу
+            let mut buffet_state = BUFFER.lock().await;
+            buffet_state.push(messages.to_string()); // Сохраняем сообщения в буфер
+            println!("{:?}", buffet_state);
         }
     }
 }

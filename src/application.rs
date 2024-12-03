@@ -42,6 +42,9 @@ pub enum Message {
     WritePort(KeypadCommands),
     RequestingAsciiSwitchCodes,
 
+    PrintBuffer,
+    TaskPrintBuffer(()),
+
     TaskRequestingAsciiSwitchCodes(Result<String, serialport::Error>),
     TaskReadPort(Result<String, serialport::Error>),
     TaskWritePort(Result<(), serialport::Error>),
@@ -193,6 +196,13 @@ impl Claws {
             Message::TaskRequestingAsciiSwitchCodes(_r) => Task::none(),
             Message::TaskReadPort(_r) => Task::none(),
             Message::TaskWritePort(_r) => Task::none(),
+
+            Message::PrintBuffer => {
+                let buffer = get_buffer();
+
+                Task::perform(buffer, Message::TaskPrintBuffer)
+            }
+            Message::TaskPrintBuffer(_r) => Task::none(),
         }
     }
 
