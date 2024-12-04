@@ -275,6 +275,17 @@ pub trait Value {
 
     # Возвращаемое значение
     Возвращает массив `[u16; ARRAY_LEN]`, представляющий значение команды.
+
+    # Пример использования
+
+    ```
+    let value = KeypadCommands::Empty(EmptyCommand::Empty).get_value();
+    assert_eq!(value, [101, 0, 0, 0, 0, 0, 0, 0, 0]);
+
+    let value = EmptyCommand::Empty.get_value();
+    assert_eq!(value, [101, 0, 0, 0, 0, 0, 0, 0, 0]);
+    ```
+
     */
     fn get_value(&self) -> [u16; ARRAY_LEN];
 }
