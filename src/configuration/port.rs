@@ -12,7 +12,7 @@ use tokio::sync::Mutex;
 
 use super::{
     command::command_to_string,
-    keypad_port_commands::{EmptyCommand, Value},
+    keypad_port_commands::{EmptyCommand, KeypadCommands, Value},
     ARRAY_LEN,
 };
 use log::{debug, error};
@@ -37,7 +37,7 @@ pub struct Keypad {
 */
 lazy_static! {
     #[derive(Debug)]
-    pub static ref BUFFER: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    static ref BUFFER: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
 }
 
 /**
@@ -58,7 +58,7 @@ impl Keypad {
      */
     async fn process_ports(ports: Vec<String>) -> String {
         let mut result = String::new();
-        let write_data_array = EmptyCommand::Empty.get_value();
+        let write_data_array = KeypadCommands::Empty(EmptyCommand::Empty).get_value();
         for port_name in ports.iter() {
             debug!("Port: {}; bytes: {:?}", port_name, port_name.as_bytes());
             // Открываем порт

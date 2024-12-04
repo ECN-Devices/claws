@@ -5,11 +5,11 @@ use super::ARRAY_LEN;
 /// # Обращение к перечислений команд кейпада
 #[derive(Debug, Clone)]
 pub enum KeypadCommands {
-    StickCommands(StickCommands),
-    SwitchCommands(SwitchCommands),
-    ProfileCommands(ProfileCommands),
-    DeviceCommands(DeviceCommands),
-    EmptyCommand(EmptyCommand),
+    Stick(StickCommands),
+    Switch(SwitchCommands),
+    Profile(ProfileCommands),
+    Device(DeviceCommands),
+    Empty(EmptyCommand),
 }
 
 /// #  Обращение к структуре стика
@@ -288,11 +288,11 @@ pub trait Value {
 impl Value for KeypadCommands {
     fn get_value(&self) -> [u16; ARRAY_LEN] {
         match self {
-            Self::StickCommands(command) => command.get_value(),
-            Self::SwitchCommands(command) => command.get_value(),
-            Self::ProfileCommands(command) => command.get_value(),
-            Self::DeviceCommands(command) => command.get_value(),
-            Self::EmptyCommand(command) => command.get_value(),
+            Self::Stick(command) => command.get_value(),
+            Self::Switch(command) => command.get_value(),
+            Self::Profile(command) => command.get_value(),
+            Self::Device(command) => command.get_value(),
+            Self::Empty(command) => command.get_value(),
         }
     }
 }

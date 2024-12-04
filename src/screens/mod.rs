@@ -142,13 +142,13 @@ impl Screens {
                         create_keypad_button("UpdateConfigFile", Message::UpdateConfigFile),
                         create_keypad_button(
                             "WritePortProfile",
-                            Message::WritePort(KeypadCommands::ProfileCommands(
+                            Message::WritePort(KeypadCommands::Profile(
                                 ProfileCommands::RequestForAProfileName
                             ))
                         ),
                         create_keypad_button(
                             "WritePortDevice",
-                            Message::WritePort(KeypadCommands::DeviceCommands(
+                            Message::WritePort(KeypadCommands::Device(
                                 DeviceCommands::RequestingDeviceInformation
                             ))
                         ),
