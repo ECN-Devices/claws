@@ -20,16 +20,6 @@ use log::{debug, error};
 #[cfg(target_os = "linux")]
 use regex::Regex;
 
-/** Структура `Keypad` представляет клавиатуру, подключенную к приложению.
- * Она содержит информацию о порте, к которому подключена клавиатура, и статус открытия порта.
- */
-#[derive(Debug, Clone)]
-pub struct Keypad {
-    /// Используется `Arc<Mutex<>>` для обеспечения безопасного доступа из разных потоков.
-    pub port: Option<Arc<Mutex<Box<dyn SerialPort>>>>,
-    pub is_open: bool,
-}
-
 /**
 # Глобальный буфер для хранения сообщений
 
@@ -47,6 +37,16 @@ lazy_static! {
 */
 pub async fn get_buffer() {
     println!("{:?}", BUFFER.lock().await);
+}
+
+/** Структура `Keypad` представляет клавиатуру, подключенную к приложению.
+ * Она содержит информацию о порте, к которому подключена клавиатура, и статус открытия порта.
+ */
+#[derive(Debug, Clone)]
+pub struct Keypad {
+    /// Используется `Arc<Mutex<>>` для обеспечения безопасного доступа из разных потоков.
+    pub port: Option<Arc<Mutex<Box<dyn SerialPort>>>>,
+    pub is_open: bool,
 }
 
 impl Keypad {
