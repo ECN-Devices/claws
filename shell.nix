@@ -1,10 +1,14 @@
-{ pkgs ? import <nixpkgs> { } }:
-let 
-  libPath = with pkgs; lib.makeLibraryPath [
-    libGL
-    libxkbcommon
-    wayland
-  ];
+{
+  pkgs ? import <nixpkgs> { },
+}:
+let
+  libPath =
+    with pkgs;
+    lib.makeLibraryPath [
+      libGL
+      libxkbcommon
+      wayland
+    ];
 in
 pkgs.mkShell {
   # Get dependencies from the main package
