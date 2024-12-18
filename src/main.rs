@@ -14,7 +14,7 @@ mod configuration;
 mod fonts;
 mod screens;
 mod style;
-//mod tests;
+mod tests;
 
 /** Главная функция приложения.
  * Эта функция инициализирует приложение, настраивает логирование, загружает шрифты,
