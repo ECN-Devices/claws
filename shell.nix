@@ -16,9 +16,6 @@ in
     ];
 
     buildInputs = with pkgs; [
-      libGL
-      libxkbcommon
-      wayland
     ];
 
     LD_LIBRARY_PATH = libPath;

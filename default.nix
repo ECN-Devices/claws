@@ -10,17 +10,11 @@ in
     buildInputs = with pkgs; [
       pkg-config
       systemd
-      libGL
-      libxkbcommon
-      wayland
     ];
 
     nativeBuildInputs = with pkgs; [
       pkg-config
       systemd
-      libGL
-      libxkbcommon
-      wayland
     ];
 
     doCheck = false;
