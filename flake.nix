@@ -6,7 +6,8 @@
   outputs = {
     self,
     nixpkgs,
-  }: let
+    ...
+  } @ inputs: let
     supportedSystems = ["x86_64-linux"];
     forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
     pkgsFor = nixpkgs.legacyPackages;
