@@ -16,6 +16,7 @@ in
     ];
 
     buildInputs = with pkgs; [
+      rust-analyzer
     ];
 
     LD_LIBRARY_PATH = libPath;
