@@ -15,16 +15,16 @@ iced = { version = "0.13.1", default-features = true ,features = [
 #     "icons",
 #     "card",
 # ] }
-image = "0.25.2"
-tokio = { version = "1.42.0", features = ["full", "io-std", "io-util"] }
+image = "0.25.5"
+tokio = { version = "1.43.0", features = ["full", "io-std", "io-util"] }
 # lilt = "0.7.0"
-dirs = "5.0.1"
+dirs = "6.0.0"
 toml = { version = "0.8.19", features = ["parse", "display"] }
-serde = { version = "1.0.216", features = ["derive"] }
+serde = { version = "1.0.217", features = ["derive"] }
 whoami = "1.5.2"
-log = "0.4.22"
+log = "0.4.25"
 regex = "1.11.1"
-serialport = { version = "4.6.1", features = ["serde"] }
+serialport = { version = "4.7.0", features = ["serde"] }
 pretty_env_logger = "0.5.0"
 lazy_static = "1.5.0"
 
