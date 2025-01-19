@@ -6,6 +6,8 @@ authors = ["Yaroslav Malykh <fisuri@murena.io>"]
 
 [dependencies]
 iced = { version = "0.13.1", default-features = true ,features = [
+    "wgpu",
+    "tiny-skia",
     "tokio",
     "image",
     "svg",
