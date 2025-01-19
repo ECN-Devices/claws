@@ -10,6 +10,14 @@ in
     buildInputs = with pkgs; [
       pkg-config
       systemd
+      (rust-bin.stable.latest.default.override {
+        extensions = [
+          "rust-src"
+          "rustc"
+          "cargo"
+          "rust-analyzer"
+        ];
+      })
     ];
 
     nativeBuildInputs = with pkgs; [

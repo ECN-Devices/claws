@@ -13,10 +13,17 @@ in
     nativeBuildInputs = with pkgs; [
       pkg-config
       systemd
+      (rust-bin.stable.latest.default.override {
+        extensions = [
+          "rust-src"
+          "rustc"
+          "cargo"
+          "rust-analyzer"
+        ];
+      })
     ];
 
     buildInputs = with pkgs; [
-      rust-analyzer
     ];
 
     LD_LIBRARY_PATH = libPath;
