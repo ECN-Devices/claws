@@ -19,16 +19,14 @@
   } @ inputs:
     flake-utils.lib.eachDefaultSystem (
       system: let
-        # supportedSystems = ["x86_64-linux"];
-        # forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
         overlays = [(import rust-overlay)];
         pkgs = import nixpkgs {
           inherit system overlays;
         };
-        # pkgs = nixpkgs.legacyPackages;
       in {
         packages = {
           default = pkgs.callPackage ./default.nix {};
+          gitBuild = pkgs.callPackage ./gitBuild.nix {};
         };
 
         devShells = {
