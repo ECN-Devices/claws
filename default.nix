@@ -53,10 +53,8 @@ in
         wayland
       ];
 
-    installPhase = ''
-      mkdir -p $out/bin
+    fixupPhase = ''
       mkdir -p $out/lib
-      cp target/x86_64-unknown-linux-gnu/debug/claws $out/bin/
 
       cp ${udev}/lib/libudev.so* $out/lib/
       cp ${wayland}/lib/libwayland* $out/lib/
