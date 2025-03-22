@@ -13,10 +13,6 @@ iced = { version = "0.13.1", default-features = true, features = [
   "svg",
   "advanced",
 ] }
-iced_aw = { git = "https://github.com/iced-rs/iced_aw.git", branch = "main", default-features = false, features = [
-  "icons",
-  "card",
-] }
 image = "0.25.5"
 tokio = { version = "1.43.0", features = ["full", "io-std", "io-util"] }
 # lilt = "0.7.0"
