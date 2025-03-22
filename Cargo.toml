@@ -5,15 +5,6 @@ edition = "2021"
 authors = ["Yaroslav Malykh <fisuri@murena.io>"]
 
 [dependencies]
-<<<<<<< Updated upstream
-iced = { version = "0.13.1", default-features = true ,features = [
-    "wgpu",
-    "tiny-skia",
-    "tokio",
-    "image",
-    "svg",
-    "advanced",
-=======
 iced = { version = "0.13.1", default-features = true, features = [
   "wgpu",
   "tiny-skia",
@@ -21,12 +12,11 @@ iced = { version = "0.13.1", default-features = true, features = [
   "image",
   "svg",
   "advanced",
->>>>>>> Stashed changes
 ] }
-# iced_aw = { git = "https://github.com/iced-rs/iced_aw.git", branch = "main", default-features = false, features = [
-#     "icons",
-#     "card",
-# ] }
+iced_aw = { git = "https://github.com/iced-rs/iced_aw.git", branch = "main", default-features = false, features = [
+  "icons",
+  "card",
+] }
 image = "0.25.5"
 tokio = { version = "1.43.0", features = ["full", "io-std", "io-util"] }
 # lilt = "0.7.0"
