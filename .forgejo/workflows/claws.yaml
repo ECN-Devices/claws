@@ -28,7 +28,9 @@ jobs:
 
       - name: Navigate to project directory
         run: |
-          cd /workspace/fisuri/claws
+          cd /workspace/fisuri/
+          git clone https://altlinux.space/fisuri/claws.git -b dev
+          cd claws
           ls -la
           
       - name: Build debug for Linux
