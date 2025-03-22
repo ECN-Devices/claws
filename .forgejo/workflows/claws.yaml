@@ -17,43 +17,39 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          dnf install -y curl git gcc gcc-c++ systemd-devel mingw64-gcc
+          dnf install -y git gcc gcc-c++ systemd-devel mingw64-gcc
 
       - name: Install Rust
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          echo "##[add-path]$HOME/.cargo/bin"
           source $HOME/.cargo/env
           rustup target add x86_64-pc-windows-gnu
 
-      - name: Navigate to project directory
-        run: |
-          cd /workspace/fisuri/
-          git clone https://altlinux.space/fisuri/claws.git -b dev
-          cd claws
-          ls -la
-          
       - name: Build debug for Linux
         if: github.ref == 'refs/heads/dev'
         run: |
+          git clone https://altlinux.space/fisuri/claws.git -b dev
           rustc --version && cargo --version
           cargo build
 
       - name: Build debug for Windows
         if: github.ref == 'refs/heads/dev'
         run: |
+          git clone https://altlinux.space/fisuri/claws.git -b dev
           rustc --version && cargo --version
           cargo build --target x86_64-pc-windows-gnu
 
       - name: Build release for Linux
         if: github.ref == 'refs/heads/master'
         run: |
+          git clone https://altlinux.space/fisuri/claws.git -b master
           rustc --version && cargo --version
           cargo build --release
 
       - name: Build release for Windows
         if: github.ref == 'refs/heads/master'
         run: |
+          git clone https://altlinux.space/fisuri/claws.git -b master
           rustc --version && cargo --version
           cargo build --release --target x86_64-pc-windows-gnu
 
