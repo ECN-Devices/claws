@@ -20,7 +20,7 @@ jobs:
           dnf install -y gcc gcc-c++ systemd-devel mingw64-gcc
           dnf clean all
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          source $HOME/.cargo/env
+          . $HOME/.cargo/env
           rustup target add x86_64-pc-windows-gnu
 
       - name: Build debug for Linux
