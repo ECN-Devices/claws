@@ -28,7 +28,7 @@ jobs:
 
       - name: Navigate to project directory
         run: |
-          cd claws
+          cd /workspace/fisuri/claws
           ls -la
           
       - name: Build debug for Linux
