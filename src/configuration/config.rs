@@ -170,13 +170,13 @@ impl Default for Profile {
  * а `Err(e)` содержит информацию об ошибке, если что-то пошло не так.
  */
 pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<Profile> {
-    let config_toml = Profile {
+    let config = Profile {
         ..Default::default()
     };
 
     // println!("{:#?}", config_toml);
 
-    let toml = toml::to_string(&config_toml).unwrap();
+    let toml = toml::to_string(&config).unwrap();
 
     let config_file = OpenOptions::new()
         .read(true)
@@ -189,5 +189,5 @@ pub async fn update_config_file(file_path: PathBuf) -> tokio::io::Result<Profile
 
     buffer.write_all(toml.as_bytes()).await?;
     buffer.flush().await?;
-    Ok(config_toml)
+    Ok(config)
 }
