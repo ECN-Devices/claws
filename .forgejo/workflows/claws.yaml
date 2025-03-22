@@ -17,10 +17,13 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          dnf install -y gcc gcc-c++ systemd-devel mingw64-gcc
-          dnf clean all
+          dnf install -y curl gcc gcc-c++ systemd-devel mingw64-gcc
+
+      - name: Install Rust
+        run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          . $HOME/.cargo/env
+          echo "##[add-path]$HOME/.cargo/bin"
+          source $HOME/.cargo/env
           rustup target add x86_64-pc-windows-gnu
 
       - name: Build debug for Linux
