@@ -1,0 +1,52 @@
+on:
+  push:
+    branches:
+      - dev
+      - master
+
+jobs:
+  build:
+    runs-on: fedora-latest
+    container:
+      image: fedora:latest
+    env:
+      CARGO_TARGET_DIR: target
+
+    steps:
+      - name: Install dependencies
+        run: |
+          dnf install -y gcc gcc-c++ systemd-devel mingw64-gcc
+          dnf clean all
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source $HOME/.cargo/env
+          rustup target add x86_64-pc-windows-gnu
+
+      - name: Build debug for Linux
+        if: ${{ env.FORGEJO_BRANCH == 'dev' }}
+        run: |
+          rustc --version && cargo --version
+          cargo build
+
+      - name: Build debug for Windows
+        if: ${{ env.FORGEJO_BRANCH == 'dev' }}
+        run: |
+          rustc --version && cargo --version
+          cargo build --target x86_64-pc-windows-gnu
+
+      - name: Build release for Linux
+        if: ${{ env.FORGEJO_BRANCH == 'master' }}
+        run: |
+          rustc --version && cargo --version
+          cargo build --release
+
+      - name: Build release for Windows
+        if: ${{ env.FORGEJO_BRANCH == 'master' }}
+        run: |
+          rustc --version && cargo --version
+          cargo build --release --target x86_64-pc-windows-gnu
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: target
+          path: ${{ env.CARGO_TARGET_DIR }}
