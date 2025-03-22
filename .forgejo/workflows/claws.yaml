@@ -28,6 +28,7 @@ jobs:
 
       - name: Checkout repository
         run: |
+          cd /workspace/fisuri
           git clone https://altlinux.space/fisuri/claws.git
           cd claws
           
