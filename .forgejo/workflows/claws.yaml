@@ -27,36 +27,36 @@ jobs:
           rustup target add x86_64-pc-windows-gnu
 
       - name: Checkout repository
-        run: |
-          cd /workspace/fisuri/
-          git clone https://altlinux.space/fisuri/claws.git
-          cd claws
+        uses: actions/checkout@v4
+        # run: |
+        #   git clone https://altlinux.space/fisuri/claws.git
+        #   cd claws
           
       - name: Build debug for Linux
         if: github.ref == 'refs/heads/dev'
         run: |
-          git switch dev
+          # git switch dev
           rustc --version && cargo --version
           cargo build
 
       - name: Build debug for Windows
         if: github.ref == 'refs/heads/dev'
         run: |
-          git switch dev
+          # git switch dev
           rustc --version && cargo --version
           cargo build --target x86_64-pc-windows-gnu
 
       - name: Build release for Linux
         if: github.ref == 'refs/heads/master'
         run: |
-          git switch master
+          # git switch master
           rustc --version && cargo --version
           cargo build --release
 
       - name: Build release for Windows
         if: github.ref == 'refs/heads/master'
         run: |
-          git switch master
+          # git switch master
           rustc --version && cargo --version
           cargo build --release --target x86_64-pc-windows-gnu
 
