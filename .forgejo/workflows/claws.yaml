@@ -1,3 +1,5 @@
+name: CI
+
 on:
   push:
     branches:
@@ -22,25 +24,25 @@ jobs:
           rustup target add x86_64-pc-windows-gnu
 
       - name: Build debug for Linux
-        if: ${{ env.FORGEJO_BRANCH == 'dev' }}
+        if: github.ref == 'dev'
         run: |
           rustc --version && cargo --version
           cargo build
 
       - name: Build debug for Windows
-        if: ${{ env.FORGEJO_BRANCH == 'dev' }}
+        if: github.ref == 'dev'
         run: |
           rustc --version && cargo --version
           cargo build --target x86_64-pc-windows-gnu
 
       - name: Build release for Linux
-        if: ${{ env.FORGEJO_BRANCH == 'master' }}
+        if: github.ref == 'master'
         run: |
           rustc --version && cargo --version
           cargo build --release
 
       - name: Build release for Windows
-        if: ${{ env.FORGEJO_BRANCH == 'master' }}
+        if: github.ref == 'master'
         run: |
           rustc --version && cargo --version
           cargo build --release --target x86_64-pc-windows-gnu
