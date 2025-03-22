@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: docker
+    runs-on: ubuntu-latest
     container:
       image: fedora:latest
     env:
@@ -23,32 +23,37 @@ jobs:
           source $HOME/.cargo/env
           rustup target add x86_64-pc-windows-gnu
 
-      - name: Build debug for Linux
-        if: github.ref == 'refs/heads/dev'
+      - name: Build 
         run: |
           rustc --version && cargo --version
           cargo build
+          
+      # - name: Build debug for Linux
+      #   if: github.ref == 'refs/heads/dev'
+      #   run: |
+      #     rustc --version && cargo --version
+      #     cargo build
 
-      - name: Build debug for Windows
-        if: github.ref == 'refs/heads/dev'
-        run: |
-          rustc --version && cargo --version
-          cargo build --target x86_64-pc-windows-gnu
+      # - name: Build debug for Windows
+      #   if: github.ref == 'refs/heads/dev'
+      #   run: |
+      #     rustc --version && cargo --version
+      #     cargo build --target x86_64-pc-windows-gnu
 
-      - name: Build release for Linux
-        if: github.ref == 'refs/heads/master'
-        run: |
-          rustc --version && cargo --version
-          cargo build --release
+      # - name: Build release for Linux
+      #   if: github.ref == 'refs/heads/master'
+      #   run: |
+      #     rustc --version && cargo --version
+      #     cargo build --release
 
-      - name: Build release for Windows
-        if: github.ref == 'refs/heads/master'
-        run: |
-          rustc --version && cargo --version
-          cargo build --release --target x86_64-pc-windows-gnu
+      # - name: Build release for Windows
+      #   if: github.ref == 'refs/heads/master'
+      #   run: |
+      #     rustc --version && cargo --version
+      #     cargo build --release --target x86_64-pc-windows-gnu
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: target
-          path: ${{ env.CARGO_TARGET_DIR }}
+      # - name: Upload artifacts
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: target
+      #     path: ${{ env.CARGO_TARGET_DIR }}
