@@ -15,9 +15,6 @@ jobs:
       CARGO_TARGET_DIR: target
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Install dependencies
         run: |
           dnf install -y curl gcc gcc-c++ systemd-devel mingw64-gcc
@@ -29,6 +26,11 @@ jobs:
           source $HOME/.cargo/env
           rustup target add x86_64-pc-windows-gnu
 
+      - name: Navigate to project directory
+        run: |
+          cd claws
+          ls -la
+          
       - name: Build debug for Linux
         if: github.ref == 'refs/heads/dev'
         run: |
