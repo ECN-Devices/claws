@@ -4,6 +4,7 @@ use super::APPLICATION_NAME;
  * Эта функция настраивает уровень логирования для приложения, устанавливая переменную окружения `RUST_LOG` в значение "claws". Затем она инициализирует `pretty_env_logger`, который обеспечивает форматированный вывод логов в консоль.
  */
 pub fn init_logger() {
-    std::env::set_var("RUST_LOG", APPLICATION_NAME.to_lowercase());
-    pretty_env_logger::init();
+    pretty_env_logger::env_logger::Builder::from_default_env()
+        .filter(Some(APPLICATION_NAME), log::LevelFilter::Info)
+        .init();
 }
