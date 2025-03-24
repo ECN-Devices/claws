@@ -5,6 +5,9 @@ use super::APPLICATION_NAME;
  */
 pub fn init_logger() {
     pretty_env_logger::env_logger::Builder::from_default_env()
-        .filter(Some(APPLICATION_NAME), log::LevelFilter::Info)
+        .filter(
+            Some(APPLICATION_NAME.to_lowercase().as_str()),
+            log::LevelFilter::Info,
+        )
         .init();
 }
