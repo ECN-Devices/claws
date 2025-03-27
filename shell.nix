@@ -14,6 +14,7 @@ in
       pkg-config
       systemd
       cargo-xwin
+      cargo-nextest
       (rust-bin.stable.latest.default.override {
         extensions = [
           "rust-src"
