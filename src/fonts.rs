@@ -82,7 +82,9 @@ pub fn set() {
  * Возвращает вектор, содержащий загруженные шрифты в виде `Cow<'static, [u8]>`.
  */
 pub fn load() -> Vec<Cow<'static, [u8]>> {
-    vec![include_bytes!("../fonts/Inter-Medium.ttf")
-        .as_slice()
-        .into()]
+    vec![
+        include_bytes!("../fonts/Inter-Medium.ttf")
+            .as_slice()
+            .into(),
+    ]
 }

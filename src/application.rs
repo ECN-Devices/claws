@@ -1,10 +1,10 @@
 use std::{sync::Arc, time::Duration};
 
 use iced::{
-    widget::{column, container, row, svg, tooltip, Button, Tooltip},
     Alignment, Element,
     Length::{self, Fill},
     Subscription, Task,
+    widget::{Button, Tooltip, column, container, row, svg, tooltip},
 };
 use log::debug;
 
@@ -17,7 +17,7 @@ use crate::{
     configuration::{
         config::{check_config_file, get_config_file, update_config_file},
         keypad_port_commands::{KeypadCommands, SwitchCommands, Value},
-        port::{get_buffer, Keypad},
+        port::{Keypad, get_buffer},
     },
     screens::Screens,
 };
@@ -282,9 +282,11 @@ fn create_button_with_svg_and_text<'a>(
     on_press: Message,
 ) -> Tooltip<'a, Message> {
     let button = Button::new(
-        column![svg(svg::Handle::from_memory(svg_path))
-            .height(Fill)
-            .width(Fill),]
+        column![
+            svg(svg::Handle::from_memory(svg_path))
+                .height(Fill)
+                .width(Fill),
+        ]
         .spacing(10)
         .align_x(Alignment::Center),
     )

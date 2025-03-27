@@ -1,7 +1,7 @@
 use iced::Alignment;
 use iced::{
-    widget::{button, column, container, row, text, Button},
     Element, Length, Pixels, Renderer, Theme,
+    widget::{Button, button, column, container, row, text},
 };
 
 use crate::application::{Claws, Message};

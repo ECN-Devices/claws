@@ -150,7 +150,7 @@ pub struct Profile {
 impl Default for Profile {
     fn default() -> Self {
         Profile {
-            name: "".to_string(),
+            name: String::new(),
             buttons: [[0; MAX_KEYVALUE]; MAX_SWITCH_COUNT],
             joystick_key_value: [0; 4],
         }

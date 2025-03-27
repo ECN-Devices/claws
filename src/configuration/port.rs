@@ -7,13 +7,13 @@ use std::{
 };
 
 use lazy_static::lazy_static;
-use serialport::{available_ports, new, SerialPort};
+use serialport::{SerialPort, available_ports, new};
 use tokio::sync::Mutex;
 
 use super::{
+    ARRAY_LEN,
     command::command_to_string,
     keypad_port_commands::{EmptyCommand, KeypadCommands, Value},
-    ARRAY_LEN,
 };
 use log::{debug, error};
 

@@ -2,11 +2,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use application::Claws;
-use configuration::{logger::init_logger, APPLICATION_NAME, WINDOW_ICON};
-use fonts::{load, set, UI_FONT_MEDIUM};
+use configuration::{APPLICATION_NAME, WINDOW_ICON, logger::init_logger};
+use fonts::{UI_FONT_MEDIUM, load, set};
 use iced::{
-    window::{self, icon},
     Pixels, Size,
+    window::{self, icon},
 };
 
 mod application;
