@@ -3,20 +3,17 @@ use std::fs;
 use log::error;
 
 #[cfg(test)]
-mod test_config_dir {
+mod config_dir {
     use crate::{
         configuration::{
-            config::{create_config_dir, get_config_dir},
             APPLICATION_NAME,
+            config::{create_config_dir, get_config_dir},
         },
         tests::config::cleanup_config,
     };
-    use std::env::set_var;
 
     #[tokio::test]
-    async fn test_get_config_dir_linux() {
-        set_var("OS", "linux");
-
+    async fn get_config_dir_linux() {
         let config_path = get_config_dir().await;
         let username = whoami::username();
         let result = format!("/home/{}/.config/{}", username, APPLICATION_NAME);
@@ -26,10 +23,7 @@ mod test_config_dir {
 
     #[cfg(windows)]
     #[tokio::test]
-    async fn test_get_config_dir_windows() {
-        set_var("OS", "windows");
-        let runtime = Builder::new_current_thread().enable_all().build().unwrap();
-
+    async fn get_config_dir_windows() {
         let config_path = get_config_dir().await;
         let username = whoami::username();
         let result = format!("C:/Users/{}/Documents/{}", username, APPLICATION_NAME);
@@ -38,9 +32,7 @@ mod test_config_dir {
     }
 
     #[tokio::test]
-    async fn test_create_config_dir_linux() {
-        set_var("OS", "linux");
-
+    async fn create_config_dir_linux() {
         let config_path = get_config_dir().await;
 
         cleanup_config(&config_path);
@@ -54,9 +46,7 @@ mod test_config_dir {
 
     #[cfg(windows)]
     #[tokio::test]
-    async fn test_create_config_dir_windows() {
-        set_var("OS", "windows");
-
+    async fn create_config_dir_windows() {
         let config_path = get_config_dir().await;
 
         cleanup_config(&config_path);
@@ -70,20 +60,17 @@ mod test_config_dir {
 }
 
 #[cfg(test)]
-mod test_config_file {
+mod config_file {
     use crate::{
         configuration::{
-            config::{create_config_dir, create_config_file, get_config_dir, get_config_file},
             APPLICATION_NAME,
+            config::{create_config_dir, create_config_file, get_config_dir, get_config_file},
         },
         tests::config::cleanup_config,
     };
-    use std::env::set_var;
 
     #[tokio::test]
-    async fn test_get_config_file_linux() {
-        set_var("OS", "linux");
-
+    async fn get_config_file_linux() {
         let config_file_path = get_config_file().await;
         let username = whoami::username();
         let result = format!("/home/{}/.config/{}/claws.toml", username, APPLICATION_NAME);
@@ -93,9 +80,7 @@ mod test_config_file {
 
     #[cfg(windows)]
     #[tokio::test]
-    async fn test_get_config_file_windows() {
-        set_var("OS", "windows");
-
+    async fn get_config_file_windows() {
         let config_file_path = get_config_file().await;
         let username = whoami::username();
         let result = format!(
@@ -107,9 +92,7 @@ mod test_config_file {
     }
 
     #[tokio::test]
-    async fn test_create_config_file_linux() {
-        set_var("OS", "linux");
-
+    async fn create_config_file_linux() {
         let config_path = get_config_dir().await;
 
         cleanup_config(&config_path);
@@ -127,9 +110,7 @@ mod test_config_file {
 
     #[cfg(windows)]
     #[tokio::test]
-    async fn test_create_config_file_windows() {
-        set_var("OS", "windows");
-
+    async fn create_config_file_windows() {
         let config_path = get_config_dir().await;
 
         cleanup_config(&config_path);
