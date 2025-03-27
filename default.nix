@@ -19,7 +19,7 @@
     rustc = rust-bin.stable.latest.default;
   };
 in
-  rustPlatform.buildRustPackage rec {
+  rustPlatform.buildRustPackage {
     pname = manifest.name;
     version = manifest.version;
     cargoLock.lockFile = ./Cargo.lock;
