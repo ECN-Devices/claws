@@ -8,8 +8,6 @@
   libxkbcommon,
   udev,
   vulkan-loader,
-  darwin,
-  stdenv,
   patchelf,
   wayland,
 }: let
@@ -33,25 +31,13 @@ in
       patchelf
     ];
 
-    buildInputs =
-      [
-        libGL
-        libxkbcommon
-        udev
-        vulkan-loader
-      ]
-      ++ lib.optionals stdenv.isDarwin [
-        darwin.apple_sdk.frameworks.AppKit
-        darwin.apple_sdk.frameworks.CoreFoundation
-        darwin.apple_sdk.frameworks.CoreGraphics
-        darwin.apple_sdk.frameworks.IOKit
-        darwin.apple_sdk.frameworks.Metal
-        darwin.apple_sdk.frameworks.QuartzCore
-        darwin.apple_sdk.frameworks.SystemConfiguration
-      ]
-      ++ lib.optionals stdenv.isLinux [
-        wayland
-      ];
+    buildInputs = [
+      libGL
+      libxkbcommon
+      udev
+      vulkan-loader
+      wayland
+    ];
 
     fixupPhase = ''
       mkdir -p $out/lib
