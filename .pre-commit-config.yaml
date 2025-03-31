@@ -1,0 +1,58 @@
+default_stages: [pre-commit, pre-push]
+default_install_hook_types: [pre-commit, pre-push]
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+        exclude: '\.json$'
+      - id: check-merge-conflict
+        args: [--assume-in-merge]
+
+  - repo: local
+    hooks:
+      - id: nix-fmt
+        name: nix fmt
+        entry: alejandra .
+        language: system
+        types: [nix]
+      - id: toml-fmt
+        name: toml fmt
+        entry: taplo
+        language: system
+        types: [toml]
+        args: ["format", "-"]
+      - id: cargo-fmt
+        name: cargo fmt
+        language: system
+        entry: cargo fmt
+        types: [rust]
+        pass_filenames: false
+      - id: cargo-check
+        name: cargo check
+        entry: cargo check
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: cargo clippy
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: cargo-nextest
+        name: cargo nextest
+        entry: cargo nextest run
+        language: system
+        types: [rust]
+        pass_filenames: false
