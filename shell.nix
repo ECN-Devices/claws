@@ -7,9 +7,7 @@
     ];
 in
   pkgs.mkShell {
-    # Get dependencies from the main package
     inputsFrom = [(pkgs.callPackage ./default.nix {})];
-    # Additional tooling
     nativeBuildInputs = with pkgs; [
       pkg-config
       systemd
