@@ -31,7 +31,7 @@ jobs:
           cd /workspace/fisuri
           git clone https://altlinux.space/fisuri/claws.git
           cd claws
-          
+
       - name: Build debug for Linux
         if: github.ref == 'refs/heads/dev'
         run: |

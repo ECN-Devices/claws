@@ -1,8 +1,4 @@
-use iced::{
-    border, color,
-    widget::button,
-    Background, Theme,
-};
+use iced::{Background, Theme, border, color, widget::button};
 
 pub struct Style;
 
