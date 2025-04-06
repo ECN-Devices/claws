@@ -216,24 +216,24 @@ impl Claws {
                 // Profiles
                 create_button_with_svg_and_text(
                     "Профили",
-                    include_bytes!("../icons/profiles.svg"),
+                    include_bytes!("../assets/icons/profiles.svg"),
                     Message::ChangeScreen(Screens::Profile)
                 ),
                 create_button_with_svg_and_text(
                     "Настройки",
-                    include_bytes!("../icons/settings.svg"),
+                    include_bytes!("../assets/icons/settings.svg"),
                     Message::ChangeScreen(Screens::Settings)
                 ),
                 // Updater
                 create_button_with_svg_and_text(
                     "Обновление",
-                    include_bytes!("../icons/updater.svg"),
+                    include_bytes!("../assets/icons/updater.svg"),
                     Message::ChangeScreen(Screens::Updater)
                 ),
                 // DebugTest
                 create_button_with_svg_and_text(
                     "Экспериментальные настройки",
-                    include_bytes!("../icons/test.svg"),
+                    include_bytes!("../assets/icons/test.svg"),
                     Message::ChangeScreen(Screens::ExperimentalTab)
                 ),
             ]

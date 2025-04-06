@@ -83,7 +83,7 @@ pub fn set() {
  */
 pub fn load() -> Vec<Cow<'static, [u8]>> {
     vec![
-        include_bytes!("../fonts/Inter-Medium.ttf")
+        include_bytes!("../assets/fonts/Inter-Medium.ttf")
             .as_slice()
             .into(),
     ]
