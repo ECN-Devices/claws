@@ -18,22 +18,18 @@
   outputs = {
     self,
     nixpkgs,
-    flake-utils,
-    rust-overlay,
-    pre-commit-env,
     ...
   } @ inputs:
-    flake-utils.lib.eachDefaultSystem (
+    inputs.flake-utils.lib.eachDefaultSystem (
       system: let
-        overlays = [(import rust-overlay)];
+        overlays = [(import inputs.rust-overlay)];
         pkgs = import nixpkgs {
           inherit system overlays;
         };
-        pre-commit-lib = pre-commit-env.lib.${system};
+        pre-commit-lib = inputs.pre-commit-env.lib.${system};
       in {
         packages = {
           default = pkgs.callPackage ./default.nix {};
-          gitBuild = pkgs.callPackage ./gitBuild.nix {};
         };
 
         devShells = {

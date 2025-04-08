@@ -1,4 +1,4 @@
-{pkgs ? import <nixpkgs> {}}: let
+{pkgs, ...}: let
   libPath = with pkgs;
     lib.makeLibraryPath [
       libGL
