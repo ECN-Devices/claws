@@ -32,6 +32,8 @@
           default = pkgs.callPackage ./default.nix {};
         };
 
+        formatter = pkgs.alejandra;
+
         devShells = {
           default = pkgs.callPackage ./shell.nix {};
           git = pre-commit-lib.mkDevShell {
