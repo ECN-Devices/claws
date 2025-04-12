@@ -1,37 +1,29 @@
 {
-  lib,
-  makeRustPlatform,
+  pkgs,
   rust-bin,
-  pkg-config,
-  systemd,
-  libGL,
-  libxkbcommon,
-  udev,
-  vulkan-loader,
-  patchelf,
-  wayland,
+  ...
 }: let
-  manifest = (lib.importTOML ./Cargo.toml).package;
-  rustPlatform = makeRustPlatform {
+  manifest = (pkgs.lib.importTOML ./Cargo.toml).package;
+  rustPlatform = pkgs.makeRustPlatform {
     cargo = rust-bin.stable.latest.default;
     rustc = rust-bin.stable.latest.default;
   };
 in
-  rustPlatform.buildRustPackage {
+  rustPlatform.buildRustPackage (finalAttrs: {
     pname = manifest.name;
     version = manifest.version;
     cargoLock.lockFile = ./Cargo.lock;
-    src = lib.cleanSource ./.;
+    src = pkgs.lib.cleanSource ./.;
 
     doCheck = false;
 
-    nativeBuildInputs = [
+    nativeBuildInputs = with pkgs; [
       pkg-config
       systemd
       patchelf
     ];
 
-    buildInputs = [
+    buildInputs = with pkgs; [
       libGL
       libxkbcommon
       udev
@@ -39,7 +31,7 @@ in
       wayland
     ];
 
-    fixupPhase = ''
+    fixupPhase = with pkgs; ''
       mkdir -p $out/lib
 
       cp ${udev}/lib/libudev.so* $out/lib/
@@ -47,6 +39,6 @@ in
       cp ${libxkbcommon}/lib/libxkbcommon.so* $out/lib/
       cp ${libGL}/lib/* $out/lib/
       cp ${vulkan-loader}/lib/* $out/lib/
-      patchelf --set-rpath $out/lib $out/bin/claws
+      patchelf --set-rpath $out/lib $out/bin/${finalAttrs.pname}
     '';
-  }
+  })

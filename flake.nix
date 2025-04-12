@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     flake-utils.url = "github:numtide/flake-utils";
 
@@ -29,7 +29,7 @@
         pre-commit-lib = inputs.pre-commit-env.lib.${system};
       in {
         packages = {
-          default = pkgs.callPackage ./default.nix {};
+          default = pkgs.callPackage ./default.nix {inherit pkgs;};
         };
 
         formatter = pkgs.alejandra;
