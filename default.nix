@@ -31,14 +31,16 @@ in
       wayland
     ];
 
-    fixupPhase = with pkgs; ''
-      mkdir -p $out/lib
+    libPath = with pkgs;
+      lib.makeLibraryPath [
+        libGL
+        libxkbcommon
+        udev
+        vulkan-loader
+        wayland
+      ];
 
-      cp ${udev}/lib/libudev.so* $out/lib/
-      cp ${wayland}/lib/libwayland* $out/lib/
-      cp ${libxkbcommon}/lib/libxkbcommon.so* $out/lib/
-      cp ${libGL}/lib/* $out/lib/
-      cp ${vulkan-loader}/lib/* $out/lib/
-      patchelf --set-rpath $out/lib $out/bin/${finalAttrs.pname}
+    fixupPhase = ''
+      patchelf --set-rpath $libPath $out/bin/${finalAttrs.pname}
     '';
   })
