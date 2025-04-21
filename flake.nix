@@ -29,13 +29,13 @@
         pre-commit-lib = inputs.pre-commit-env.lib.${system};
       in {
         packages = {
-          default = pkgs.callPackage ./default.nix {inherit pkgs;};
+          default = pkgs.callPackage ./nix/default.nix {inherit pkgs;};
         };
 
         formatter = pkgs.alejandra;
 
         devShells = {
-          default = pkgs.callPackage ./shell.nix {};
+          default = pkgs.callPackage ./nix/shell.nix {};
           git = pre-commit-lib.mkDevShell {
             extraPackages = with pkgs; [
               alejandra

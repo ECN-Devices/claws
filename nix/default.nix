@@ -3,7 +3,7 @@
   rust-bin,
   ...
 }: let
-  manifest = (pkgs.lib.importTOML ./Cargo.toml).package;
+  manifest = (pkgs.lib.importTOML ../Cargo.toml).package;
   rustPlatform = pkgs.makeRustPlatform {
     cargo = rust-bin.stable.latest.default;
     rustc = rust-bin.stable.latest.default;
@@ -12,8 +12,8 @@ in
   rustPlatform.buildRustPackage (finalAttrs: {
     pname = manifest.name;
     version = manifest.version;
-    cargoLock.lockFile = ./Cargo.lock;
-    src = pkgs.lib.cleanSource ./.;
+    cargoLock.lockFile = ../Cargo.lock;
+    src = pkgs.lib.cleanSource ../.;
 
     doCheck = false;
 
