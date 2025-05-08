@@ -97,20 +97,6 @@
             inherit (self.checks.${system}.pre-commit-check) shellHook;
             buildInputs = self.checks.${system}.pre-commit-check.enabledPackages;
           };
-          # git_test = pre-commit-lib.mkDevShell {
-          #   extraPackages = with pkgs; [
-          #     alejandra
-          #     taplo
-          #     cargo-nextest
-          #     pkg-config
-          #     systemd
-          #     (rust-bin.stable.latest.default.override {
-          #       extensions = [
-          #         "cargo"
-          #       ];
-          #     })
-          #   ];
-          # };
         };
       }
     );
