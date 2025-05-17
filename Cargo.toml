@@ -31,6 +31,6 @@ opt-level = 0
 
 [profile.release]
 strip = true
-lto = true
+lto = "thin"
 codegen-units = 1
 opt-level = 3
