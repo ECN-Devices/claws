@@ -3,6 +3,7 @@ name = "claws"
 version = "0.1.0"
 edition = "2024"
 authors = ["Yaroslav Malykh <fisuri@murena.io>"]
+license = "MIT"
 
 [dependencies]
 iced = { version = "0.13.1", default-features = true, features = [
