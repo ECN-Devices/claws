@@ -1,26 +1,26 @@
 {
   pkgs,
-  rust-bin,
+  craneLib,
   ...
 }: let
-  manifest = (pkgs.lib.importTOML ../Cargo.toml).package;
-  rustPlatform = pkgs.makeRustPlatform {
-    cargo = rust-bin.stable.latest.default;
-    rustc = rust-bin.stable.latest.default;
-  };
+  libPath = with pkgs;
+    lib.makeLibraryPath [
+      libGL
+      libxkbcommon
+      udev
+      vulkan-loader
+      wayland
+    ];
 in
-  rustPlatform.buildRustPackage (finalAttrs: {
-    pname = manifest.name;
-    version = manifest.version;
-    cargoLock.lockFile = ../Cargo.lock;
-    src = pkgs.lib.cleanSource ../.;
+  craneLib.buildPackage {
+    src = ../.;
+    strictDeps = true;
 
     doCheck = false;
 
     nativeBuildInputs = with pkgs; [
       pkg-config
       systemd
-      patchelf
     ];
 
     buildInputs = with pkgs; [
@@ -31,16 +31,9 @@ in
       wayland
     ];
 
-    libPath = with pkgs;
-      lib.makeLibraryPath [
-        libGL
-        libxkbcommon
-        udev
-        vulkan-loader
-        wayland
-      ];
+    LD_LIBRARY_PATH = libPath;
 
-    fixupPhase = ''
-      patchelf --set-rpath $libPath $out/bin/${finalAttrs.pname}
+    postInstall = ''
+      patchelf --set-rpath ${libPath} $out/bin/claws
     '';
-  })
+  }

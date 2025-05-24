@@ -1,4 +1,10 @@
-{pkgs, ...}: let
+{
+  self,
+  pkgs,
+  rust-bin,
+  craneLib,
+  ...
+}: let
   libPath = with pkgs;
     lib.makeLibraryPath [
       libGL
@@ -6,18 +12,22 @@
       wayland
     ];
 in
-  pkgs.mkShell {
-    inputsFrom = [(pkgs.callPackage ./default.nix {})];
-    nativeBuildInputs = with pkgs; [
+  craneLib.devShell {
+    inherit (self.checks.${pkgs.system}.git-hooks) shellHook;
+
+    inputsFrom = with pkgs; [
+      self.packages.${system}.default
+    ];
+
+    packages = with pkgs; [
+      self.checks.${system}.git-hooks.enabledPackages
+
       pkg-config
       systemd
       cargo-xwin
       cargo-nextest
       (rust-bin.stable.latest.default.override {
         extensions = [
-          "rust-src"
-          "rustc"
-          "cargo"
           "rust-analyzer"
         ];
         targets = [
@@ -25,9 +35,6 @@ in
           "x86_64-pc-windows-msvc"
         ];
       })
-    ];
-
-    buildInputs = with pkgs; [
     ];
 
     LD_LIBRARY_PATH = libPath;
