@@ -13,7 +13,7 @@
     ];
 in
   craneLib.buildPackage {
-    src = ../.;
+    src = craneLib.path ../.;
     strictDeps = true;
 
     doCheck = false;
