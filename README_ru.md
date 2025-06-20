@@ -9,7 +9,7 @@ Claws — это приложение для управления и взаим�
 
 ### Клонирование репозитория
 ```bash
-git clone https://gitlab.com/lapa-ecn/claws.git
+git clone https://git.sr.ht/~fisuri/claws
 cd claws
 ```
 

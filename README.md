@@ -9,7 +9,7 @@ Claws is an application for managing and interacting with the keypad.
 
 ### Cloning the repository
 ```bash
-git clone https://gitlab.com/lapa-ecn/claws.git
+git clone https://git.sr.ht/~fisuri/claws
 cd claws
 ```
 
