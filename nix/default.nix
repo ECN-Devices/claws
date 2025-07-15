@@ -15,7 +15,7 @@ in
   craneLib.buildPackage {
     src = craneLib.path ../.;
     strictDeps = true;
-
+    buildType = "debug";
     doCheck = false;
 
     nativeBuildInputs = with pkgs; [
