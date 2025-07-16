@@ -1,11 +1,9 @@
+use super::Message;
+use crate::App;
 use iced::{
   Alignment, Element, Length,
   widget::{Button, button, center, column, container, row, text},
 };
-
-use crate::Claws;
-
-use super::Message;
 
 const BUTTON_SPACING: u16 = 30;
 const BUTTON_PADDING: u16 = 10;
@@ -44,7 +42,7 @@ impl Pages {
    * # Возвращает
    * Возвращает элемент типа `Element`, который представляет содержимое текущего экрана.
    */
-  pub fn get_content(claws: &Claws) -> Element<Message> {
+  pub fn get_content(claws: &App) -> Element<Message> {
     match claws.pages {
       Self::Profiles => {
         let screen_name = text(claws.pages.name())

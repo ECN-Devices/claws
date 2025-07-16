@@ -2,9 +2,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use assets::{APPLICATION_NAME, INTER_FONT, INTER_FONT_BYTES, WINDOW_ICON};
-
+use data::{WindowSettings, is_first_run};
 use hardware::Keypad;
-use iced::{Pixels, Size, window::icon};
+use iced::{
+  Pixels, Size,
+  window::{Position, icon},
+};
 use std::borrow::Cow;
 use ui::pages::Pages;
 use utils::logger::init_logger;
@@ -16,9 +19,10 @@ mod ui;
 mod utils;
 
 #[derive(Debug, Clone, Default)]
-pub struct Claws {
+pub struct App {
   pub keypad: Keypad,
   pub pages: Pages,
+  pub window_settings: WindowSettings,
 }
 
 /** Главная функция приложения.
@@ -30,6 +34,10 @@ pub struct Claws {
 fn main() -> iced::Result {
   // Инициализация логгера env_logger
   init_logger();
+
+  is_first_run();
+
+  let window_settings = WindowSettings::load();
 
   // Импорт иконки приложения из файла
   let icon = icon::from_file_data(WINDOW_ICON, None);
@@ -46,13 +54,17 @@ fn main() -> iced::Result {
   // Создание настроек окна
   let window_settings = iced::window::Settings {
     size: Size {
-      width: 800.,
-      height: 600.,
+      width: window_settings.width,
+      height: window_settings.height,
     }, // Установка размера окна
     min_size: Some(Size {
       width: 600.,
       height: 660.,
     }), // Установка минимального размера окна
+    position: Position::Specific(iced::Point {
+      x: window_settings.x,
+      y: window_settings.y,
+    }),
     resizable: true,             // Включение масштабируемости приложения
     exit_on_close_request: true, // Включение запроса выхода
     icon: icon.ok(),             // Установка иконки приложения
@@ -60,9 +72,9 @@ fn main() -> iced::Result {
   };
 
   // Создание приложения iced с указанными настройками
-  iced::application(Claws::title, Claws::update, Claws::view)
+  iced::application(App::title, App::update, App::view)
     .settings(iced_settings) // Установка настроек приложения
     .window(window_settings) // Установка настроек окна
-    .subscription(Claws::subscription)
-    .run_with(Claws::new) // Запуск приложения с указанным стартовым состоянием
+    .subscription(App::subscription)
+    .run_with(App::new) // Запуск приложения с указанным стартовым состоянием
 }

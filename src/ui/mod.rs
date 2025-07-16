@@ -1,16 +1,17 @@
 use crate::{
-  Claws,
+  App,
+  data::WindowSettings,
   hardware::{
     Keypad,
     communication_protocol::{CommandEmpty, KeypadCommands},
   },
 };
-
 use iced::{
-  Element, Subscription, Task,
-  widget::{button, container, row},
+  Element, Event, Subscription, Task, event,
+  widget::{Container, button, column, row},
+  window,
 };
-use log::error;
+use log::{debug, error};
 use pages::Pages;
 use std::{
   sync::{Arc, Mutex},
@@ -18,6 +19,9 @@ use std::{
 };
 
 pub mod pages;
+
+pub const WINDOW_WIDTH: f32 = 800.;
+pub const WINDOW_HEIGH: f32 = 600.;
 
 /** Определение возможных действий в приложении
  *
@@ -29,6 +33,8 @@ pub enum Message {
   WritePort(KeypadCommands),
   ChangePage(Pages),
   ButtonClicked,
+  WindowResized(f32, f32),
+  WindowMoved(f32, f32),
   // UpdateConfigFile,
   // ReadPort,
   // // WritePort(KeypadCommands),
@@ -42,7 +48,7 @@ pub enum Message {
   // TaskWritePort(Result<(), serialport::Error>),
 }
 
-impl Claws {
+impl App {
   pub fn new() -> (Self, Task<Message>) {
     let port = Keypad::get_port();
     let keypad = match !port.is_empty() {
@@ -82,7 +88,14 @@ impl Claws {
       false => Pages::default(),
     };
 
-    (Self { keypad, pages }, Task::none())
+    (
+      Self {
+        keypad,
+        pages,
+        window_settings: WindowSettings::load(),
+      },
+      Task::none(),
+    )
   }
 
   pub fn title(&self) -> String {
@@ -115,6 +128,24 @@ impl Claws {
         println!("click");
         Task::none()
       }
+      Message::WindowResized(width, height) => {
+        self.window_settings.width = width;
+        self.window_settings.height = height;
+        self.window_settings.save();
+        Task::none()
+      }
+      Message::WindowMoved(x, y) => {
+        if cfg!(debug_assertions) {
+          debug!(
+            "window_settings : \nx - {:?}, \ny - {:?}",
+            self.window_settings.x, self.window_settings.y
+          );
+        }
+        self.window_settings.x = x;
+        self.window_settings.y = y;
+        self.window_settings.save();
+        Task::none()
+      }
     }
   }
 
@@ -137,13 +168,35 @@ impl Claws {
     let empty_buttons = button("Empty").on_press(Message::WritePort(KeypadCommands::Empty(
       CommandEmpty::VoidRequest,
     )));
-    container(row![content, empty_buttons]).into()
+
+    Container::new(column![content, empty_buttons]).into()
   }
 
   pub fn subscription(&self) -> Subscription<Message> {
-    match self.keypad.is_open {
+    let port_subscription = match self.keypad.is_open {
       true => iced::time::every(Duration::from_millis(10)).map(|_| Message::ReadPort),
       false => Subscription::none(),
-    }
+    };
+
+    let window_subscription = event::listen_with(|event, _status, _id| match event {
+      Event::Window(event) => match event {
+        window::Event::Moved(point) => {
+          if cfg!(debug_assertions) {
+            debug!("point: {point:#?}");
+          }
+          Some(Message::WindowMoved(point.x, point.y))
+        }
+        window::Event::Resized(size) => {
+          if cfg!(debug_assertions) {
+            debug!("size: {size:#?}");
+          }
+          Some(Message::WindowResized(size.width, size.height))
+        }
+        _ => None,
+      },
+      _ => None,
+    });
+
+    Subscription::batch(vec![port_subscription, window_subscription])
   }
 }
