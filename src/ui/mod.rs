@@ -35,6 +35,7 @@ pub enum Message {
   ButtonClicked,
   WindowResized(f32, f32),
   WindowMoved(f32, f32),
+  WindowSettingsSave,
   // UpdateConfigFile,
   // ReadPort,
   // // WritePort(KeypadCommands),
@@ -131,18 +132,14 @@ impl App {
       Message::WindowResized(width, height) => {
         self.window_settings.width = width;
         self.window_settings.height = height;
-        self.window_settings.save();
         Task::none()
       }
       Message::WindowMoved(x, y) => {
-        if cfg!(debug_assertions) {
-          debug!(
-            "window_settings : \nx - {:?}, \ny - {:?}",
-            self.window_settings.x, self.window_settings.y
-          );
-        }
         self.window_settings.x = x;
         self.window_settings.y = y;
+        Task::none()
+      }
+      Message::WindowSettingsSave => {
         self.window_settings.save();
         Task::none()
       }
@@ -182,15 +179,21 @@ impl App {
       Event::Window(event) => match event {
         window::Event::Moved(point) => {
           if cfg!(debug_assertions) {
-            debug!("point: {point:#?}");
+            debug!("subscription: event: window: moved: {point:#?}");
           }
           Some(Message::WindowMoved(point.x, point.y))
         }
         window::Event::Resized(size) => {
           if cfg!(debug_assertions) {
-            debug!("size: {size:#?}");
+            debug!("subscription: event: window: resized: {size:#?}");
           }
           Some(Message::WindowResized(size.width, size.height))
+        }
+        window::Event::Focused | window::Event::Unfocused => {
+          if cfg!(debug_assertions) {
+            debug!("subscription: event: window: focused: save window settings");
+          }
+          Some(Message::WindowSettingsSave)
         }
         _ => None,
       },

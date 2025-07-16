@@ -1,7 +1,6 @@
 use crate::utils::{BYTE_END, BYTE_START};
 use communication_protocol::{CommandEmpty, KeypadCommands, Value};
 use log::{debug, error};
-use regex::Regex;
 use serialport::SerialPort;
 use std::{
   sync::{Arc, Mutex},
@@ -9,6 +8,9 @@ use std::{
   time::Duration,
   vec,
 };
+
+#[cfg(target_os = "linux")]
+use regex::Regex;
 
 pub mod communication_protocol;
 
