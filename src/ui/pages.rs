@@ -86,6 +86,7 @@ impl Pages {
         .padding(BUTTON_PADDING);
 
         let buttons_container = row![buttons_1, buttons_2, buttons_3, buttons_4];
+
         column!(screen_name, center(buttons_container)).into()
       }
       Self::Settings => {

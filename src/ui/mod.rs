@@ -1,14 +1,11 @@
 use crate::{
   App,
   data::WindowSettings,
-  hardware::{
-    Keypad,
-    communication_protocol::{CommandEmpty, KeypadCommands},
-  },
+  hardware::{Keypad, communication_protocol::KeypadCommands},
 };
 use iced::{
   Element, Event, Subscription, Task, event,
-  widget::{Container, button, column, row},
+  widget::{Container, column, row},
   window,
 };
 use log::{debug, error};
@@ -36,17 +33,6 @@ pub enum Message {
   WindowResized(f32, f32),
   WindowMoved(f32, f32),
   WindowSettingsSave,
-  // UpdateConfigFile,
-  // ReadPort,
-  // // WritePort(KeypadCommands),
-  // RequestingAsciiSwitchCodes,
-
-  // PrintBuffer,
-  // TaskPrintBuffer(()),
-
-  // TaskRequestingAsciiSwitchCodes(Result<String, serialport::Error>),
-  // TaskReadPort(Result<String, serialport::Error>),
-  // TaskWritePort(Result<(), serialport::Error>),
 }
 
 impl App {
@@ -148,6 +134,7 @@ impl App {
 
   pub fn view(&self) -> Element<Message> {
     let page = Pages::get_content(self);
+
     let content = match self.keypad.is_open {
       true => row![page],
       false => {
@@ -162,11 +149,8 @@ impl App {
         }
       }
     };
-    let empty_buttons = button("Empty").on_press(Message::WritePort(KeypadCommands::Empty(
-      CommandEmpty::VoidRequest,
-    )));
 
-    Container::new(column![content, empty_buttons]).into()
+    Container::new(column![content]).into()
   }
 
   pub fn subscription(&self) -> Subscription<Message> {
