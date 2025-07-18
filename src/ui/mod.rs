@@ -30,6 +30,7 @@ pub const WINDOW_HEIGH: f32 = 600.;
 pub enum Message {
   ReadPort,
   WritePort(KeypadCommands),
+  SearchPort,
   ChangePage(Pages),
   ButtonClicked,
   WindowResized(f32, f32),
@@ -108,6 +109,37 @@ impl App {
         }
         let mut port = self.keypad.port.clone().unwrap();
         Keypad::write_port(&mut port, &command).unwrap();
+      Message::SearchPort => {
+        let port = Keypad::get_port();
+
+        if port.is_empty() {
+          return Task::none();
+        };
+
+        let serial_port = Arc::new(Mutex::new(
+          serialport::new(&port, 115_200)
+            .timeout(Duration::from_millis(10))
+            .open()
+            .expect("Failed to open port"),
+        ));
+
+        if cfg!(target_os = "windows") {
+          if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
+            error!("Ошибка при установке DTR: {e}");
+          }
+        }
+
+        self.keypad = Keypad {
+          port: Some(serial_port),
+          is_open: true,
+        };
+
+        if cfg!(debug_assertions) {
+          debug!("Подключение к последовательному порту");
+        }
+
+        self.pages = Pages::Profiles;
+
         Task::none()
       }
       Message::ChangePage(page) => {
