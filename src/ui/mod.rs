@@ -234,10 +234,24 @@ impl App {
   }
 
   pub fn subscription(&self) -> Subscription<Message> {
-    let port_subscription = match self.keypad.is_open {
+    let port_read = match self.keypad.is_open {
       true => iced::time::every(Duration::from_millis(10)).map(|_| Message::ReadPort),
       false => Subscription::none(),
     };
+    let port_search = match self.keypad.is_open {
+      true => Subscription::none(),
+      false => iced::time::every(Duration::from_secs(2)).map(|_| Message::SearchPort),
+    };
+    let port_disconect = match self.keypad.port {
+      Some(_) => Subscription::none(),
+      None => iced::time::every(Duration::from_secs(2)).map(|_| Message::SearchPort),
+    };
+
+    let port_available = iced::time::every(Duration::from_secs(5)).map(|_| {
+      Message::WritePort(KeypadCommands::Empty(
+        crate::hardware::communication_protocol::CommandEmpty::VoidRequest,
+      ))
+    });
 
     let window = event::listen_with(|event, _status, _id| match event {
       Event::Window(event) => match event {
@@ -266,6 +280,10 @@ impl App {
     });
 
     Subscription::batch(vec![
+      port_read,
+      port_search,
+      port_disconect,
+      port_available,
       window,
     ])
   }
