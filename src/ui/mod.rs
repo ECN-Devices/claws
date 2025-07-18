@@ -4,12 +4,14 @@ use crate::{
   hardware::{Keypad, communication_protocol::KeypadCommands},
 };
 use iced::{
-  Element, Event, Subscription, Task, event,
-  widget::{Container, column, row},
+  Alignment, Element, Event,
+  Length::{self, Fill},
+  Subscription, Task, Theme, event,
+  widget::{Button, Container, Tooltip, column, container, row, svg, tooltip, vertical_rule},
   window,
 };
 use log::{debug, error};
-use pages::Pages;
+use pages::{Icon, Pages};
 use std::{
   sync::{Arc, Mutex},
   time::Duration,
@@ -33,6 +35,7 @@ pub enum Message {
   WindowResized(f32, f32),
   WindowMoved(f32, f32),
   WindowSettingsSave,
+  RebootToBootloader,
 }
 
 impl App {
@@ -129,18 +132,63 @@ impl App {
         self.window_settings.save();
         Task::none()
       }
+      Message::RebootToBootloader => {
+        self.keypad.port = None;
+        self.keypad.is_open = false;
+        let port = Keypad::get_port();
+
+        let _ = serialport::new(&port, 1200)
+          .timeout(Duration::from_millis(10))
+          .open();
+
+        self.pages = Pages::ConnectedDeviceNotFound;
+
+        if cfg!(debug_assertions) {
+          debug!("Кейпад перезагружен в режим прошивки");
+        }
+        Task::none()
+      }
     }
   }
 
   pub fn view(&self) -> Element<Message> {
     let page = Pages::get_content(self);
 
+    let sidebar = container(
+      column![
+        create_button_with_svg_and_text(
+          "Профили",
+          Icon::Profiles,
+          Message::ChangePage(Pages::Profiles)
+        ),
+        create_button_with_svg_and_text(
+          "Настройки",
+          Icon::Settings,
+          Message::ChangePage(Pages::Settings)
+        ),
+        create_button_with_svg_and_text(
+          "Обновление",
+          Icon::Update,
+          Message::ChangePage(Pages::Updater)
+        ),
+        create_button_with_svg_and_text(
+          "Экспериментальные настройки",
+          Icon::Experimental,
+          Message::ChangePage(Pages::Experimental)
+        ),
+      ]
+      .spacing(10),
+    )
+    .align_y(Alignment::Center)
+    .padding(10)
+    .height(Length::Fill);
+
     let content = match self.keypad.is_open {
-      true => row![page],
+      true => row![sidebar, vertical_rule(2), page],
       false => {
         #[cfg(debug_assertions)]
         {
-          row![page]
+          row![sidebar, vertical_rule(10), page]
         }
 
         #[cfg(not(debug_assertions))]

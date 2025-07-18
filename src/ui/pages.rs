@@ -16,13 +16,7 @@ pub enum Pages {
   Settings,
   Updater,
   ConnectedDeviceNotFound,
-  ExperimentalTab,
-}
-
-enum Icon {
-  Profiles,
-  Settings,
-  Update,
+  Experimental,
 }
 
 impl Pages {
@@ -33,7 +27,7 @@ impl Pages {
       Self::Settings => "Настройки",
       Self::Updater => "Обновление",
       Self::ConnectedDeviceNotFound => "Устройство не найдено",
-      Self::ExperimentalTab => "Экспериментальные настройки",
+      Self::Experimental => "Экспериментальные настройки",
     }
   }
   /** Генерирует содержимое экрана в зависимости от текущего состояния приложения.
@@ -87,7 +81,9 @@ impl Pages {
 
         let buttons_container = row![buttons_1, buttons_2, buttons_3, buttons_4];
 
-        column!(screen_name, center(buttons_container)).into()
+        column!(screen_name, center(buttons_container))
+          .padding(10)
+          .into()
       }
       Self::Settings => {
         let screen_name = text(claws.pages.name())
@@ -95,7 +91,7 @@ impl Pages {
           .width(Length::Fill)
           .height(Length::Shrink);
 
-        container(screen_name).into()
+        container(screen_name).padding(10).into()
       }
       Self::Updater => {
         let screen_name = text(claws.pages.name())
@@ -103,7 +99,7 @@ impl Pages {
           .width(Length::Fill)
           .height(Length::Fill);
 
-        container(screen_name).into()
+        container(screen_name).padding(10).into()
       }
       Self::ConnectedDeviceNotFound => {
         let screen_name = text(claws.pages.name())
@@ -112,15 +108,25 @@ impl Pages {
           .height(Length::Fill)
           .center();
 
-        container(screen_name).into()
+        container(screen_name).padding(10).into()
       }
-      Self::ExperimentalTab => {
+      Self::Experimental => {
         let screen_name = text(claws.pages.name())
           .size(HEADING_SIZE)
           .width(Length::Fill)
           .height(Length::Fixed(40.));
 
-        container(screen_name).into()
+        let reboot_to_bootloader =
+          button("Reboot to Bootloader").on_press(Message::RebootToBootloader);
+        let empty = button("Empty").on_press(Message::WritePort(
+          crate::hardware::communication_protocol::KeypadCommands::Empty(
+            crate::hardware::communication_protocol::CommandEmpty::VoidRequest,
+          ),
+        ));
+
+        column!(screen_name, center(column![reboot_to_bootloader, empty]))
+          .padding(10)
+          .into()
       }
     }
   }
@@ -143,4 +149,22 @@ fn create_keypad_button(button_text: &str, on_press: Message) -> Button<Message>
   .on_press(on_press)
   .height(110)
   .width(80)
+}
+
+pub enum Icon {
+  Profiles,
+  Settings,
+  Update,
+  Experimental,
+}
+
+impl Icon {
+  pub fn icon(&self) -> &'static [u8] {
+    match self {
+      Icon::Profiles => include_bytes!("../../assets/icons/profiles.svg"),
+      Icon::Settings => include_bytes!("../../assets/icons/settings.svg"),
+      Icon::Update => include_bytes!("../../assets/icons/updater.svg"),
+      Icon::Experimental => include_bytes!("../../assets/icons/test.svg"),
+    }
+  }
 }
