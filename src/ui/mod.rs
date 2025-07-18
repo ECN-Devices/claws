@@ -108,7 +108,15 @@ impl App {
           return Task::none();
         }
         let mut port = self.keypad.port.clone().unwrap();
-        Keypad::write_port(&mut port, &command).unwrap();
+        match Keypad::write_port(&mut port, &command) {
+          Ok(_) => (),
+          Err(err) => {
+            self.pages = Pages::ConnectedDeviceNotFound;
+            self.keypad = err
+          }
+        };
+        Task::none()
+      }
       Message::SearchPort => {
         let port = Keypad::get_port();
 
