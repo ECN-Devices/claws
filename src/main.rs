@@ -73,6 +73,7 @@ fn main() -> iced::Result {
   iced::application(App::title, App::update, App::view)
     .settings(iced_settings) // Установка настроек приложения
     .window(window_settings) // Установка настроек окна
+    .theme(App::theme)
     .subscription(App::subscription)
     .run_with(App::new) // Запуск приложения с указанным стартовым состоянием
 }

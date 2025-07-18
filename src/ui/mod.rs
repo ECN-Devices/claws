@@ -189,4 +189,15 @@ impl App {
       window,
     ])
   }
+
+  pub fn theme(&self) -> Theme {
+    match dark_light::detect() {
+      Ok(t) => match t {
+        dark_light::Mode::Dark => Theme::Dark,
+        dark_light::Mode::Light | dark_light::Mode::Unspecified => Theme::Light,
+      },
+      Err(_) => Theme::Light,
+    }
+  }
+}
 }
