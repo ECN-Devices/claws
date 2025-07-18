@@ -2,10 +2,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use assets::{APPLICATION_NAME, INTER_FONT, INTER_FONT_BYTES, WINDOW_ICON};
-use data::{WindowSettings, is_first_run};
+use data::ConfigWindow;
 use hardware::Keypad;
 use iced::{
-  Pixels, Size,
+  Pixels, Point, Size,
   window::{Position, icon},
 };
 use std::borrow::Cow;
@@ -22,7 +22,7 @@ mod utils;
 pub struct App {
   pub keypad: Keypad,
   pub pages: Pages,
-  pub window_settings: WindowSettings,
+  pub window_settings: ConfigWindow,
 }
 
 /** Главная функция приложения.
@@ -35,9 +35,7 @@ fn main() -> iced::Result {
   // Инициализация логгера env_logger
   init_logger();
 
-  is_first_run();
-
-  let window_settings = WindowSettings::load();
+  let window_config = ConfigWindow::load();
 
   // Импорт иконки приложения из файла
   let icon = icon::from_file_data(WINDOW_ICON, None);
@@ -54,16 +52,16 @@ fn main() -> iced::Result {
   // Создание настроек окна
   let window_settings = iced::window::Settings {
     size: Size {
-      width: window_settings.width,
-      height: window_settings.height,
+      width: window_config.width,
+      height: window_config.height,
     }, // Установка размера окна
     min_size: Some(Size {
       width: 600.,
       height: 660.,
     }), // Установка минимального размера окна
-    position: Position::Specific(iced::Point {
-      x: window_settings.x,
-      y: window_settings.y,
+    position: Position::Specific(Point {
+      x: window_config.x,
+      y: window_config.y,
     }),
     resizable: true,             // Включение масштабируемости приложения
     exit_on_close_request: true, // Включение запроса выхода

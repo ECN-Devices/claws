@@ -1,6 +1,6 @@
 use crate::{
   App,
-  data::WindowSettings,
+  data::ConfigWindow,
   hardware::{Keypad, communication_protocol::KeypadCommands},
 };
 use iced::{
@@ -79,7 +79,7 @@ impl App {
       Self {
         keypad,
         pages,
-        window_settings: WindowSettings::load(),
+        window_settings: ConfigWindow::load(),
       },
       Task::none(),
     )
@@ -159,8 +159,9 @@ impl App {
       false => Subscription::none(),
     };
 
-    let window_subscription = event::listen_with(|event, _status, _id| match event {
+    let window = event::listen_with(|event, _status, _id| match event {
       Event::Window(event) => match event {
+        #[cfg(target_os = "windows")]
         window::Event::Moved(point) => {
           if cfg!(debug_assertions) {
             debug!("subscription: event: window: moved: {point:#?}");
@@ -175,7 +176,7 @@ impl App {
         }
         window::Event::Focused | window::Event::Unfocused => {
           if cfg!(debug_assertions) {
-            debug!("subscription: event: window: focused: save window settings");
+            debug!("subscription: event: window: focused: сохранение настроек положения окна");
           }
           Some(Message::WindowSettingsSave)
         }
@@ -184,6 +185,8 @@ impl App {
       _ => None,
     });
 
-    Subscription::batch(vec![port_subscription, window_subscription])
+    Subscription::batch(vec![
+      window,
+    ])
   }
 }

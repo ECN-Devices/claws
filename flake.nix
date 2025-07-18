@@ -78,23 +78,6 @@
                 package = pkgs.taplo;
               };
 
-              cargo-check.enable = true;
-              rustfmt = {
-                enable = true;
-                packageOverrides = {
-                  cargo = pkgs.rust-bin.stable.latest.default;
-                  rustfmt = pkgs.rust-bin.stable.latest.default;
-                };
-              };
-              clippy = {
-                enable = true;
-                settings.allFeatures = true;
-                packageOverrides = {
-                  cargo = pkgs.rust-bin.stable.latest.default;
-                  clippy = pkgs.rust-bin.stable.latest.default;
-                };
-              };
-
               trim-trailing-whitespace.enable = true;
               check-merge-conflicts.enable = true;
             };
