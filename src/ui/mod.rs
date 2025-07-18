@@ -298,4 +298,20 @@ impl App {
     }
   }
 }
+
+fn create_button_with_svg_and_text<'a>(
+  button_text: &'a str,
+  icon: Icon,
+  on_press: Message,
+) -> Tooltip<'a, Message> {
+  let button = Button::new(column![
+    svg(svg::Handle::from_memory(icon.icon()))
+      .height(Fill)
+      .width(Fill),
+  ])
+  .width(Length::Fixed(50.))
+  .height(Length::Fixed(50.))
+  .on_press(on_press);
+
+  tooltip(button, button_text, tooltip::Position::Right)
 }
