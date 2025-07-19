@@ -2,8 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use assets::{APPLICATION_NAME, INTER_FONT, INTER_FONT_BYTES, WINDOW_ICON};
-use data::ConfigWindow;
-use hardware::Keypad;
+use data::window::Window;
+use hardware::serial::Keypad;
 use iced::{
   Pixels, Point, Size,
   window::{Position, icon},
@@ -22,7 +22,7 @@ mod utils;
 pub struct App {
   pub keypad: Keypad,
   pub pages: Pages,
-  pub window_settings: ConfigWindow,
+  pub window_settings: Window,
 }
 
 /** Главная функция приложения.
@@ -35,7 +35,7 @@ fn main() -> iced::Result {
   // Инициализация логгера env_logger
   init_logger();
 
-  let window_config = ConfigWindow::load();
+  let window_config = Window::load();
 
   // Импорт иконки приложения из файла
   let icon = icon::from_file_data(WINDOW_ICON, None);

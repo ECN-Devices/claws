@@ -1,7 +1,10 @@
 use crate::{
   App,
-  data::ConfigWindow,
-  hardware::{Keypad, communication_protocol::KeypadCommands},
+  data::{Config, profiles::Profile, window::Window},
+  hardware::{
+    commands::{KeypadCommands, empty},
+    serial::{Keypad, SerialPortOperations},
+  },
 };
 use iced::{
   Alignment, Element, Event,
@@ -11,7 +14,7 @@ use iced::{
   window,
 };
 use log::{debug, error};
-use pages::{Icon, Pages};
+use pages::{Icon, PADDING, Pages, SPACING};
 use std::{
   sync::{Arc, Mutex},
   time::Duration,
@@ -51,7 +54,7 @@ impl App {
             .expect("Failed to open port"),
         ));
 
-        if cfg!(target_os = "windows") {
+        if cfg!(windows) {
           if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
             error!("Ошибка при установке DTR: {e}");
           }
@@ -79,11 +82,13 @@ impl App {
       false => Pages::default(),
     };
 
+    Profile::load("Default");
+
     (
       Self {
         keypad,
         pages,
-        window_settings: ConfigWindow::load(),
+        window_settings: Window::load(),
       },
       Task::none(),
     )
@@ -131,7 +136,7 @@ impl App {
             .expect("Failed to open port"),
         ));
 
-        if cfg!(target_os = "windows") {
+        if cfg!(windows) {
           if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
             error!("Ошибка при установке DTR: {e}");
           }
@@ -217,28 +222,23 @@ impl App {
           Message::ChangePage(Pages::Experimental)
         ),
       ]
-      .spacing(10),
+      .spacing(SPACING),
     )
     .align_y(Alignment::Center)
-    .padding(10)
+    .padding(PADDING)
     .height(Length::Fill);
 
     let content = match self.keypad.is_open {
       true => row![sidebar, vertical_rule(2), page],
       false => {
-        #[cfg(debug_assertions)]
-        {
-          row![sidebar, vertical_rule(10), page]
+        if cfg!(debug_assertions) {
+          return row![sidebar, vertical_rule(2), page].into();
         }
-
-        #[cfg(not(debug_assertions))]
-        {
-          row![page]
-        }
+        row![page]
       }
     };
 
-    Container::new(column![content]).into()
+    Container::new(content).into()
   }
 
   pub fn subscription(&self) -> Subscription<Message> {
@@ -255,15 +255,12 @@ impl App {
       None => iced::time::every(Duration::from_secs(2)).map(|_| Message::SearchPort),
     };
 
-    let port_available = iced::time::every(Duration::from_secs(5)).map(|_| {
-      Message::WritePort(KeypadCommands::Empty(
-        crate::hardware::communication_protocol::CommandEmpty::VoidRequest,
-      ))
-    });
+    let port_available = iced::time::every(Duration::from_secs(5))
+      .map(|_| Message::WritePort(KeypadCommands::Empty(empty::Command::VoidRequest)));
 
     let window = event::listen_with(|event, _status, _id| match event {
       Event::Window(event) => match event {
-        #[cfg(target_os = "windows")]
+        #[cfg(windows)]
         window::Event::Moved(point) => {
           if cfg!(debug_assertions) {
             debug!("subscription: event: window: moved: {point:#?}");

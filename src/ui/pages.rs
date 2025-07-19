@@ -1,12 +1,15 @@
 use super::Message;
-use crate::App;
+use crate::{
+  App,
+  hardware::commands::{KeypadCommands, empty, stick},
+};
 use iced::{
   Alignment, Element, Length,
-  widget::{Button, button, center, column, container, row, text},
+  widget::{Button, button, center, column, container, row, text, vertical_rule},
 };
 
-const BUTTON_SPACING: u16 = 30;
-const BUTTON_PADDING: u16 = 10;
+pub const SPACING: u16 = 10;
+pub const PADDING: u16 = 10;
 const HEADING_SIZE: u16 = 30;
 
 #[derive(Clone, Debug, Default)]
@@ -41,7 +44,7 @@ impl Pages {
       Self::Profiles => {
         let screen_name = text(claws.pages.name())
           .size(HEADING_SIZE)
-          .width(Length::Fill);
+          .width(Length::Shrink);
 
         let buttons_1 = column![
           create_keypad_button("#1", Message::ButtonClicked),
@@ -49,8 +52,7 @@ impl Pages {
           create_keypad_button("#3", Message::ButtonClicked),
           create_keypad_button("#4", Message::ButtonClicked),
         ]
-        .spacing(BUTTON_SPACING)
-        .padding(BUTTON_PADDING);
+        .spacing(SPACING);
 
         let buttons_2 = column![
           create_keypad_button("#5", Message::ButtonClicked),
@@ -58,8 +60,7 @@ impl Pages {
           create_keypad_button("#7", Message::ButtonClicked),
           create_keypad_button("#8", Message::ButtonClicked),
         ]
-        .spacing(BUTTON_SPACING)
-        .padding(BUTTON_PADDING);
+        .spacing(SPACING);
 
         let buttons_3 = column![
           create_keypad_button("#9", Message::ButtonClicked),
@@ -67,8 +68,7 @@ impl Pages {
           create_keypad_button("#11", Message::ButtonClicked),
           create_keypad_button("#12", Message::ButtonClicked),
         ]
-        .spacing(BUTTON_SPACING)
-        .padding(BUTTON_PADDING);
+        .spacing(SPACING);
 
         let buttons_4 = column![
           create_keypad_button("#13", Message::ButtonClicked),
@@ -76,57 +76,63 @@ impl Pages {
           create_keypad_button("#15", Message::ButtonClicked),
           create_keypad_button("#16", Message::ButtonClicked),
         ]
-        .spacing(BUTTON_SPACING)
-        .padding(BUTTON_PADDING);
+        .spacing(SPACING);
 
-        let buttons_container = row![buttons_1, buttons_2, buttons_3, buttons_4];
+        let buttons_container =
+          container(row![buttons_1, buttons_2, buttons_3, buttons_4].spacing(SPACING))
+            .center_y(Length::Fill);
 
-        column!(screen_name, center(buttons_container))
-          .padding(10)
-          .into()
+        let all_profiles = column![screen_name].padding(PADDING);
+        let layout = column![buttons_container].padding(PADDING);
+
+        row!(all_profiles, vertical_rule(2), layout, vertical_rule(2)).into()
       }
       Self::Settings => {
         let screen_name = text(claws.pages.name())
           .size(HEADING_SIZE)
-          .width(Length::Fill)
-          .height(Length::Shrink);
+          .width(Length::Fill);
 
         container(screen_name).padding(10).into()
       }
       Self::Updater => {
         let screen_name = text(claws.pages.name())
           .size(HEADING_SIZE)
-          .width(Length::Fill)
-          .height(Length::Fill);
+          .width(Length::Fill);
 
         container(screen_name).padding(10).into()
       }
       Self::ConnectedDeviceNotFound => {
-        let screen_name = text(claws.pages.name())
-          .size(HEADING_SIZE)
-          .width(Length::Fill)
-          .height(Length::Fill)
-          .center();
+        let screen_name = text(claws.pages.name()).size(HEADING_SIZE);
 
-        container(screen_name).padding(10).into()
+        center(screen_name).padding(10).into()
       }
       Self::Experimental => {
         let screen_name = text(claws.pages.name())
           .size(HEADING_SIZE)
-          .width(Length::Fill)
-          .height(Length::Fixed(40.));
+          .width(Length::Fill);
 
         let reboot_to_bootloader =
           button("Reboot to Bootloader").on_press(Message::RebootToBootloader);
-        let empty = button("Empty").on_press(Message::WritePort(
-          crate::hardware::communication_protocol::KeypadCommands::Empty(
-            crate::hardware::communication_protocol::CommandEmpty::VoidRequest,
-          ),
-        ));
 
-        column!(screen_name, center(column![reboot_to_bootloader, empty]))
-          .padding(10)
-          .into()
+        let empty = button("Empty").on_press(Message::WritePort(KeypadCommands::Empty(
+          empty::Command::VoidRequest,
+        )));
+
+        let stick_cal =
+          button("Stick Calibration").on_press(Message::WritePort(KeypadCommands::Stick(
+            stick::Command::Calibration(stick::OptionsCalibration::Calibrate),
+          )));
+
+        let stick_request =
+          button("Stick Request").on_press(Message::WritePort(KeypadCommands::Stick(
+            stick::Command::Calibration(stick::OptionsCalibration::Request),
+          )));
+
+        column!(
+          screen_name,
+          center(column![reboot_to_bootloader, empty, stick_cal, stick_request].spacing(SPACING))
+        )
+        .into()
       }
     }
   }
