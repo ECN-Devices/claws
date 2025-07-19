@@ -147,9 +147,7 @@ impl App {
           is_open: true,
         };
 
-        if cfg!(debug_assertions) {
-          debug!("Подключение к последовательному порту");
-        }
+        debug!("Подключение к последовательному порту");
 
         self.pages = Pages::Profiles;
 
@@ -188,9 +186,7 @@ impl App {
 
         self.pages = Pages::ConnectedDeviceNotFound;
 
-        if cfg!(debug_assertions) {
-          debug!("Кейпад перезагружен в режим прошивки");
-        }
+        debug!("Кейпад перезагружен в режим прошивки");
         Task::none()
       }
     }
@@ -262,21 +258,15 @@ impl App {
       Event::Window(event) => match event {
         #[cfg(windows)]
         window::Event::Moved(point) => {
-          if cfg!(debug_assertions) {
-            debug!("subscription: event: window: moved: {point:#?}");
-          }
+          debug!("subscription: event: window: moved: {point:#?}");
           Some(Message::WindowMoved(point.x, point.y))
         }
         window::Event::Resized(size) => {
-          if cfg!(debug_assertions) {
-            debug!("subscription: event: window: resized: {size:#?}");
-          }
+          debug!("subscription: event: window: resized: {size:#?}");
           Some(Message::WindowResized(size.width, size.height))
         }
         window::Event::Focused | window::Event::Unfocused => {
-          if cfg!(debug_assertions) {
-            debug!("subscription: event: window: focused: сохранение настроек положения окна");
-          }
+          debug!("subscription: event: window: focused: сохранение настроек положения окна");
           Some(Message::WindowSettingsSave)
         }
         _ => None,
