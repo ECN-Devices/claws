@@ -16,7 +16,7 @@ pub enum Command {
 
   Кейпад имеет 16 переключателей
   */
-  RequestCondition(OptionsRequestCondition),
+  RequestCondition(u8),
 
   /**
   Запрос: 0x73, 0x2, 0x8, (номер переключателя), 0x65
@@ -36,16 +36,11 @@ pub enum Command {
   */
   SetCodeASCII(u8, [u8; 6]),
 }
-#[derive(Debug, Clone)]
-pub enum OptionsRequestCondition {
-  Pressed,
-  NotPressed,
-}
 
 impl Value for Command {
   fn get(&self) -> Vec<u8> {
     match self {
-      Self::RequestCondition(num) => vec![7, num.get()],
+      Self::RequestCondition(num) => vec![7, *num],
       Self::RequestCodeASCII(num) => vec![8, *num],
       Self::SetCodeASCII(num, buttons_code) => {
         let mut result = vec![9, *num];
@@ -54,14 +49,6 @@ impl Value for Command {
         }
         result
       }
-    }
-  }
-}
-impl OptionsRequestCondition {
-  pub fn get(&self) -> u8 {
-    match self {
-      OptionsRequestCondition::Pressed => 1,
-      OptionsRequestCondition::NotPressed => 0,
     }
   }
 }

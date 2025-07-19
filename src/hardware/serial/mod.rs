@@ -30,64 +30,54 @@ pub trait SerialPortOperations {
 impl SerialPortOperations for Keypad {
   fn get_port() -> String {
     let ports = serialport::available_ports().expect("No ports found!");
-    let mut ports_vec = vec![];
     let command = KeypadCommands::Empty(empty::Command::VoidRequest).get();
 
     for port in ports {
-      let port_vid = match &port.port_type {
-        serialport::SerialPortType::UsbPort(usb_port_info) => usb_port_info.vid,
-        serialport::SerialPortType::PciPort => continue,
-        serialport::SerialPortType::BluetoothPort => continue,
-        serialport::SerialPortType::Unknown => continue,
-      };
+      match &port.port_type {
+        serialport::SerialPortType::UsbPort(usb_port_info) => {
+          if usb_port_info.vid == 11914 {
+            let port = port.port_name;
+            debug!("port name: {port}");
+            let mut serial_port = match serialport::new(&port, 115_200)
+              .timeout(Duration::from_millis(10))
+              .open()
+            {
+              Ok(port) => Arc::new(Mutex::new(port)),
+              Err(e) => {
+                error!("Ошибка открытия порта {port}: {e}");
+                continue;
+              }
+            };
 
-      if port_vid == 11914 {
-        if cfg!(debug_assertions) {
-          debug!("port name: {}", port.port_name);
-        }
-        ports_vec.push(port.port_name);
-      }
-    }
+            if cfg!(windows) {
+              if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
+                error!("Ошибка при установке DTR: {e}");
+              }
+            }
 
-    for port in ports_vec {
-      let mut serial_port = match serialport::new(&port, 115_200)
-        .timeout(Duration::from_millis(10))
-        .open()
-      {
-        Ok(port) => Arc::new(Mutex::new(port)),
-        Err(e) => {
-          error!("Ошибка открытия порта {port}: {e}");
-          continue;
-        }
-      };
+            Self::write_port(
+              &mut serial_port,
+              &KeypadCommands::Empty(empty::Command::VoidRequest),
+            )
+            .unwrap();
 
-      if cfg!(windows) {
-        if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
-          error!("Ошибка при установке DTR: {e}");
-        }
-      }
+            sleep(Duration::from_millis(50));
 
-      Self::write_port(
-        &mut serial_port,
-        &KeypadCommands::Empty(empty::Command::VoidRequest),
-      )
-      .unwrap();
-
-      sleep(Duration::from_millis(50));
-
-      match Self::read_port(&mut serial_port) {
-        Ok(data) => {
-          if cfg!(debug_assertions) {
-            debug!("port: {port}, data: {data:?}, command: {command:?}")
-          };
-          if data == command {
-            return port;
+            match Self::read_port(&mut serial_port) {
+              Ok(data) => {
+                debug!("port: {port}, data: {data:?}, command: {command:?}");
+                if data == command {
+                  return port;
+                }
+              }
+              Err(e) => error!("Ошибка чтения порта {port}: {e}"),
+            };
           }
         }
-        Err(e) => error!("Ошибка чтения порта {port}: {e}"),
+        _ => continue,
       };
     }
-    "".to_string()
+    String::new()
   }
 
   fn write_port(
@@ -108,15 +98,13 @@ impl SerialPortOperations for Keypad {
 
     port_lock.flush().unwrap();
 
-    if cfg!(debug_assertions) {
-      debug!("write: {write_data:?}")
-    }
+    debug!("write: {write_data:?}");
 
     Ok(())
   }
 
   fn read_port(port: &mut Arc<Mutex<Box<dyn SerialPort>>>) -> Result<Vec<u8>, serialport::Error> {
-    let mut data = vec![0; 1];
+    let mut data = [0; 1];
     let mut port_lock = port.lock().unwrap();
 
     // Проверяем, сколько байтов доступно для чтения
@@ -147,9 +135,7 @@ impl SerialPortOperations for Keypad {
       //     // Проверка конца сообщения
       //     port_lock.read_exact(&mut data)?;
       //     if data[0] == BYTE_END {
-      //       if cfg!(debug_assertions) {
-      //         debug!("buf: {buf:?}")
-      //       }
+      //         debug!("buf: {buf:?}");
 
       //       return Ok(buf);
       //     }
@@ -170,9 +156,7 @@ impl SerialPortOperations for Keypad {
           port_lock.read_exact(&mut data)?;
           if let [end, ..] = data.as_slice() {
             if *end == BYTE_END {
-              if cfg!(debug_assertions) {
-                debug!("buf: {buf:?}")
-              }
+              debug!("buf: {buf:?}");
               return Ok(buf);
             }
           }
@@ -188,13 +172,23 @@ pub trait ProtocolHandler {
 }
 impl ProtocolHandler for Keypad {
   fn generate_command(command: &KeypadCommands) -> Vec<u8> {
-    let mut result = vec![BYTE_START];
-    let command_len = command.get().len() as u8;
-    result.push(command_len);
-    for byte in command.get() {
-      result.push(byte);
-    }
+    let command = command.get();
+    let mut result = Vec::with_capacity(3 + command.len());
+
+    result.extend(&[BYTE_START, command.len() as u8]);
+    result.extend_from_slice(&command);
     result.push(BYTE_END);
+
     result
+
+    // let mut result = vec![BYTE_START];
+    // let command_len = command.get().len() as u8;
+
+    // result.push(command_len);
+    // for byte in command.get() {
+    //   result.push(byte);
+    // }
+    // result.push(BYTE_END);
+    // result
   }
 }

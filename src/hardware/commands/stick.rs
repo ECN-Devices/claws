@@ -27,7 +27,7 @@ pub enum Command {
     3 - радиус физической мертвой зоны (Значение АЦП) (2 байта) (Не рекомендуется менять вручную)
     4 - виртуальная внутренняя мертвая зона (Процент от физической мертвой зоны от 1 до 100) (1 байт)
   */
-  SetParameters,
+  SetParameters(u8),
 
   /**
   Запрос: 0x73, 0x3, 0x5, (код положения стика), (ascii код), 0x65
@@ -77,12 +77,13 @@ impl Value for Command {
     match self {
       Self::RequestPositionXY => vec![1],
       Self::RequestPositionASCII => vec![3],
-      Self::SetParameters => vec![3],
+      Self::SetParameters(percent) => vec![4, *percent],
       Self::SetPositionASCII(position, ascii_code) => vec![5, position.get(), *ascii_code],
       Self::Calibration(option) => vec![6, option.get()],
     }
   }
 }
+
 impl OptionsSetPositionASCII {
   pub fn get(&self) -> u8 {
     match self {

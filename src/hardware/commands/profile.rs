@@ -57,7 +57,7 @@ pub enum Command {
 
   Загружает все профили из flash в ram. В следствии этого все профили в ram, а также активный профиль, будут перезаписаны.
   */
-  LoadProfilesFlashToRam,
+  LoadFlashToRam,
 }
 
 impl Value for Command {
@@ -75,7 +75,7 @@ impl Value for Command {
       Self::WriteActiveToRam(num) => vec![13, *num],
       Self::WriteActiveToFlash(num) => vec![14, *num],
       Self::LoadRamToActive(num) => vec![15, *num],
-      Self::LoadProfilesFlashToRam => vec![16],
+      Self::LoadFlashToRam => vec![16],
     }
   }
 }
