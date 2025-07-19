@@ -40,13 +40,16 @@ impl Pages {
    * Возвращает элемент типа `Element`, который представляет содержимое текущего экрана.
    */
   pub fn get_content(claws: &App) -> Element<Message> {
+    let screen_name = text(claws.pages.name())
+      .size(HEADING_SIZE)
+      .width(match claws.pages {
+        Pages::Profiles => Length::Shrink,
+        _ => Length::Fill,
+      });
+
     match claws.pages {
       Self::Profiles => {
-        let screen_name = text(claws.pages.name())
-          .size(HEADING_SIZE)
-          .width(Length::Shrink);
-
-        let buttons_1 = column![
+        let col_1 = column![
           create_keypad_button("#1", Message::ButtonClicked),
           create_keypad_button("#2", Message::ButtonClicked),
           create_keypad_button("#3", Message::ButtonClicked),
@@ -54,7 +57,7 @@ impl Pages {
         ]
         .spacing(SPACING);
 
-        let buttons_2 = column![
+        let col_2 = column![
           create_keypad_button("#5", Message::ButtonClicked),
           create_keypad_button("#6", Message::ButtonClicked),
           create_keypad_button("#7", Message::ButtonClicked),
@@ -62,7 +65,7 @@ impl Pages {
         ]
         .spacing(SPACING);
 
-        let buttons_3 = column![
+        let col_3 = column![
           create_keypad_button("#9", Message::ButtonClicked),
           create_keypad_button("#10", Message::ButtonClicked),
           create_keypad_button("#11", Message::ButtonClicked),
@@ -70,7 +73,7 @@ impl Pages {
         ]
         .spacing(SPACING);
 
-        let buttons_4 = column![
+        let col_4 = column![
           create_keypad_button("#13", Message::ButtonClicked),
           create_keypad_button("#14", Message::ButtonClicked),
           create_keypad_button("#15", Message::ButtonClicked),
@@ -78,39 +81,24 @@ impl Pages {
         ]
         .spacing(SPACING);
 
-        let buttons_container =
-          container(row![buttons_1, buttons_2, buttons_3, buttons_4].spacing(SPACING))
-            .center_y(Length::Fill);
+        let buttons_container = container(row![col_1, col_2, col_3, col_4].spacing(SPACING))
+          .center_y(Length::Fill)
+          .padding(PADDING);
 
         let all_profiles = column![screen_name].padding(PADDING);
-        let layout = column![buttons_container].padding(PADDING);
 
-        row!(all_profiles, vertical_rule(2), layout, vertical_rule(2)).into()
+        row!(
+          all_profiles,
+          vertical_rule(2),
+          buttons_container,
+          vertical_rule(2)
+        )
+        .into()
       }
-      Self::Settings => {
-        let screen_name = text(claws.pages.name())
-          .size(HEADING_SIZE)
-          .width(Length::Fill);
-
-        container(screen_name).padding(10).into()
-      }
-      Self::Updater => {
-        let screen_name = text(claws.pages.name())
-          .size(HEADING_SIZE)
-          .width(Length::Fill);
-
-        container(screen_name).padding(10).into()
-      }
-      Self::ConnectedDeviceNotFound => {
-        let screen_name = text(claws.pages.name()).size(HEADING_SIZE);
-
-        center(screen_name).padding(10).into()
-      }
+      Self::Settings => container(screen_name).padding(10).into(),
+      Self::Updater => container(screen_name).padding(10).into(),
+      Self::ConnectedDeviceNotFound => center(screen_name).padding(10).into(),
       Self::Experimental => {
-        let screen_name = text(claws.pages.name())
-          .size(HEADING_SIZE)
-          .width(Length::Fill);
-
         let reboot_to_bootloader =
           button("Reboot to Bootloader").on_press(Message::RebootToBootloader);
 
