@@ -15,6 +15,7 @@ use utils::logger::init_logger;
 mod assets;
 mod data;
 mod hardware;
+mod tests;
 mod ui;
 mod utils;
 
