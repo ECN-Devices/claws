@@ -43,19 +43,25 @@ pub trait SerialProfile {
 impl SerialProfile for Keypad {
   fn write_profile(port: &mut Arc<Mutex<Box<dyn SerialPort>>>, profile: Profile) {
     // Записываем конфигурацию кнопок
-    profile.buttons.iter().enumerate().for_each(|(i, k)| {
+    (1..=KEYPAD_BUTTONS).for_each(|i| {
       Keypad::write_port(
         port,
-        &KeypadCommands::Swtich(switch::Command::SetCodeASCII(i as u8, *k)),
+        &KeypadCommands::Swtich(switch::Command::SetCodeASCII(
+          i,
+          profile.buttons[i as usize - 1],
+        )),
       )
       .unwrap()
     });
 
     // Записываем конфигурацию стика
-    profile.stick.iter().enumerate().for_each(|(i, k)| {
+    (1..=4).for_each(|i| {
       Self::write_port(
         port,
-        &KeypadCommands::Stick(stick::Command::SetPositionASCII(i as u8, *k)),
+        &KeypadCommands::Stick(stick::Command::SetPositionASCII(
+          i,
+          profile.stick[i as usize - 1],
+        )),
       )
       .unwrap()
     });
