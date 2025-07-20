@@ -1,7 +1,7 @@
 use super::Message;
 use crate::{
   App,
-  hardware::commands::{KeypadCommands, empty, stick},
+  hardware::commands::{KeypadCommands, empty, profile, stick},
 };
 use iced::{
   Alignment, Element, Length,
@@ -12,18 +12,28 @@ pub const SPACING: u16 = 10;
 pub const PADDING: u16 = 10;
 const HEADING_SIZE: u16 = 30;
 
+/// Перечисление экранов приложения
 #[derive(Clone, Debug, Default)]
 pub enum Pages {
+  /// Экран управления профилями (экран по умолчанию)
   #[default]
   Profiles,
+
+  /// Экран настроек
   Settings,
+
+  /// Экран обновления прошивки
   Updater,
+
+  /// Экран отображения ошибки подключения устройства
   ConnectedDeviceNotFound,
+
+  /// Экран экспериментальных функций
   Experimental,
 }
 
 impl Pages {
-  /// Возвращает имя текущего экрана в виде строки.
+  /// Возвращает имя текущего экрана
   fn name(&self) -> &str {
     match self {
       Self::Profiles => "Профили",
@@ -33,12 +43,14 @@ impl Pages {
       Self::Experimental => "Экспериментальные настройки",
     }
   }
-  /** Генерирует содержимое экрана в зависимости от текущего состояния приложения.
-   * # Параметры
-   * `claws`: Ссылка на экземпляр `Claws`, который содержит текущее состояние приложения.
-   * # Возвращает
-   * Возвращает элемент типа `Element`, который представляет содержимое текущего экрана.
-   */
+
+  /**
+  Генерирует содержимое экрана на основе текущего состояния
+  # Аргументы
+  * `claws` - Ссылка на главное приложение с текущим состоянием
+  # Возвращает
+  Элемент интерфейса для отображения
+  */
   pub fn get_content(claws: &App) -> Element<Message> {
     let screen_name = text(claws.pages.name())
       .size(HEADING_SIZE)
@@ -86,12 +98,14 @@ impl Pages {
           .padding(PADDING);
 
         let all_profiles = column![screen_name].padding(PADDING);
+        let open_file_dialog = button("file").on_press(Message::OpenFileDialog);
 
         row!(
           all_profiles,
           vertical_rule(2),
           buttons_container,
-          vertical_rule(2)
+          vertical_rule(2),
+          open_file_dialog
         )
         .into()
       }
@@ -116,9 +130,27 @@ impl Pages {
             stick::Command::Calibration(stick::OptionsCalibration::Request),
           )));
 
+        let write_profile = button("Write Profile").on_press(Message::WriteProfile);
+        let save_profile = button("Save Profile to Flash").on_press(Message::WritePort(
+          KeypadCommands::Profile(profile::Command::WriteActiveToFlash(1)),
+        ));
+
+        let load_profile = button("Save Profile to File").on_press(Message::SaveProfile);
+
         column!(
           screen_name,
-          center(column![reboot_to_bootloader, empty, stick_cal, stick_request].spacing(SPACING))
+          center(
+            column![
+              reboot_to_bootloader,
+              empty,
+              stick_cal,
+              stick_request,
+              write_profile,
+              save_profile,
+              load_profile
+            ]
+            .spacing(SPACING)
+          )
         )
         .into()
       }
@@ -126,13 +158,14 @@ impl Pages {
   }
 }
 
-/** Создает кнопку для клавиатуры.
- * # Параметры
- * `button_text`: Текст, который будет отображаться на кнопке.
- * `on_press`: Сообщение, которое будет отправлено при нажатии на кнопку.
- * # Возвращает
- * Возвращает экземпляр `Button`, который можно использовать в пользовательском интерфейсе.
- */
+/**
+Создает стандартизированную кнопку для клавиатурной панели
+# Аргументы
+* `button_text` - Текст на кнопке
+* `on_press` - Сообщение при нажатии
+# Возвращает
+Готовый элемент кнопки с заданными параметрами
+*/
 fn create_keypad_button(button_text: &str, on_press: Message) -> Button<Message> {
   button(
     text(button_text)
@@ -145,14 +178,22 @@ fn create_keypad_button(button_text: &str, on_press: Message) -> Button<Message>
   .width(80)
 }
 
+/// Иконки для навигационного меню
 pub enum Icon {
+  /// Иконка профилей
   Profiles,
+
+  /// Иконка настроек
   Settings,
+
+  /// Иконка обновления
   Update,
+
+  /// Иконка экспериментальных функций
   Experimental,
 }
-
 impl Icon {
+  /// Возвращает SVG-иконку в виде байтового массива
   pub fn icon(&self) -> &'static [u8] {
     match self {
       Icon::Profiles => include_bytes!("../../assets/icons/profiles.svg"),

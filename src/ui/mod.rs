@@ -1,9 +1,9 @@
 use crate::{
   App,
-  data::{Config, profiles::Profile, window::Window},
+  data::{Config, open_file_dialog, profiles::Profile, window::Window},
   hardware::{
     commands::{KeypadCommands, empty},
-    serial::{Keypad, SerialPortOperations},
+    serial::{Keypad, SerialOperations, serial_profile::SerialProfile},
   },
 };
 use iced::{
@@ -25,24 +25,54 @@ pub mod pages;
 pub const WINDOW_WIDTH: f32 = 800.;
 pub const WINDOW_HEIGH: f32 = 600.;
 
-/** Определение возможных действий в приложении
- *
- * Эти сообщения определяют возможные действия и взаимодействия в приложении.
- */
+/**
+Сообщения приложения, обрабатываемые в системе событий
+Определяют все возможные действия и взаимодействия в приложении
+*/
 #[derive(Debug, Clone)]
 pub enum Message {
+  /// Чтение данных с последовательного порта
   ReadPort,
+
+  /// Запись команды на последовательный порт
   WritePort(KeypadCommands),
+
+  /// Поиск доступного последовательного порта
   SearchPort,
+
+  /// Изменение текущей страницы приложения
   ChangePage(Pages),
   ButtonClicked,
+
+  /// Изменение размеров окна
   WindowResized(f32, f32),
+
+  /// Перемещение окна
   WindowMoved(f32, f32),
+
+  /// Сохранение настроек окна
   WindowSettingsSave,
+  /// Перезагрузка устройства в режим прошивки
   RebootToBootloader,
+
+  /// Запись профиля на устройство
+  WriteProfile,
+
+  /// Сохранение профиля из устройства
+  SaveProfile,
+
+  /// Открытие диалога выбора файла
+  OpenFileDialog,
 }
 
 impl App {
+  /**
+  Создает новый экземпляр приложения с инициализацией
+  # Возвращает
+  Кортеж из:
+  - Экземпляр приложения
+  - Инициализационная задача
+  */
   pub fn new() -> (Self, Task<Message>) {
     let port = Keypad::get_port();
     let keypad = match !port.is_empty() {
@@ -61,13 +91,13 @@ impl App {
         }
 
         Keypad {
-          port: Some(serial_port),
           is_open: true,
+          port: Some(serial_port),
         }
       }
       false => Keypad {
-        port: None,
         is_open: false,
+        port: None,
       },
     };
 
@@ -82,8 +112,6 @@ impl App {
       false => Pages::default(),
     };
 
-    Profile::load("Default");
-
     (
       Self {
         keypad,
@@ -94,10 +122,18 @@ impl App {
     )
   }
 
+  /// Возвращает заголовок окна приложения
   pub fn title(&self) -> String {
     String::from("Claws")
   }
 
+  /**
+  Обрабатывает входящие сообщения и обновляет состояние приложения
+  # Аргументы
+  * `message` - Сообщение для обработки
+  # Возвращает
+  Задачу для выполнения после обработки сообщения
+  */
   pub fn update(&mut self, message: Message) -> Task<Message> {
     match message {
       Message::ReadPort => {
@@ -143,8 +179,8 @@ impl App {
         }
 
         self.keypad = Keypad {
-          port: Some(serial_port),
           is_open: true,
+          port: Some(serial_port),
         };
 
         debug!("Подключение к последовательному порту");
@@ -176,8 +212,8 @@ impl App {
         Task::none()
       }
       Message::RebootToBootloader => {
-        self.keypad.port = None;
         self.keypad.is_open = false;
+        self.keypad.port = None;
         let port = Keypad::get_port();
 
         let _ = serialport::new(&port, 1200)
@@ -189,9 +225,25 @@ impl App {
         debug!("Кейпад перезагружен в режим прошивки");
         Task::none()
       }
+      Message::WriteProfile => {
+        let mut port = self.keypad.port.clone().unwrap();
+        let profile = Profile::load("Lol");
+        Keypad::write_profile(&mut port, profile);
+        Task::none()
+      }
+      Message::SaveProfile => {
+        let mut port = self.keypad.port.clone().unwrap();
+        Keypad::save_profile(&mut port);
+        Task::none()
+      }
+      Message::OpenFileDialog => open_file_dialog(),
     }
   }
 
+  /**
+  Возвращает текущее представление приложения
+  Строит UI на основе текущего состояния приложения
+  */
   pub fn view(&self) -> Element<Message> {
     let page = Pages::get_content(self);
 
@@ -237,6 +289,7 @@ impl App {
     Container::new(content).into()
   }
 
+  /// Возвращает подписки на события приложения
   pub fn subscription(&self) -> Subscription<Message> {
     let port_read = match self.keypad.is_open {
       true => iced::time::every(Duration::from_millis(10)).map(|_| Message::ReadPort),
@@ -283,6 +336,7 @@ impl App {
     ])
   }
 
+  /// Возвращает текущую тему приложения
   pub fn theme(&self) -> Theme {
     match dark_light::detect() {
       Ok(t) => match t {
@@ -294,6 +348,15 @@ impl App {
   }
 }
 
+/**
+Создает кнопку с SVG-иконкой и текстовой подсказкой
+# Аргументы
+* `button_text` - Текст подсказки
+* `icon` - Иконка из перечисления `Icon`
+* `on_press` - Сообщение при нажатии
+# Возвращает
+Элемент интерфейса с кнопкой и подсказкой
+*/
 fn create_button_with_svg_and_text<'a>(
   button_text: &'a str,
   icon: Icon,

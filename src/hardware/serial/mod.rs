@@ -1,3 +1,4 @@
+use super::commands::{KeypadCommands, Value, empty};
 use crate::utils::{BYTE_END, BYTE_START};
 use log::{debug, error};
 use serialport::SerialPort;
@@ -7,27 +8,46 @@ use std::{
   time::Duration,
   vec,
 };
+pub mod serial_profile;
 
-use super::commands::{KeypadCommands, Value, empty};
-
-/** Структура `Keypad` представляет клавиатуру, подключенную к приложению.
- * Она содержит информацию о порте, к которому подключен кейпад, и статус открытия порта.
- */
+/**
+Содержит состояние подключения и последовательный порт.
+Реализует основные операции для работы с устройством через последовательный порт.
+*/
 #[derive(Debug, Clone, Default)]
 pub struct Keypad {
-  pub port: Option<Arc<Mutex<Box<dyn SerialPort>>>>,
   pub is_open: bool,
+  pub port: Option<Arc<Mutex<Box<dyn SerialPort>>>>,
 }
 
-pub trait SerialPortOperations {
+/// Трейт для операций с последовательным портом
+pub trait SerialOperations {
+  /// Находит и возвращает имя порта, к которому подключено устройство
   fn get_port() -> String;
+
+  /**
+  Записывает команду в последовательный порт
+  # Аргументы
+  * `port` - Ссылка на последовательный порт
+  * `command` - Команда для отправки
+  # Возвращает
+  Результат операции или структуру Keypad с состоянием ошибки
+  */
   fn write_port(
     port: &mut Arc<Mutex<Box<dyn SerialPort>>>,
     command: &KeypadCommands,
   ) -> Result<(), Keypad>;
+
+  /**
+  Читает данные из последовательного порта
+  # Аргументы
+  * `port` - Ссылка на последовательный порт
+  # Возвращает
+  Прочитанные данные или ошибку последовательного порта
+  */
   fn read_port(port: &mut Arc<Mutex<Box<dyn SerialPort>>>) -> Result<Vec<u8>, serialport::Error>;
 }
-impl SerialPortOperations for Keypad {
+impl SerialOperations for Keypad {
   fn get_port() -> String {
     let ports = serialport::available_ports().expect("No ports found!");
     let command = KeypadCommands::Empty(empty::Command::VoidRequest).get();
@@ -167,28 +187,24 @@ impl SerialPortOperations for Keypad {
   }
 }
 
+/// Трейт для работы с протоколом обмена данными
 pub trait ProtocolHandler {
+  /**
+  Генерирует байтовую последовательность команды согласно протоколу
+  # Аргументы
+  * `command` - Команда для преобразования
+  # Возвращает
+  Вектор байтов, готовый для отправки через последовательный порт
+  */
   fn generate_command(command: &KeypadCommands) -> Vec<u8>;
 }
 impl ProtocolHandler for Keypad {
   fn generate_command(command: &KeypadCommands) -> Vec<u8> {
     let command = command.get();
     let mut result = Vec::with_capacity(3 + command.len());
-
     result.extend(&[BYTE_START, command.len() as u8]);
     result.extend_from_slice(&command);
     result.push(BYTE_END);
-
     result
-
-    // let mut result = vec![BYTE_START];
-    // let command_len = command.get().len() as u8;
-
-    // result.push(command_len);
-    // for byte in command.get() {
-    //   result.push(byte);
-    // }
-    // result.push(BYTE_END);
-    // result
   }
 }
