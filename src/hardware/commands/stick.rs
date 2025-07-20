@@ -41,7 +41,7 @@ pub enum Command {
       3 - вниз
       4 - вправо
   */
-  SetPositionASCII(OptionsSetPositionASCII, u8),
+  SetPositionASCII(u8, u8),
 
   /**
   Запрос: 0x73, 0x2, 0x6, (код опции), 0x65
@@ -60,13 +60,6 @@ pub enum Command {
   Calibration(OptionsCalibration),
 }
 #[derive(Debug, Clone)]
-pub enum OptionsSetPositionASCII {
-  Up,
-  Left,
-  Down,
-  Right,
-}
-#[derive(Debug, Clone)]
 pub enum OptionsCalibration {
   Request,
   Calibrate,
@@ -78,19 +71,8 @@ impl Value for Command {
       Self::RequestPositionXY => vec![1],
       Self::RequestPositionASCII => vec![3],
       Self::SetParameters(percent) => vec![4, *percent],
-      Self::SetPositionASCII(position, ascii_code) => vec![5, position.get(), *ascii_code],
+      Self::SetPositionASCII(position, ascii_code) => vec![5, *position, *ascii_code],
       Self::Calibration(option) => vec![6, option.get()],
-    }
-  }
-}
-
-impl OptionsSetPositionASCII {
-  pub fn get(&self) -> u8 {
-    match self {
-      OptionsSetPositionASCII::Up => 1,
-      OptionsSetPositionASCII::Left => 2,
-      OptionsSetPositionASCII::Down => 3,
-      OptionsSetPositionASCII::Right => 4,
     }
   }
 }
