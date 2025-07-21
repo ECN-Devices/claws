@@ -72,6 +72,14 @@ impl Profile {
   pub fn load_file(path: PathBuf) -> Self {
     confy::load_path(&path).expect("Не удалось загрузить конфигурацию профиля из файла")
   }
+
+  pub fn get_button_label(&self, button_id: usize) -> String {
+    let button_codes = &self.buttons[button_id];
+    button_codes
+      .iter()
+      .map(|&code| char::from_u32(code as u32).unwrap())
+      .collect()
+  }
 }
 impl Config for Profile {
   /**

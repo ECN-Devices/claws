@@ -70,6 +70,8 @@ pub enum Message {
 
   /// Открытие диалога выбора файла
   OpenFileDialog,
+
+  UpdateProfile(Profile),
 }
 
 impl App {
@@ -119,11 +121,14 @@ impl App {
       false => Pages::default(),
     };
 
+    let profile = Profile::read_profile(&mut keypad.port.clone().unwrap());
+
     (
       Self {
         keypad,
         pages,
         window_settings: Window::load(),
+        profile,
       },
       Task::none(),
     )
@@ -221,13 +226,14 @@ impl App {
       Message::RebootToBootloader => {
         self.keypad.is_open = false;
         self.keypad.port = None;
+        self.pages = Pages::ConnectedDeviceNotFound;
+
         let port = Keypad::get_port();
 
-        let _ = serialport::new(&port, 1200)
+        serialport::new(&port, 1200)
           .timeout(Duration::from_millis(10))
-          .open();
-
-        self.pages = Pages::ConnectedDeviceNotFound;
+          .open()
+          .unwrap();
 
         debug!("Кейпад перезагружен в режим прошивки");
         Task::none()
@@ -249,6 +255,8 @@ impl App {
         Task::none()
       }
       Message::OpenFileDialog => open_load_file_dialog(),
+      Message::UpdateProfile(profile) => {
+        self.profile = profile;
         Task::none()
       }
     }
@@ -259,7 +267,7 @@ impl App {
   Строит UI на основе текущего состояния приложения
   */
   pub fn view(&self) -> Element<Message> {
-    let page = Pages::get_content(self);
+    let page = Pages::get_content(self, self.profile.clone());
 
     let sidebar = container(
       column![

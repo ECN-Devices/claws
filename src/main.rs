@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use assets::{APPLICATION_NAME, INTER_FONT, INTER_FONT_BYTES, WINDOW_ICON};
-use data::window::Window;
+use data::{profiles::Profile, window::Window};
 use hardware::serial::Keypad;
 use iced::{
   Pixels, Point, Size,
@@ -24,6 +24,7 @@ pub struct App {
   pub keypad: Keypad,
   pub pages: Pages,
   pub window_settings: Window,
+  pub profile: Profile,
 }
 
 /**
