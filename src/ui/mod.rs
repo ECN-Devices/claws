@@ -1,9 +1,13 @@
 use crate::{
   App,
-  data::{Config, open_file_dialog, profiles::Profile, window::Window},
+  data::{
+    Config, open_load_file_dialog,
+    profiles::{Profile, SerialProfile},
+    window::Window,
+  },
   hardware::{
     commands::{KeypadCommands, empty},
-    serial::{Keypad, SerialOperations, serial_profile::SerialProfile},
+    serial::{Keypad, SerialOperations},
   },
 };
 use iced::{
@@ -233,7 +237,7 @@ impl App {
       }
       Message::SaveProfile => {
         let mut port = self.keypad.port.clone().unwrap();
-        Keypad::save_profile(&mut port);
+        Keypad::save_profile_file(&mut port);
         Task::none()
       }
       Message::OpenFileDialog => open_file_dialog(),

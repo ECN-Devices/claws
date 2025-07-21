@@ -8,7 +8,6 @@ use std::{
   time::Duration,
   vec,
 };
-pub mod serial_profile;
 
 /**
 Содержит состояние подключения и последовательный порт.
