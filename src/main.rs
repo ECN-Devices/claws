@@ -65,8 +65,8 @@ fn main() -> iced::Result {
       height: window_config.height,
     }, // Установка размера окна
     min_size: Some(Size {
-      width: 600.,
-      height: 660.,
+      width: 660.,
+      height: 820.,
     }), // Установка минимального размера окна
     position: Position::Specific(Point {
       x: window_config.x,
