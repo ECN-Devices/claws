@@ -104,9 +104,9 @@ impl SerialOperations for Keypad {
     command: &KeypadCommands,
   ) -> Result<(), Keypad> {
     let mut port_lock = port.lock().unwrap();
-    let write_data = Self::generate_command(command);
+    let buf = Self::generate_command(command);
 
-    if let Err(e) = port_lock.write_all(&write_data) {
+    if let Err(e) = port_lock.write_all(&buf) {
       error!("Ошибка записив порт {:?}: {e}", port_lock.name());
 
       return Err(Keypad {
@@ -117,7 +117,7 @@ impl SerialOperations for Keypad {
 
     port_lock.flush().unwrap();
 
-    debug!("write: {write_data:?}");
+    debug!("write: {buf:?}");
 
     Ok(())
   }
