@@ -114,7 +114,7 @@ impl Pages {
       }
       Self::Settings => container(screen_name).padding(10).into(),
       Self::Updater => container(screen_name).padding(10).into(),
-      Self::ConnectedDeviceNotFound => center(screen_name).padding(10).into(),
+      Self::ConnectedDeviceNotFound => center(screen_name.center()).padding(PADDING).into(),
       Self::Experimental => {
         let reboot_to_bootloader =
           button("Reboot to Bootloader").on_press(Message::RebootToBootloader);
