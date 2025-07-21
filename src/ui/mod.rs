@@ -121,7 +121,11 @@ impl App {
       false => Pages::default(),
     };
 
-    let profile = Profile::read_profile(&mut keypad.port.clone().unwrap());
+    // let profile = Profile::read_profile(&mut keypad.port.clone().unwrap());
+    let profile = match keypad.is_open {
+      true => Profile::read_profile(&mut keypad.port.clone().unwrap()),
+      false => Profile::default(),
+    };
 
     (
       Self {
