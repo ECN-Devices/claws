@@ -112,8 +112,8 @@ impl Pages {
         )
         .into()
       }
-      Self::Settings => container(screen_name).padding(10).into(),
-      Self::Updater => container(screen_name).padding(10).into(),
+      Self::Settings => container(screen_name).padding(PADDING).into(),
+      Self::Updater => container(screen_name).padding(PADDING).into(),
       Self::ConnectedDeviceNotFound => center(screen_name.center()).padding(PADDING).into(),
       Self::Experimental => {
         let reboot_to_bootloader =
