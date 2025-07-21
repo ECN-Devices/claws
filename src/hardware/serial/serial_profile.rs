@@ -132,6 +132,15 @@ impl SerialProfile for Keypad {
     )
     .unwrap();
 
+    // Задержка между запросами
+    // Иначе не читает??????
+    sleep(Duration::from_millis(10));
+
+    match Self::read_port(port) {
+      Ok(buf) => keypad_profile.name = String::from_utf8_lossy(&buf).trim_start().into(),
+      Err(e) => error!("Ошибка чтения: name; с ошибкой: {e}"),
+    }
+
     keypad_profile
   }
 
