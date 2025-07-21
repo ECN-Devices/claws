@@ -77,7 +77,13 @@ impl Profile {
     let button_codes = &self.buttons[button_id];
     button_codes
       .iter()
-      .map(|&code| char::from_u32(code as u32).unwrap())
+      .map(|&code| match code {
+        16 => "Del".to_string(),
+        27 => "Esc".to_string(),
+        128 => "Ctrl".to_string(),
+        179 => "Tab".to_string(),
+        _ => char::from_u32(code as u32).unwrap().to_string(),
+      })
       .collect()
   }
 }
