@@ -167,9 +167,9 @@ impl App {
         let mut port = self.keypad.port.clone().unwrap();
         match Keypad::write_port(&mut port, &command) {
           Ok(_) => (),
-          Err(err) => {
+          Err(e) => {
             self.pages = Pages::ConnectedDeviceNotFound;
-            self.keypad = err
+            self.keypad = e
           }
         };
         Task::none()
