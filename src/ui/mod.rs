@@ -62,6 +62,9 @@ pub enum Message {
   /// Запись профиля на устройство
   WriteProfile,
 
+  /// Запись профиля из файла на устройство
+  WriteProfileFile(Profile),
+
   /// Сохранение профиля из устройства
   SaveProfile,
 
@@ -232,15 +235,22 @@ impl App {
       Message::WriteProfile => {
         let mut port = self.keypad.port.clone().unwrap();
         let profile = Profile::load("Lol");
-        Keypad::write_profile(&mut port, profile);
+        Profile::write_profile(&mut port, profile);
+        Task::none()
+      }
+      Message::WriteProfileFile(profile) => {
+        let mut port = self.keypad.port.clone().unwrap();
+        Profile::write_profile(&mut port, profile);
         Task::none()
       }
       Message::SaveProfile => {
         let mut port = self.keypad.port.clone().unwrap();
-        Keypad::save_profile_file(&mut port);
+        Profile::save_profile_file(&mut port);
         Task::none()
       }
-      Message::OpenFileDialog => open_file_dialog(),
+      Message::OpenFileDialog => open_load_file_dialog(),
+        Task::none()
+      }
     }
   }
 

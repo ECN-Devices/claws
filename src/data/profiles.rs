@@ -114,7 +114,7 @@ pub trait SerialProfile {
   */
   fn save_profile_file(port: &mut Arc<Mutex<Box<dyn SerialPort>>>);
 }
-impl SerialProfile for Keypad {
+impl SerialProfile for Profile {
   fn write_profile(port: &mut Arc<Mutex<Box<dyn SerialPort>>>, profile: Profile) {
     // Записываем конфигурацию кнопок
     (1..=KEYPAD_BUTTONS).for_each(|i| {
@@ -130,7 +130,7 @@ impl SerialProfile for Keypad {
 
     // Записываем конфигурацию стика
     (1..=4).for_each(|i| {
-      Self::write_port(
+      Keypad::write_port(
         port,
         &KeypadCommands::Stick(stick::Command::SetPositionASCII(
           i,
@@ -149,7 +149,7 @@ impl SerialProfile for Keypad {
       .enumerate()
       .for_each(|(i, c)| name[i] = c as u8);
 
-    Self::write_port(
+    Keypad::write_port(
       port,
       &KeypadCommands::Profile(profile::Command::SetName(name)),
     )
@@ -161,7 +161,7 @@ impl SerialProfile for Keypad {
 
     // Читаем конфигурацию кнопок (1..16)
     (1..=KEYPAD_BUTTONS).for_each(|button_num| {
-      Self::write_port(
+      Keypad::write_port(
         port,
         &KeypadCommands::Swtich(switch::Command::RequestCodeASCII(button_num)),
       )
@@ -171,7 +171,7 @@ impl SerialProfile for Keypad {
       // Иначе не читает??????
       sleep(Duration::from_millis(10));
 
-      match Self::read_port(port) {
+      match Keypad::read_port(port) {
         Ok(mut buf) => {
           buf.drain(0..2);
           let button_data: [u8; 6] = buf.try_into().unwrap();
@@ -183,7 +183,7 @@ impl SerialProfile for Keypad {
 
     // Читаем конфигурацию стика (4 направления)
     (1usize..=4).for_each(|stick_num| {
-      Self::write_port(
+      Keypad::write_port(
         port,
         &KeypadCommands::Stick(stick::Command::RequestPositionASCII),
       )
@@ -193,14 +193,14 @@ impl SerialProfile for Keypad {
       // Иначе не читает??????
       sleep(Duration::from_millis(10));
 
-      match Self::read_port(port) {
+      match Keypad::read_port(port) {
         Ok(buf) => keypad_profile.stick[stick_num - 1] = buf[stick_num],
         Err(e) => error!("Ошибка чтения: stick {stick_num}; с ошибкой: {e}"),
       }
     });
 
     // Читаем имя профиля
-    Self::write_port(
+    Keypad::write_port(
       port,
       &KeypadCommands::Profile(profile::Command::RequestName),
     )
@@ -210,7 +210,7 @@ impl SerialProfile for Keypad {
     // Иначе не читает??????
     sleep(Duration::from_millis(10));
 
-    match Self::read_port(port) {
+    match Keypad::read_port(port) {
       Ok(buf) => keypad_profile.name = String::from_utf8_lossy(&buf).trim_start().into(),
       Err(e) => error!("Ошибка чтения: name; с ошибкой: {e}"),
     }

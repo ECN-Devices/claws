@@ -1,5 +1,7 @@
 use crate::{assets::APPLICATION_NAME, ui::Message};
 use iced::Task;
+use profiles::Profile;
+use std::path::PathBuf;
 
 pub mod profiles;
 pub mod window;
@@ -8,7 +10,7 @@ pub trait Config {
   fn save(&self);
 }
 
-pub fn open_file_dialog() -> Task<Message> {
+pub fn open_load_file_dialog() -> Task<Message> {
   let file_path = confy::get_configuration_file_path(APPLICATION_NAME, None).unwrap();
   let dir_path = file_path.parent().unwrap().to_path_buf();
   Task::future(
@@ -25,9 +27,15 @@ pub fn open_file_dialog() -> Task<Message> {
     // After obtaining a file handle from the dialog, we load the image.
     //
     // We use Task::perform to run load_image, as this may take a while to load.
-    Some(_) => Task::none(),
+    Some(handle) => {
+      let profile = Profile::load_file(load_file_handle(handle));
+      Task::done(Message::WriteProfileFile(profile))
+    }
 
     // The user has cancelled the operation, so we return a "Cancelled" message.
     None => Task::none(),
   })
+}
+pub fn load_file_handle(handle: rfd::FileHandle) -> PathBuf {
+  handle.path().to_path_buf()
 }
