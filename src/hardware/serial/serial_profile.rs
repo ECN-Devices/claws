@@ -19,7 +19,7 @@ pub trait SerialProfile {
   /**
   Записывает профиль на устройство через последовательный порт
   # Аргументы
-  * `port` - Ссылка на последовательный порт (Arc<Mutex> для потокобезопасности)
+  * `port` - Ссылка на последовательный порт (`Arc<Mutex>` для потокобезопасности)
   * `profile` - Профиль для записи
   */
   fn write_profile(port: &mut Arc<Mutex<Box<dyn SerialPort>>>, profile: Profile);
@@ -86,7 +86,7 @@ impl SerialProfile for Keypad {
     let mut keypad_profile = Profile::default();
 
     // Читаем конфигурацию кнопок (1..16)
-    for button_num in 1..=KEYPAD_BUTTONS {
+    (1..=KEYPAD_BUTTONS).for_each(|button_num| {
       Self::write_port(
         port,
         &KeypadCommands::Swtich(switch::Command::RequestCodeASCII(button_num)),
@@ -105,10 +105,10 @@ impl SerialProfile for Keypad {
         }
         Err(e) => error!("Ошибка чтения: stick {button_num}; с ошибкой: {e}"),
       }
-    }
+    });
 
     // Читаем конфигурацию стика (4 направления)
-    for stick_num in 1usize..=4 {
+    (1usize..=4).for_each(|stick_num| {
       Self::write_port(
         port,
         &KeypadCommands::Stick(stick::Command::RequestPositionASCII),
@@ -123,7 +123,7 @@ impl SerialProfile for Keypad {
         Ok(buf) => keypad_profile.stick[stick_num - 1] = buf[stick_num],
         Err(e) => error!("Ошибка чтения: stick {stick_num}; с ошибкой: {e}"),
       }
-    }
+    });
 
     // Читаем имя профиля
     Self::write_port(
