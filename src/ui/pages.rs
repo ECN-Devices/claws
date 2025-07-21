@@ -131,11 +131,11 @@ impl Pages {
           )));
 
         let write_profile = button("Write Profile").on_press(Message::WriteProfile);
-        let save_profile = button("Save Profile to Flash").on_press(Message::WritePort(
+        let save_profile_flash = button("Save Profile to Flash").on_press(Message::WritePort(
           KeypadCommands::Profile(profile::Command::WriteActiveToFlash(1)),
         ));
 
-        let load_profile = button("Save Profile to File").on_press(Message::SaveProfile);
+        let save_profile_file = button("Save Profile to File").on_press(Message::SaveProfile);
 
         column!(
           screen_name,
@@ -146,8 +146,8 @@ impl Pages {
               stick_cal,
               stick_request,
               write_profile,
-              save_profile,
-              load_profile
+              save_profile_flash,
+              save_profile_file,
             ]
             .spacing(SPACING)
           )
