@@ -6,6 +6,7 @@ use crate::{
 };
 use iced::{
   Element, Length,
+  alignment::{Horizontal, Vertical},
   widget::{Button, button, center, column, container, row, text, vertical_rule},
 };
 
@@ -96,17 +97,22 @@ impl Pages {
 
         let buttons_container = container(row![col_1, col_2, col_3, col_4].spacing(SPACING))
           .center_y(Length::Fill)
+          .center_x(Length::Fill)
           .padding(PADDING);
 
         let all_profiles = column![screen_name].padding(PADDING);
-        let active_profile_name =
-          column![text(profile.name).size(30), buttons_container].padding(PADDING);
+        let active_profile = column![
+          container(text(profile.name).size(30))
+            .center_x(Length::Fill)
+            .padding(PADDING),
+          buttons_container
+        ];
         let open_file_dialog = button("file").on_press(Message::OpenFileDialog);
 
         row!(
           all_profiles,
           vertical_rule(2),
-          active_profile_name,
+          active_profile,
           vertical_rule(2),
           open_file_dialog
         )
