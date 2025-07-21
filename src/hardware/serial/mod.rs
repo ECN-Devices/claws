@@ -81,7 +81,7 @@ impl SerialOperations for Keypad {
             )
             .unwrap();
 
-            sleep(Duration::from_millis(50));
+            sleep(Duration::from_millis(10));
 
             match Self::read_port(&mut serial_port) {
               Ok(data) => {
