@@ -143,7 +143,7 @@ impl Pages {
           KeypadCommands::Profile(profile::Command::WriteActiveToFlash(1)),
         ));
 
-        let save_profile_file = button("Save Profile to File").on_press(Message::ProfileSave);
+        let save_profile_file = button("Save Profile to File").on_press(Message::ProfileFileSave);
 
         column!(
           screen_name,
