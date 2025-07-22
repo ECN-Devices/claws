@@ -1,7 +1,8 @@
 use crate::{
   App,
   data::{
-    Config, open_load_file_dialog,
+    Config,
+    file_dialog::FileDialog,
     profiles::{Profile, SerialProfile},
     window::Window,
   },
@@ -70,13 +71,12 @@ pub enum Message {
   ProfileFileWrited,
 
   /// Сохранение профиля из устройства
-  ProfileSave,
+  ProfileFileSave,
   ProfileSaved,
+  ProfileUpdate(Profile),
 
   /// Открытие диалога выбора файла
   OpenFileDialog,
-
-  UpdateProfile(Profile),
 }
 
 impl App {
@@ -275,16 +275,20 @@ impl App {
       }
       Message::ProfileWrited => Task::none(),
       Message::ProfileFileWrite(profile) => {
+        // let mut port = self.keypad.port.clone().unwrap();
+        // Profile::write_profile(&mut port, profile);
+        // Task::none()
+
         let mut port = self.keypad.port.clone().unwrap();
         Task::perform(
           async move {
-            tokio::task::spawn_blocking(move || Profile::write_profile(&mut port, profile)).await
+            Profile::write_profile(&mut port, profile);
+            Profile::read_profile(&mut port)
           },
-          |_| Message::ProfileFileWrited,
+          Message::ProfileUpdate,
         )
       }
-      Message::ProfileFileWrited => Task::none(),
-      Message::ProfileSave => {
+      Message::ProfileFileSave => {
         let mut port = self.keypad.port.clone().unwrap();
         Task::perform(
           async move {
@@ -293,12 +297,14 @@ impl App {
           |_| Message::ProfileSaved,
         )
       }
-      Message::ProfileSaved => Task::none(),
-      Message::OpenFileDialog => open_load_file_dialog(),
-      Message::UpdateProfile(profile) => {
+      Message::ProfileUpdate(profile) => {
+        // let mut port = self.keypad.port.clone().unwrap();
+        // let profile = Profile::read_profile(&mut port);
         self.profile = profile;
         Task::none()
       }
+      Message::ProfileSaved => Task::none(),
+      Message::OpenFileDialog => Profile::open_load_file_dialog(),
     }
   }
 
