@@ -29,7 +29,7 @@ pub fn open_load_file_dialog() -> Task<Message> {
     // We use Task::perform to run load_image, as this may take a while to load.
     Some(handle) => {
       let profile = Profile::load_file(load_file_handle(handle));
-      Task::done(Message::WriteProfileFile(profile))
+      Task::done(Message::ProfileFileWrite(profile))
     }
 
     // The user has cancelled the operation, so we return a "Cancelled" message.

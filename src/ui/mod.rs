@@ -36,13 +36,15 @@ pub const WINDOW_HEIGH: f32 = 600.;
 #[derive(Debug, Clone)]
 pub enum Message {
   /// Чтение данных с последовательного порта
-  ReadPort,
+  PortRead,
+  PortReaded,
 
   /// Запись команды на последовательный порт
-  WritePort(KeypadCommands),
+  PortWrite(KeypadCommands),
+  PortWrited(Result<(), Keypad>),
 
   /// Поиск доступного последовательного порта
-  SearchPort,
+  PortSearch,
 
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
@@ -60,13 +62,16 @@ pub enum Message {
   RebootToBootloader,
 
   /// Запись профиля на устройство
-  WriteProfile,
+  ProfileWrite,
+  ProfileWrited,
 
   /// Запись профиля из файла на устройство
-  WriteProfileFile(Profile),
+  ProfileFileWrite(Profile),
+  ProfileFileWrited,
 
   /// Сохранение профиля из устройства
-  SaveProfile,
+  ProfileSave,
+  ProfileSaved,
 
   /// Открытие диалога выбора файла
   OpenFileDialog,
@@ -152,29 +157,42 @@ impl App {
   */
   pub fn update(&mut self, message: Message) -> Task<Message> {
     match message {
-      Message::ReadPort => {
+      Message::PortRead => {
         if !self.keypad.is_open {
           return Task::none();
         }
         let mut port = self.keypad.port.clone().unwrap();
-        Keypad::read_port(&mut port).unwrap();
-        Task::none()
+        Task::perform(
+          async move { tokio::task::spawn_blocking(move || Keypad::read_port(&mut port)).await },
+          |_| Message::PortReaded,
+        )
       }
-      Message::WritePort(command) => {
+      Message::PortReaded => Task::none(),
+      Message::PortWrite(command) => {
         if !self.keypad.is_open {
           return Task::none();
         }
         let mut port = self.keypad.port.clone().unwrap();
-        match Keypad::write_port(&mut port, &command) {
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || Keypad::write_port(&mut port, &command))
+              .await
+              .unwrap()
+          },
+          Message::PortWrited,
+        )
+      }
+      Message::PortWrited(res) => {
+        match res {
           Ok(_) => (),
-          Err(e) => {
+          Err(keypad) => {
             self.pages = Pages::ConnectedDeviceNotFound;
-            self.keypad = e
+            self.keypad = keypad
           }
-        };
+        }
         Task::none()
       }
-      Message::SearchPort => {
+      Message::PortSearch => {
         let port = Keypad::get_port();
 
         if port.is_empty() {
@@ -242,22 +260,40 @@ impl App {
         debug!("Кейпад перезагружен в режим прошивки");
         Task::none()
       }
-      Message::WriteProfile => {
+      Message::ProfileWrite => {
         let mut port = self.keypad.port.clone().unwrap();
-        let profile = Profile::load("Lol");
-        Profile::write_profile(&mut port, profile);
-        Task::none()
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || {
+              let profile = Profile::load("Lol");
+              Profile::write_profile(&mut port, profile)
+            })
+            .await
+          },
+          |_| Message::ProfileWrited,
+        )
       }
-      Message::WriteProfileFile(profile) => {
+      Message::ProfileWrited => Task::none(),
+      Message::ProfileFileWrite(profile) => {
         let mut port = self.keypad.port.clone().unwrap();
-        Profile::write_profile(&mut port, profile);
-        Task::none()
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || Profile::write_profile(&mut port, profile)).await
+          },
+          |_| Message::ProfileFileWrited,
+        )
       }
-      Message::SaveProfile => {
+      Message::ProfileFileWrited => Task::none(),
+      Message::ProfileSave => {
         let mut port = self.keypad.port.clone().unwrap();
-        Profile::save_profile_file(&mut port);
-        Task::none()
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || Profile::save_profile_file(&mut port)).await
+          },
+          |_| Message::ProfileSaved,
+        )
       }
+      Message::ProfileSaved => Task::none(),
       Message::OpenFileDialog => open_load_file_dialog(),
       Message::UpdateProfile(profile) => {
         self.profile = profile;

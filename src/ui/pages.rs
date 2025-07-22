@@ -6,7 +6,6 @@ use crate::{
 };
 use iced::{
   Element, Length,
-  alignment::{Horizontal, Vertical},
   widget::{Button, button, center, column, container, row, text, vertical_rule},
 };
 
@@ -125,26 +124,26 @@ impl Pages {
         let reboot_to_bootloader =
           button("Reboot to Bootloader").on_press(Message::RebootToBootloader);
 
-        let empty = button("Empty").on_press(Message::WritePort(KeypadCommands::Empty(
+        let empty = button("Empty").on_press(Message::PortWrite(KeypadCommands::Empty(
           empty::Command::VoidRequest,
         )));
 
         let stick_cal =
-          button("Stick Calibration").on_press(Message::WritePort(KeypadCommands::Stick(
+          button("Stick Calibration").on_press(Message::PortWrite(KeypadCommands::Stick(
             stick::Command::Calibration(stick::OptionsCalibration::Calibrate),
           )));
 
         let stick_request =
-          button("Stick Request").on_press(Message::WritePort(KeypadCommands::Stick(
+          button("Stick Request").on_press(Message::PortWrite(KeypadCommands::Stick(
             stick::Command::Calibration(stick::OptionsCalibration::Request),
           )));
 
-        let write_profile = button("Write Profile").on_press(Message::WriteProfile);
-        let save_profile_flash = button("Save Profile to Flash").on_press(Message::WritePort(
+        let write_profile = button("Write Profile").on_press(Message::ProfileWrite);
+        let save_profile_flash = button("Save Profile to Flash").on_press(Message::PortWrite(
           KeypadCommands::Profile(profile::Command::WriteActiveToFlash(1)),
         ));
 
-        let save_profile_file = button("Save Profile to File").on_press(Message::SaveProfile);
+        let save_profile_file = button("Save Profile to File").on_press(Message::ProfileSave);
 
         column!(
           screen_name,
