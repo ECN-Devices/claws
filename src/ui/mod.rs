@@ -7,7 +7,7 @@ use crate::{
     window::Window,
   },
   hardware::{
-    commands::{KeypadCommands, empty},
+    commands::KeypadCommands,
     serial::{Keypad, SerialOperations},
   },
 };
@@ -36,6 +36,8 @@ pub const WINDOW_HEIGH: f32 = 600.;
 */
 #[derive(Debug, Clone)]
 pub enum Message {
+  None,
+
   /// Чтение данных с последовательного порта
   PortRead,
   PortReaded,
@@ -49,6 +51,7 @@ pub enum Message {
 
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
+
   ButtonClicked,
 
   /// Изменение размеров окна
@@ -68,7 +71,6 @@ pub enum Message {
 
   /// Запись профиля из файла на устройство
   ProfileFileWrite(Profile),
-  ProfileFileWrited,
 
   /// Сохранение профиля из устройства
   ProfileFileSave,
@@ -157,6 +159,7 @@ impl App {
   */
   pub fn update(&mut self, message: Message) -> Task<Message> {
     match message {
+      Message::None => Task::none(),
       Message::PortRead => {
         if !self.keypad.is_open {
           return Task::none();
@@ -360,7 +363,7 @@ impl App {
   /// Возвращает подписки на события приложения
   pub fn subscription(&self) -> Subscription<Message> {
     let port_read_search = match self.keypad.is_open {
-      true => iced::time::every(Duration::from_millis(100)).map(|_| Message::PortRead),
+      true => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortRead),
       false => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
     };
 
@@ -369,8 +372,8 @@ impl App {
       None => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
     };
 
-    let port_available = iced::time::every(Duration::from_secs(1))
-      .map(|_| Message::PortWrite(KeypadCommands::Empty(empty::Command::VoidRequest)));
+    // let port_available = iced::time::every(Duration::from_secs(1))
+    //   .map(|_| Message::PortWrite(KeypadCommands::Empty(empty::Command::VoidRequest)));
 
     let window = event::listen_with(|event, _status, _id| match event {
       Event::Window(event) => match event {
@@ -395,7 +398,7 @@ impl App {
     Subscription::batch(vec![
       port_read_search,
       port_disconect,
-      port_available,
+      // port_available,
       window,
     ])
   }
