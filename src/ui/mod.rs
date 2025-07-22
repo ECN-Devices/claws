@@ -354,17 +354,17 @@ impl App {
   /// Возвращает подписки на события приложения
   pub fn subscription(&self) -> Subscription<Message> {
     let port_read_search = match self.keypad.is_open {
-      true => iced::time::every(Duration::from_millis(10)).map(|_| Message::ReadPort),
-      false => iced::time::every(Duration::from_secs(1)).map(|_| Message::SearchPort),
+      true => iced::time::every(Duration::from_millis(100)).map(|_| Message::PortRead),
+      false => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
     };
 
     let port_disconect = match self.keypad.port {
       Some(_) => Subscription::none(),
-      None => iced::time::every(Duration::from_secs(1)).map(|_| Message::SearchPort),
+      None => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
     };
 
-    let port_available = iced::time::every(Duration::from_millis(10))
-      .map(|_| Message::WritePort(KeypadCommands::Empty(empty::Command::VoidRequest)));
+    let port_available = iced::time::every(Duration::from_secs(1))
+      .map(|_| Message::PortWrite(KeypadCommands::Empty(empty::Command::VoidRequest)));
 
     let window = event::listen_with(|event, _status, _id| match event {
       Event::Window(event) => match event {
