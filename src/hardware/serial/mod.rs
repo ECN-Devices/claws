@@ -62,8 +62,7 @@ impl SerialOperations for Keypad {
               .open()
             {
               Ok(port) => Arc::new(Mutex::new(port)),
-              Err(e) => {
-                error!("Ошибка открытия порта {port}: {e}");
+              Err(_) => {
                 continue;
               }
             };
