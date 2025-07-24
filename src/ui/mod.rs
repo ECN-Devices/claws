@@ -75,6 +75,7 @@ pub enum Message {
   /// Сохранение профиля из устройства
   ProfileFileSave,
   ProfileSaved,
+  ProfileRead,
   ProfileUpdate(Profile),
 
   /// Открытие диалога выбора файла
@@ -224,7 +225,7 @@ impl App {
 
         self.pages = Pages::Profiles;
 
-        Task::none()
+        Task::done(Message::ProfileRead)
       }
       Message::ChangePage(page) => {
         self.pages = page;
@@ -298,6 +299,13 @@ impl App {
             tokio::task::spawn_blocking(move || Profile::save_profile_file(&mut port)).await
           },
           |_| Message::ProfileSaved,
+        )
+      }
+      Message::ProfileRead => {
+        let mut port = self.keypad.port.clone().unwrap();
+        Task::perform(
+          async move { Profile::read_profile(&mut port) },
+          Message::ProfileUpdate,
         )
       }
       Message::ProfileUpdate(profile) => {
