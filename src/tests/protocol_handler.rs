@@ -150,46 +150,30 @@ mod stick {
   #[test]
   fn generate_command_set_position_ascii_up() {
     let num = 10;
-    let position = stick::OptionsSetPositionASCII::Up;
-    let command = KeypadCommands::Stick(stick::Command::SetPositionASCII(position.clone(), num));
+    let command = KeypadCommands::Stick(stick::Command::SetPositionASCII(1, num));
     let result = Keypad::generate_command(&command);
-    assert_eq!(
-      result,
-      vec![BYTE_START, 3, 5, position.get(), num, BYTE_END]
-    );
+    assert_eq!(result, vec![BYTE_START, 3, 5, 1, num, BYTE_END]);
   }
   #[test]
   fn generate_command_set_position_ascii_left() {
     let num = 10;
-    let position = stick::OptionsSetPositionASCII::Left;
-    let command = KeypadCommands::Stick(stick::Command::SetPositionASCII(position.clone(), num));
+    let command = KeypadCommands::Stick(stick::Command::SetPositionASCII(4, num));
     let result = Keypad::generate_command(&command);
-    assert_eq!(
-      result,
-      vec![BYTE_START, 3, 5, position.get(), num, BYTE_END]
-    );
+    assert_eq!(result, vec![BYTE_START, 3, 5, 4, num, BYTE_END]);
   }
   #[test]
   fn generate_command_set_position_ascii_down() {
     let num = 10;
-    let position = stick::OptionsSetPositionASCII::Down;
-    let command = KeypadCommands::Stick(stick::Command::SetPositionASCII(position.clone(), num));
+    let command = KeypadCommands::Stick(stick::Command::SetPositionASCII(3, num));
     let result = Keypad::generate_command(&command);
-    assert_eq!(
-      result,
-      vec![BYTE_START, 3, 5, position.get(), num, BYTE_END]
-    );
+    assert_eq!(result, vec![BYTE_START, 3, 5, 3, num, BYTE_END]);
   }
   #[test]
   fn generate_command_set_position_ascii_right() {
     let num = 10;
-    let position = stick::OptionsSetPositionASCII::Right;
-    let command = KeypadCommands::Stick(stick::Command::SetPositionASCII(position.clone(), num));
+    let command = KeypadCommands::Stick(stick::Command::SetPositionASCII(2, num));
     let result = Keypad::generate_command(&command);
-    assert_eq!(
-      result,
-      vec![BYTE_START, 3, 5, position.get(), num, BYTE_END]
-    );
+    assert_eq!(result, vec![BYTE_START, 3, 5, 2, num, BYTE_END]);
   }
   #[test]
   fn generate_command_calibration_request() {
