@@ -1,21 +1,19 @@
 use crate::{
   App,
-  data::{
-    Config,
-    file_dialog::FileDialog,
-    profiles::{Profile, SerialProfile},
-    window::Window,
-  },
+  data::{Config, file_dialog::FileDialog, profiles::Profile, window::Window},
   hardware::{
-    commands::KeypadCommands,
-    serial::{Keypad, SerialOperations},
+    commands::{
+      KeypadCommands, empty,
+      profile::{self, SerialProfile},
+    },
+    serial::{DeviceIO, Keypad},
   },
 };
 use iced::{
   Alignment, Element, Event,
   Length::{self, Fill},
   Subscription, Task, Theme, event,
-  widget::{Button, Container, Tooltip, column, container, row, svg, tooltip, vertical_rule},
+  widget::{Button, Tooltip, column, container, row, svg, tooltip, vertical_rule},
   window,
 };
 use log::{debug, error};
@@ -39,15 +37,17 @@ pub enum Message {
   None,
 
   /// Чтение данных с последовательного порта
-  PortRead,
-  PortReaded,
+  PortReceive,
+  PortReceived,
 
   /// Запись команды на последовательный порт
-  PortWrite(KeypadCommands),
-  PortWrited(Result<(), Keypad>),
+  PortSend(KeypadCommands),
+  PortSended(Result<(), Keypad>),
 
   /// Поиск доступного последовательного порта
   PortSearch,
+
+  PortAvalaible,
 
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
@@ -131,7 +131,7 @@ impl App {
 
     // let profile = Profile::read_profile(&mut keypad.port.clone().unwrap());
     let profile = match keypad.is_open {
-      true => Profile::read_profile(&mut keypad.port.clone().unwrap()),
+      true => profile::Command::receive_profile(&mut keypad.port.clone().unwrap()),
       false => Profile::default(),
     };
 
@@ -161,32 +161,32 @@ impl App {
   pub fn update(&mut self, message: Message) -> Task<Message> {
     match message {
       Message::None => Task::none(),
-      Message::PortRead => {
+      Message::PortReceive => {
         if !self.keypad.is_open {
           return Task::none();
         }
         let mut port = self.keypad.port.clone().unwrap();
         Task::perform(
-          async move { tokio::task::spawn_blocking(move || Keypad::read_port(&mut port)).await },
-          |_| Message::PortReaded,
+          async move { tokio::task::spawn_blocking(move || Keypad::receive(&mut port)).await },
+          |_| Message::PortReceived,
         )
       }
-      Message::PortReaded => Task::none(),
-      Message::PortWrite(command) => {
+      Message::PortReceived => Task::none(),
+      Message::PortSend(command) => {
         if !self.keypad.is_open {
           return Task::none();
         }
         let mut port = self.keypad.port.clone().unwrap();
         Task::perform(
           async move {
-            tokio::task::spawn_blocking(move || Keypad::write_port(&mut port, &command))
+            tokio::task::spawn_blocking(move || Keypad::send(&mut port, &command))
               .await
               .unwrap()
           },
-          Message::PortWrited,
+          Message::PortSended,
         )
       }
-      Message::PortWrited(res) => {
+      Message::PortSended(res) => {
         match res {
           Ok(_) => (),
           Err(keypad) => {
@@ -226,6 +226,13 @@ impl App {
         self.pages = Pages::Profiles;
 
         Task::done(Message::ProfileRead)
+      }
+      Message::PortAvalaible => {
+        let mut port = self.keypad.port.clone().unwrap();
+        let command = &KeypadCommands::Empty(empty::Command::VoidRequest);
+        Keypad::send(&mut port, command).unwrap();
+        Keypad::receive(&mut port).unwrap();
+        Task::none()
       }
       Message::ChangePage(page) => {
         self.pages = page;
@@ -270,7 +277,7 @@ impl App {
           async move {
             tokio::task::spawn_blocking(move || {
               let profile = Profile::load("Lol");
-              Profile::write_profile(&mut port, profile)
+              profile::Command::send_profile(&mut port, profile)
             })
             .await
           },
@@ -286,8 +293,8 @@ impl App {
         let mut port = self.keypad.port.clone().unwrap();
         Task::perform(
           async move {
-            Profile::write_profile(&mut port, profile);
-            Profile::read_profile(&mut port)
+            profile::Command::send_profile(&mut port, profile);
+            profile::Command::receive_profile(&mut port)
           },
           Message::ProfileUpdate,
         )
@@ -296,7 +303,8 @@ impl App {
         let mut port = self.keypad.port.clone().unwrap();
         Task::perform(
           async move {
-            tokio::task::spawn_blocking(move || Profile::save_profile_file(&mut port)).await
+            tokio::task::spawn_blocking(move || profile::Command::save_profile_file(&mut port))
+              .await
           },
           |_| Message::ProfileSaved,
         )
@@ -304,7 +312,7 @@ impl App {
       Message::ProfileRead => {
         let mut port = self.keypad.port.clone().unwrap();
         Task::perform(
-          async move { Profile::read_profile(&mut port) },
+          async move { profile::Command::receive_profile(&mut port) },
           Message::ProfileUpdate,
         )
       }
@@ -365,13 +373,13 @@ impl App {
       }
     };
 
-    Container::new(content).into()
+    container(content).into()
   }
 
   /// Возвращает подписки на события приложения
   pub fn subscription(&self) -> Subscription<Message> {
     let port_read_search = match self.keypad.is_open {
-      true => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortRead),
+      true => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortReceive),
       false => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
     };
 
@@ -380,8 +388,10 @@ impl App {
       None => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
     };
 
-    // let port_available = iced::time::every(Duration::from_secs(1))
-    //   .map(|_| Message::PortWrite(KeypadCommands::Empty(empty::Command::VoidRequest)));
+    // let port_available = match self.keypad.is_open {
+    //   true => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortAvalaible),
+    //   false => Subscription::none(),
+    // };
 
     let window = event::listen_with(|event, _status, _id| match event {
       Event::Window(event) => match event {
@@ -394,7 +404,7 @@ impl App {
           debug!("subscription: event: window: resized: {size:#?}");
           Some(Message::WindowResized(size.width, size.height))
         }
-        window::Event::Focused | window::Event::Unfocused => {
+        window::Event::Focused | window::Event::Unfocused | window::Event::CloseRequested => {
           debug!("subscription: event: window: focused: сохранение настроек положения окна");
           Some(Message::WindowSettingsSave)
         }

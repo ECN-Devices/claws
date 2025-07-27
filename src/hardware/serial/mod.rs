@@ -1,5 +1,8 @@
 use super::commands::{KeypadCommands, Value, empty};
-use crate::utils::{BYTE_END, BYTE_START};
+use crate::{
+  data::profiles::Profile,
+  utils::{BYTE_END, BYTE_START},
+};
 use log::{debug, error};
 use serialport::SerialPort;
 use std::{
@@ -20,9 +23,20 @@ pub struct Keypad {
 }
 
 /// Трейт для операций с последовательным портом
-pub trait SerialOperations {
+pub trait DeviceIO {
   /// Находит и возвращает имя порта, к которому подключено устройство
   fn get_port() -> String;
+
+  fn processing_buf(buf: Result<Vec<u8>, serialport::Error>);
+
+  /**
+  Читает данные из последовательного порта
+  # Аргументы
+  * `port` - Ссылка на последовательный порт
+  # Возвращает
+  Прочитанные данные или ошибку последовательного порта
+  */
+  fn receive(port: &mut Arc<Mutex<Box<dyn SerialPort>>>) -> Result<Vec<u8>, serialport::Error>;
 
   /**
   Записывает команду в последовательный порт
@@ -32,21 +46,12 @@ pub trait SerialOperations {
   # Возвращает
   Результат операции или структуру Keypad с состоянием ошибки
   */
-  fn write_port(
+  fn send(
     port: &mut Arc<Mutex<Box<dyn SerialPort>>>,
     command: &KeypadCommands,
   ) -> Result<(), Keypad>;
-
-  /**
-  Читает данные из последовательного порта
-  # Аргументы
-  * `port` - Ссылка на последовательный порт
-  # Возвращает
-  Прочитанные данные или ошибку последовательного порта
-  */
-  fn read_port(port: &mut Arc<Mutex<Box<dyn SerialPort>>>) -> Result<Vec<u8>, serialport::Error>;
 }
-impl SerialOperations for Keypad {
+impl DeviceIO for Keypad {
   fn get_port() -> String {
     let ports = serialport::available_ports().expect("No ports found!");
     let command = KeypadCommands::Empty(empty::Command::VoidRequest).get();
@@ -73,7 +78,7 @@ impl SerialOperations for Keypad {
               }
             }
 
-            Self::write_port(
+            Self::send(
               &mut serial_port,
               &KeypadCommands::Empty(empty::Command::VoidRequest),
             )
@@ -81,7 +86,7 @@ impl SerialOperations for Keypad {
 
             sleep(Duration::from_millis(10));
 
-            match Self::read_port(&mut serial_port) {
+            match Self::receive(&mut serial_port) {
               Ok(data) => {
                 debug!("port: {port}, data: {data:?}, command: {command:?}");
                 if data == command {
@@ -98,30 +103,25 @@ impl SerialOperations for Keypad {
     String::new()
   }
 
-  fn write_port(
-    port: &mut Arc<Mutex<Box<dyn SerialPort>>>,
-    command: &KeypadCommands,
-  ) -> Result<(), Keypad> {
-    let mut port_lock = port.lock().unwrap();
-    let buf = Self::generate_command(command);
-
-    if let Err(e) = port_lock.write_all(&buf) {
-      error!("Ошибка записив порт {:?}: {e}", port_lock.name());
-
-      return Err(Keypad {
-        port: None,
-        is_open: false,
-      });
-    };
-
-    port_lock.flush().unwrap();
-
-    debug!("write: {buf:?}");
-
-    Ok(())
+  fn processing_buf(buf: Result<Vec<u8>, serialport::Error>) {
+    let mut profile = Profile::default();
+    match buf {
+      Ok(buf) => match buf[0] {
+        8 => {
+          let button_data: [u8; 6] = buf[2..].try_into().unwrap();
+          profile.buttons[buf[1] as usize] = button_data;
+          // let button_data: [u8; 6] = buf.try_into().unwrap();
+          // keypad_profile.buttons[button_num as usize - 1] = button_data
+        }
+        101 => (),
+        _ => error!("Ошибка чтения"),
+      },
+      Err(e) => error!("erorr {e}"),
+    }
+    debug!("profile but {0:?}", profile.buttons)
   }
 
-  fn read_port(port: &mut Arc<Mutex<Box<dyn SerialPort>>>) -> Result<Vec<u8>, serialport::Error> {
+  fn receive(port: &mut Arc<Mutex<Box<dyn SerialPort>>>) -> Result<Vec<u8>, serialport::Error> {
     let mut data = [0; 1];
     let mut port_lock = port.lock().unwrap();
 
@@ -182,6 +182,29 @@ impl SerialOperations for Keypad {
       }
     }
     Ok(vec![])
+  }
+
+  fn send(
+    port: &mut Arc<Mutex<Box<dyn SerialPort>>>,
+    command: &KeypadCommands,
+  ) -> Result<(), Keypad> {
+    let mut port_lock = port.lock().unwrap();
+    let buf = Self::generate_command(command);
+
+    if let Err(e) = port_lock.write_all(&buf) {
+      error!("Ошибка записив порт {:?}: {e}", port_lock.name());
+
+      return Err(Keypad {
+        port: None,
+        is_open: false,
+      });
+    };
+
+    port_lock.flush().unwrap();
+
+    debug!("write: {buf:?}");
+
+    Ok(())
   }
 }
 
