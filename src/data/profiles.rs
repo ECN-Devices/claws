@@ -72,10 +72,6 @@ impl Profile {
   }
 
   pub fn get_button_label(&self, button_id: usize) -> String {
-    if button_id >= self.buttons.len() {
-      return String::new();
-    }
-
     self.buttons[button_id]
       .into_iter()
       .filter(|code| *code != 0)
