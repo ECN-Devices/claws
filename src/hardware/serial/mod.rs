@@ -1,16 +1,20 @@
-use super::commands::{KeypadCommands, Value, empty};
+use super::buffers::Buffers;
 use crate::{
   data::profiles::Profile,
+  errors::serial::KeypadError,
+  hardware::buffers::BuffersIO,
   utils::{BYTE_END, BYTE_START},
 };
 use log::{debug, error};
 use serialport::SerialPort;
 use std::{
   sync::{Arc, Mutex},
-  thread::sleep,
-  time::Duration,
   vec,
 };
+
+pub mod profile;
+
+type SerialIO = Arc<Mutex<Box<dyn SerialPort>>>;
 
 /**
 Содержит состояние подключения и последовательный порт.
@@ -19,13 +23,13 @@ use std::{
 #[derive(Debug, Clone, Default)]
 pub struct Keypad {
   pub is_open: bool,
-  pub port: Option<Arc<Mutex<Box<dyn SerialPort>>>>,
+  pub port: Option<SerialIO>,
 }
 
 /// Трейт для операций с последовательным портом
 pub trait DeviceIO {
   /// Находит и возвращает имя порта, к которому подключено устройство
-  fn get_port() -> String;
+  fn get_port() -> Result<String, KeypadError>;
 
   fn processing_buf(buf: Result<Vec<u8>, serialport::Error>);
 
@@ -36,7 +40,7 @@ pub trait DeviceIO {
   # Возвращает
   Прочитанные данные или ошибку последовательного порта
   */
-  fn receive(port: &mut Arc<Mutex<Box<dyn SerialPort>>>) -> Result<Vec<u8>, serialport::Error>;
+  fn receive(port: &mut SerialIO) -> Result<Vec<u8>, KeypadError>;
 
   /**
   Записывает команду в последовательный порт
@@ -46,61 +50,24 @@ pub trait DeviceIO {
   # Возвращает
   Результат операции или структуру Keypad с состоянием ошибки
   */
-  fn send(
-    port: &mut Arc<Mutex<Box<dyn SerialPort>>>,
-    command: &KeypadCommands,
-  ) -> Result<(), Keypad>;
+  fn send(port: &mut SerialIO, buffers: &mut Buffers) -> Result<(), KeypadError>;
 }
-impl DeviceIO for Keypad {
-  fn get_port() -> String {
-    let ports = serialport::available_ports().expect("No ports found!");
-    let command = KeypadCommands::Empty(empty::Command::VoidRequest).get();
 
+impl DeviceIO for Keypad {
+  fn get_port() -> Result<String, KeypadError> {
+    let ports = serialport::available_ports().map_err(|_| KeypadError::NoPortsFound)?;
     for port in ports {
       match &port.port_type {
         serialport::SerialPortType::UsbPort(usb_port_info) => {
-          if usb_port_info.vid == 11914 {
-            let port = port.port_name;
-            debug!("port name: {port}");
-            let mut serial_port = match serialport::new(&port, 115_200)
-              .timeout(Duration::from_millis(10))
-              .open()
-            {
-              Ok(port) => Arc::new(Mutex::new(port)),
-              Err(_) => {
-                continue;
-              }
-            };
-
-            if cfg!(windows) {
-              if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
-                error!("Ошибка при установке DTR: {e}");
-              }
-            }
-
-            Self::send(
-              &mut serial_port,
-              &KeypadCommands::Empty(empty::Command::VoidRequest),
-            )
-            .unwrap();
-
-            sleep(Duration::from_millis(10));
-
-            match Self::receive(&mut serial_port) {
-              Ok(data) => {
-                debug!("port: {port}, data: {data:?}, command: {command:?}");
-                if data == command {
-                  return port;
-                }
-              }
-              Err(e) => error!("Ошибка чтения порта {port}: {e}"),
-            };
+          if usb_port_info.vid == 11914 && usb_port_info.pid == 32778 {
+            debug!("port name: {}", &port.port_name);
+            return Ok(port.port_name);
           }
         }
         _ => continue,
       };
     }
-    String::new()
+    Err(KeypadError::NoPortsFound)
   }
 
   fn processing_buf(buf: Result<Vec<u8>, serialport::Error>) {
@@ -121,111 +88,64 @@ impl DeviceIO for Keypad {
     debug!("profile but {0:?}", profile.buttons)
   }
 
-  fn receive(port: &mut Arc<Mutex<Box<dyn SerialPort>>>) -> Result<Vec<u8>, serialport::Error> {
+  fn receive(port: &mut SerialIO) -> Result<Vec<u8>, KeypadError> {
     let mut data = [0; 1];
-    let mut port_lock = port.lock().unwrap();
+    let mut port_lock = port
+      .lock()
+      .map_err(|e| KeypadError::LockError(e.to_string()))?;
 
     // Проверяем, сколько байтов доступно для чтения
-    let message = match port_lock.bytes_to_read() {
-      Ok(s) => s,
-      Err(e) => {
-        error!("Нет доступных байтов для чтения; Ошибка: {e}");
-        return Ok(vec![]);
-      }
-    };
+    let message = port_lock.bytes_to_read()?;
     if message == 0 {
       return Ok(vec![]);
     }
 
-    if port_lock.read_exact(&mut data).is_ok() {
-      //   let byte = data[0];
+    port_lock.read_exact(&mut data)?;
 
-      //   // Проверка начала сообщения
-      //   if byte == BYTE_START {
-      //     // Чтение длины пакета
-      //     port_lock.read_exact(&mut data)?;
-      //     let pack_len = data[0] as usize;
+    if let [start, ..] = data.as_slice() {
+      if *start == BYTE_START {
+        // Чтение длины пакета
+        port_lock.read_exact(&mut data)?;
+        let pack_len = data[0] as usize;
 
-      //     // Чтение пакета данных
-      //     let mut buf = vec![0u8; pack_len];
-      //     port_lock.read_exact(&mut buf)?;
+        // Чтение пакета данных
+        let mut buf = vec![0u8; pack_len];
+        port_lock.read_exact(&mut buf)?;
 
-      //     // Проверка конца сообщения
-      //     port_lock.read_exact(&mut data)?;
-      //     if data[0] == BYTE_END {
-      //         debug!("buf: {buf:?}");
-
-      //       return Ok(buf);
-      //     }
-      //   }
-      // }
-
-      if let [start, ..] = data.as_slice() {
-        if *start == BYTE_START {
-          // Чтение длины пакета
-          port_lock.read_exact(&mut data)?;
-          let pack_len = data[0] as usize;
-
-          // Чтение пакета данных
-          let mut buf = vec![0u8; pack_len];
-          port_lock.read_exact(&mut buf)?;
-
-          // Проверка конца сообщения
-          port_lock.read_exact(&mut data)?;
-          if let [end, ..] = data.as_slice() {
-            if *end == BYTE_END {
-              debug!("buf: {buf:?}");
-              return Ok(buf);
-            }
+        // Проверка конца сообщения
+        port_lock.read_exact(&mut data)?;
+        if let [end, ..] = data.as_slice() {
+          if *end == BYTE_END {
+            debug!("buf: {buf:?}");
+            return Ok(buf);
           }
         }
       }
     }
-    Ok(vec![])
+
+    Err(KeypadError::InvalidPacketFormat)
   }
 
-  fn send(
-    port: &mut Arc<Mutex<Box<dyn SerialPort>>>,
-    command: &KeypadCommands,
-  ) -> Result<(), Keypad> {
-    let mut port_lock = port.lock().unwrap();
-    let buf = Self::generate_command(command);
+  fn send(port: &mut SerialIO, buffers: &mut Buffers) -> Result<(), KeypadError> {
+    let mut port_lock = port
+      .lock()
+      .map_err(|e| KeypadError::LockError(e.to_string()))?;
+    let mut buf_lock = buffers.send();
+    let buf_data = buf_lock.pull().ok_or(KeypadError::BufferEmpty)?;
+    let buf_len = buf_lock.len();
 
-    if let Err(e) = port_lock.write_all(&buf) {
-      error!("Ошибка записив порт {:?}: {e}", port_lock.name());
+    if buf_len > 0 {
+      let mut buf = Vec::with_capacity(3 + buf_data.len());
 
-      return Err(Keypad {
-        port: None,
-        is_open: false,
-      });
-    };
+      buf.extend(&[BYTE_START, buf_data.len() as u8]);
+      buf.extend_from_slice(&buf_data);
+      buf.push(BYTE_END);
 
-    port_lock.flush().unwrap();
+      port_lock.write_all(&buf)?;
+      port_lock.flush()?;
 
-    debug!("write: {buf:?}");
-
+      debug!("write: {buf:?}");
+    }
     Ok(())
-  }
-}
-
-/// Трейт для работы с протоколом обмена данными
-pub trait ProtocolHandler {
-  /**
-  Генерирует байтовую последовательность команды согласно протоколу
-  # Аргументы
-  * `command` - Команда для преобразования
-  # Возвращает
-  Вектор байтов, готовый для отправки через последовательный порт
-  */
-  fn generate_command(command: &KeypadCommands) -> Vec<u8>;
-}
-impl ProtocolHandler for Keypad {
-  fn generate_command(command: &KeypadCommands) -> Vec<u8> {
-    let command = command.get();
-    let mut result = Vec::with_capacity(3 + command.len());
-    result.extend(&[BYTE_START, command.len() as u8]);
-    result.extend_from_slice(&command);
-    result.push(BYTE_END);
-    result
   }
 }

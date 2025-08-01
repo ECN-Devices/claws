@@ -2,11 +2,9 @@ use crate::{
   App,
   data::{Config, file_dialog::FileDialog, profiles::Profile, window::Window},
   hardware::{
-    commands::{
-      KeypadCommands, empty,
-      profile::{self, SerialProfile},
-    },
-    serial::{DeviceIO, Keypad},
+    buffers::{Buffers, BuffersIO},
+    commands::{KeypadCommands, Value, empty},
+    serial::{DeviceIO, Keypad, profile::SerialProfile},
   },
 };
 use iced::{
@@ -41,8 +39,8 @@ pub enum Message {
   PortReceived,
 
   /// Запись команды на последовательный порт
-  PortSend(KeypadCommands),
-  PortSended(Result<(), Keypad>),
+  PortSend,
+  PortSended,
 
   /// Поиск доступного последовательного порта
   PortSearch,
@@ -91,48 +89,73 @@ impl App {
   - Инициализационная задача
   */
   pub fn new() -> (Self, Task<Message>) {
-    let port = Keypad::get_port();
-    let keypad = match !port.is_empty() {
-      true => {
-        let serial_port = Arc::new(Mutex::new(
-          serialport::new(&port, 115_200)
-            .timeout(Duration::from_millis(10))
-            .open()
-            .expect("Failed to open port"),
-        ));
-
-        if cfg!(windows) {
-          if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
-            error!("Ошибка при установке DTR: {e}");
-          }
-        }
-
-        Keypad {
-          is_open: true,
-          port: Some(serial_port),
-        }
+    let port = match Keypad::get_port() {
+      Ok(port) if !port.is_empty() => port,
+      _ => {
+        return (
+          Self {
+            keypad: Keypad {
+              is_open: false,
+              port: None,
+            },
+            pages: if cfg!(debug_assertions) {
+              Pages::default()
+            } else {
+              Pages::ConnectedDeviceNotFound
+            },
+            window_settings: Window::load(),
+            profile: Profile::default(),
+            buffers: Buffers::default(),
+          },
+          Task::none(),
+        );
       }
-      false => Keypad {
-        is_open: false,
-        port: None,
-      },
     };
 
-    let pages = match port.is_empty() {
-      true => {
-        if cfg!(debug_assertions) {
-          Pages::default()
-        } else {
-          Pages::ConnectedDeviceNotFound
-        }
+    let serial_port = match serialport::new(&port, 115_200)
+      .timeout(Duration::from_millis(10))
+      .open()
+    {
+      Ok(port) => Arc::new(Mutex::new(port)),
+      Err(e) => {
+        error!("Failed to open port: {e}");
+        return (
+          Self {
+            keypad: Keypad {
+              is_open: false,
+              port: None,
+            },
+            pages: Pages::ConnectedDeviceNotFound,
+            window_settings: Window::load(),
+            profile: Profile::default(),
+            buffers: Buffers::default(),
+          },
+          Task::none(),
+        );
       }
-      false => Pages::default(),
     };
+
+    if cfg!(windows) {
+      if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
+        error!("Ошибка при установке DTR: {e}");
+      }
+    }
 
     // let profile = Profile::read_profile(&mut keypad.port.clone().unwrap());
-    let profile = match keypad.is_open {
-      true => profile::Command::receive_profile(&mut keypad.port.clone().unwrap()),
-      false => Profile::default(),
+    // let profile = match keypad.is_open {
+    //   true => profile::Command::receive_profile(&mut keypad.port.clone().unwrap(),),
+    //   false => Profile::default(),
+    // };
+
+    let keypad = Keypad {
+      is_open: true,
+      port: Some(serial_port),
+    };
+
+    let pages = if cfg!(debug_assertions) {
+      Pages::default()
+    } else {
+      Pages::ConnectedDeviceNotFound
     };
 
     (
@@ -140,7 +163,8 @@ impl App {
         keypad,
         pages,
         window_settings: Window::load(),
-        profile,
+        profile: Profile::default(),
+        buffers: Buffers::default(),
       },
       Task::none(),
     )
@@ -172,35 +196,43 @@ impl App {
         )
       }
       Message::PortReceived => Task::none(),
-      Message::PortSend(command) => {
+      Message::PortSend => {
         if !self.keypad.is_open {
           return Task::none();
         }
         let mut port = self.keypad.port.clone().unwrap();
+
+        let mut buf = self.buffers.clone();
+        {
+          let mut buf_lock = self.buffers.send();
+          buf_lock.push(KeypadCommands::Empty(empty::Command::VoidRequest).get());
+        }
+        {
+          let buf_lock = self.buffers.send();
+          debug!("clone {}", buf_lock.len());
+        }
+        {
+          debug!("{}", buf.send().len());
+        }
         Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || Keypad::send(&mut port, &command))
-              .await
-              .unwrap()
-          },
-          Message::PortSended,
+          async move { tokio::task::spawn_blocking(move || Keypad::send(&mut port, &mut buf)).await },
+          |_| Message::PortSended,
         )
       }
-      Message::PortSended(res) => {
-        match res {
-          Ok(_) => (),
-          Err(keypad) => {
-            self.pages = Pages::ConnectedDeviceNotFound;
-            self.keypad = keypad
-          }
-        }
+      Message::PortSended => {
+        // match res {
+        //   Ok(_) => (),
+        //   Err(keypad) => {
+        //     self.pages = Pages::ConnectedDeviceNotFound;
+        //     self.keypad = keypad
+        //   }
+        // }
         Task::none()
       }
       Message::PortSearch => {
-        let port = Keypad::get_port();
-
-        if port.is_empty() {
-          return Task::none();
+        let port = match Keypad::get_port() {
+          Ok(port) if !port.is_empty() => port,
+          _ => return Task::none(),
         };
 
         let serial_port = Arc::new(Mutex::new(
@@ -229,8 +261,8 @@ impl App {
       }
       Message::PortAvalaible => {
         let mut port = self.keypad.port.clone().unwrap();
-        let command = &KeypadCommands::Empty(empty::Command::VoidRequest);
-        Keypad::send(&mut port, command).unwrap();
+        // let command = &KeypadCommands::Empty(empty::Command::VoidRequest);
+        let _ = Keypad::send(&mut port, &mut self.buffers);
         Keypad::receive(&mut port).unwrap();
         Task::none()
       }
@@ -261,7 +293,10 @@ impl App {
         self.keypad.port = None;
         self.pages = Pages::ConnectedDeviceNotFound;
 
-        let port = Keypad::get_port();
+        let port = match Keypad::get_port() {
+          Ok(port) => port,
+          Err(_) => return Task::none(),
+        };
 
         serialport::new(&port, 1200)
           .timeout(Duration::from_millis(10))
@@ -273,11 +308,12 @@ impl App {
       }
       Message::ProfileWrite => {
         let mut port = self.keypad.port.clone().unwrap();
+        let mut buffers = self.buffers.clone();
         Task::perform(
           async move {
             tokio::task::spawn_blocking(move || {
               let profile = Profile::load("Lol");
-              profile::Command::send_profile(&mut port, profile)
+              Keypad::send_profile(&mut port, profile, &mut buffers)
             })
             .await
           },
@@ -291,19 +327,21 @@ impl App {
         // Task::none()
 
         let mut port = self.keypad.port.clone().unwrap();
+        let mut buffers = self.buffers.clone();
         Task::perform(
           async move {
-            profile::Command::send_profile(&mut port, profile);
-            profile::Command::receive_profile(&mut port)
+            let _ = Keypad::send_profile(&mut port, profile, &mut buffers);
+            Keypad::receive_profile(&mut port, &mut buffers)
           },
           Message::ProfileUpdate,
         )
       }
       Message::ProfileFileSave => {
         let mut port = self.keypad.port.clone().unwrap();
+        let mut buffers = self.buffers.clone();
         Task::perform(
           async move {
-            tokio::task::spawn_blocking(move || profile::Command::save_profile_file(&mut port))
+            tokio::task::spawn_blocking(move || Keypad::save_profile_file(&mut port, &mut buffers))
               .await
           },
           |_| Message::ProfileSaved,
@@ -311,8 +349,9 @@ impl App {
       }
       Message::ProfileRead => {
         let mut port = self.keypad.port.clone().unwrap();
+        let mut buffers = self.buffers.clone();
         Task::perform(
-          async move { profile::Command::receive_profile(&mut port) },
+          async move { Keypad::receive_profile(&mut port, &mut buffers) },
           Message::ProfileUpdate,
         )
       }
