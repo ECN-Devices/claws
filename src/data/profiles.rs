@@ -60,20 +60,31 @@ impl Profile {
     confy::load_path(&path).expect("Не удалось загрузить конфигурацию профиля из файла")
   }
 
+  /// Преобразует код клавиши в читаемый символ
+  fn code_to_char(code: u8) -> String {
+    match code {
+      16 => "Del".to_string(),
+      27 => "Esc".to_string(),
+      128 => "Ctrl".to_string(),
+      179 => "Tab".to_string(),
+      _ => char::from_u32(code as u32).unwrap_or('?').to_string(),
+    }
+  }
+
   pub fn get_button_label(&self, button_id: usize) -> String {
-    let button_codes = &self.buttons[button_id];
-    button_codes
-      .iter()
-      .map(|&code| match code {
-        16 => "Del".to_string(),
-        27 => "Esc".to_string(),
-        128 => "Ctrl".to_string(),
-        179 => "Tab".to_string(),
-        _ => char::from_u32(code as u32).unwrap().to_string(),
-      })
-      .collect()
+    if button_id >= self.buttons.len() {
+      return String::new();
+    }
+
+    self.buttons[button_id]
+      .into_iter()
+      .filter(|code| *code != 0)
+      .map(Self::code_to_char)
+      .collect::<Vec<_>>()
+      .join("+")
   }
 }
+
 impl Config for Profile {
   /**
   Сохраняет текущий профиль в хранилище
