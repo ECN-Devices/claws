@@ -3,7 +3,7 @@
 
 use assets::{APPLICATION_NAME, INTER_FONT, INTER_FONT_BYTES, WINDOW_ICON};
 use data::{profiles::Profile, window::Window};
-use hardware::serial::Keypad;
+use hardware::{buffers::Buffers, serial::Keypad};
 use iced::{
   Pixels, Point, Size,
   window::{Position, icon},
@@ -14,6 +14,7 @@ use utils::logger::init_logger;
 
 mod assets;
 mod data;
+mod errors;
 mod hardware;
 mod tests;
 mod ui;
@@ -25,6 +26,7 @@ pub struct App {
   pub pages: Pages,
   pub window_settings: Window,
   pub profile: Profile,
+  pub buffers: Buffers,
 }
 
 /**
