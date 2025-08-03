@@ -15,6 +15,9 @@ pub enum KeypadError {
   #[error("Mutex lock error: {0}")]
   LockError(String),
 
+  #[error("No Response")]
+  NoResponse(Vec<u8>),
+
   #[error("IO error: {0}")]
   IoError(#[from] std::io::Error),
 }

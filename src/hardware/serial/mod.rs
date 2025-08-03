@@ -1,11 +1,10 @@
 use super::buffers::Buffers;
 use crate::{
-  data::profiles::Profile,
   errors::serial::KeypadError,
   hardware::buffers::BuffersIO,
   utils::{BYTE_END, BYTE_START},
 };
-use log::{debug, error};
+use log::debug;
 use serialport::SerialPort;
 use std::{
   sync::{Arc, Mutex},
@@ -31,8 +30,6 @@ pub trait DeviceIO {
   /// Находит и возвращает имя порта, к которому подключено устройство
   fn get_port() -> Result<String, KeypadError>;
 
-  fn processing_buf(buf: Result<Vec<u8>, serialport::Error>);
-
   /**
   Читает данные из последовательного порта
   # Аргументы
@@ -40,7 +37,7 @@ pub trait DeviceIO {
   # Возвращает
   Прочитанные данные или ошибку последовательного порта
   */
-  fn receive(port: &mut SerialIO) -> Result<Vec<u8>, KeypadError>;
+  fn receive(port: &mut SerialIO, buffers: &mut Buffers) -> Result<(), KeypadError>;
 
   /**
   Записывает команду в последовательный порт
@@ -70,25 +67,7 @@ impl DeviceIO for Keypad {
     Err(KeypadError::NoPortsFound)
   }
 
-  fn processing_buf(buf: Result<Vec<u8>, serialport::Error>) {
-    let mut profile = Profile::default();
-    match buf {
-      Ok(buf) => match buf[0] {
-        8 => {
-          let button_data: [u8; 6] = buf[2..].try_into().unwrap();
-          profile.buttons[buf[1] as usize] = button_data;
-          // let button_data: [u8; 6] = buf.try_into().unwrap();
-          // keypad_profile.buttons[button_num as usize - 1] = button_data
-        }
-        101 => (),
-        _ => error!("Ошибка чтения"),
-      },
-      Err(e) => error!("erorr {e}"),
-    }
-    debug!("profile but {0:?}", profile.buttons)
-  }
-
-  fn receive(port: &mut SerialIO) -> Result<Vec<u8>, KeypadError> {
+  fn receive(port: &mut SerialIO, buffers: &mut Buffers) -> Result<(), KeypadError> {
     let mut data = [0; 1];
     let mut port_lock = port
       .lock()
@@ -97,7 +76,7 @@ impl DeviceIO for Keypad {
     // Проверяем, сколько байтов доступно для чтения
     let message = port_lock.bytes_to_read()?;
     if message == 0 {
-      return Ok(vec![]);
+      return Ok(());
     }
 
     port_lock.read_exact(&mut data)?;
@@ -116,8 +95,9 @@ impl DeviceIO for Keypad {
         port_lock.read_exact(&mut data)?;
         if let [end, ..] = data.as_slice() {
           if *end == BYTE_END {
-            debug!("buf: {buf:?}");
-            return Ok(buf);
+            // debug!("receive: {buf:?}");
+            buffers.receive().push(buf);
+            return Ok(());
           }
         }
       }
@@ -132,20 +112,17 @@ impl DeviceIO for Keypad {
       .map_err(|e| KeypadError::LockError(e.to_string()))?;
     let mut buf_lock = buffers.send();
     let buf_data = buf_lock.pull().ok_or(KeypadError::BufferEmpty)?;
-    let buf_len = buf_lock.len();
 
-    if buf_len > 0 {
-      let mut buf = Vec::with_capacity(3 + buf_data.len());
+    let mut buf = Vec::with_capacity(3 + buf_data.len());
 
-      buf.extend(&[BYTE_START, buf_data.len() as u8]);
-      buf.extend_from_slice(&buf_data);
-      buf.push(BYTE_END);
+    buf.extend(&[BYTE_START, buf_data.len() as u8]);
+    buf.extend_from_slice(&buf_data);
+    buf.push(BYTE_END);
 
-      port_lock.write_all(&buf)?;
-      port_lock.flush()?;
+    port_lock.write_all(&buf)?;
+    port_lock.flush()?;
 
-      debug!("write: {buf:?}");
-    }
+    // debug!("write: {buf:?}");
     Ok(())
   }
 }

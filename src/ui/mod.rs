@@ -3,7 +3,7 @@ use crate::{
   data::{Config, file_dialog::FileDialog, profiles::Profile, window::Window},
   hardware::{
     buffers::{Buffers, BuffersIO},
-    commands::{KeypadCommands, Value, empty},
+    commands::{KeypadCommands, Value, empty, switch},
     serial::{DeviceIO, Keypad, profile::SerialProfile},
   },
 };
@@ -46,6 +46,8 @@ pub enum Message {
   PortSearch,
 
   PortAvalaible,
+
+  RequestCondition,
 
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
@@ -190,8 +192,11 @@ impl App {
           return Task::none();
         }
         let mut port = self.keypad.port.clone().unwrap();
+        let mut buffers = self.buffers.clone();
         Task::perform(
-          async move { tokio::task::spawn_blocking(move || Keypad::receive(&mut port)).await },
+          async move {
+            tokio::task::spawn_blocking(move || Keypad::receive(&mut port, &mut buffers)).await
+          },
           |_| Message::PortReceived,
         )
       }
@@ -203,17 +208,7 @@ impl App {
         let mut port = self.keypad.port.clone().unwrap();
 
         let mut buf = self.buffers.clone();
-        {
-          let mut buf_lock = self.buffers.send();
-          buf_lock.push(KeypadCommands::Empty(empty::Command::VoidRequest).get());
-        }
-        {
-          let buf_lock = self.buffers.send();
-          debug!("clone {}", buf_lock.len());
-        }
-        {
-          debug!("{}", buf.send().len());
-        }
+        debug!("{}", buf.send().len());
         Task::perform(
           async move { tokio::task::spawn_blocking(move || Keypad::send(&mut port, &mut buf)).await },
           |_| Message::PortSended,
@@ -261,10 +256,33 @@ impl App {
       }
       Message::PortAvalaible => {
         let mut port = self.keypad.port.clone().unwrap();
-        // let command = &KeypadCommands::Empty(empty::Command::VoidRequest);
-        let _ = Keypad::send(&mut port, &mut self.buffers);
-        Keypad::receive(&mut port).unwrap();
-        Task::none()
+        let mut buf = self.buffers.clone();
+        let _ = Keypad::send(&mut port, &mut buf);
+
+        // {
+        //   debug!("buffers: {:?}", buf.send());
+        //   debug!("buffers: {:?}", buf.receive());
+        // }
+
+        Task::perform(
+          async move { tokio::task::spawn_blocking(move || empty::empty(&mut buf)).await },
+          |_| Message::PortSended,
+        )
+      }
+      Message::RequestCondition => {
+        let mut port = self.keypad.port.clone().unwrap();
+        let mut buf = self.buffers.clone();
+        let _ = Keypad::send(&mut port, &mut buf);
+
+        // {
+        //   debug!("buffers: {:?}", buf.send());
+        //   debug!("buffers: {:?}", buf.receive());
+        // }
+
+        Task::perform(
+          async move { tokio::task::spawn_blocking(move || switch::request_condition(&mut buf)).await },
+          |_| Message::PortSended,
+        )
       }
       Message::ChangePage(page) => {
         self.pages = page;
@@ -418,19 +436,19 @@ impl App {
   /// Возвращает подписки на события приложения
   pub fn subscription(&self) -> Subscription<Message> {
     let port_read_search = match self.keypad.is_open {
-      true => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortReceive),
+      true => iced::time::every(Duration::from_millis(5)).map(|_| Message::PortReceive),
       false => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
     };
 
     let port_disconect = match self.keypad.port {
       Some(_) => Subscription::none(),
-      None => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
+      None => iced::time::every(Duration::from_secs(5)).map(|_| Message::PortSearch),
     };
 
-    // let port_available = match self.keypad.is_open {
-    //   true => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortAvalaible),
-    //   false => Subscription::none(),
-    // };
+    let port_available = match self.keypad.is_open {
+      true => iced::time::every(Duration::from_secs(2)).map(|_| Message::PortAvalaible),
+      false => Subscription::none(),
+    };
 
     let window = event::listen_with(|event, _status, _id| match event {
       Event::Window(event) => match event {
@@ -455,7 +473,7 @@ impl App {
     Subscription::batch(vec![
       port_read_search,
       port_disconect,
-      // port_available,
+      port_available,
       window,
     ])
   }
