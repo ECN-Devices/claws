@@ -10,9 +10,6 @@ use crate::{
   },
 };
 use anyhow::Result;
-use log::debug;
-use serialport::SerialPort;
-use std::sync::{Arc, Mutex};
 
 impl Keypad {
   /**

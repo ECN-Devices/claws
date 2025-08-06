@@ -1,9 +1,5 @@
 use super::Message;
-use crate::{
-  App,
-  data::profiles::Profile,
-  hardware::commands::{Value, profile},
-};
+use crate::{App, data::profiles::Profile};
 use iced::{
   Element, Length,
   widget::{Button, button, center, column, container, row, text, vertical_rule},
