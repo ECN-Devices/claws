@@ -88,3 +88,43 @@ pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
     }
   }
 }
+
+pub fn request_code_ascii(buffers: &mut Buffers) -> Result<[[u8; 6]; 16]> {
+  let time = SystemTime::now();
+  let duration = Duration::from_secs(5);
+
+  let switch_col = 16;
+
+  let mut switch_code = [[0u8; 6]; 16];
+  let mut received = [false; 16];
+
+  (1..=switch_col).for_each(|i: u8| {
+    buffers.send().push(Command::RequestCodeASCII(i).get());
+  });
+
+  loop {
+    if time.elapsed()? >= duration {
+      return Err(KeypadError::NoResponse(Command::RequestCodeASCII(1).get()).into());
+    }
+
+    for i in 1..=switch_col {
+      match buffers
+        .receive()
+        .pull(&super::KeypadCommands::Swtich(Command::RequestCodeASCII(i)))
+      {
+        Some(s) => {
+          debug!("switch: request_code_ascii: {s:?}");
+          let switch_num = s[1] as usize;
+          switch_code[switch_num - 1].copy_from_slice(&s[2..]);
+          received[switch_num - 1] = true;
+          continue;
+        }
+        None => continue,
+      };
+    }
+
+    if received.iter().all(|&r| r) {
+      break Ok(switch_code);
+    }
+  }
+}
