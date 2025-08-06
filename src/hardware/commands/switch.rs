@@ -80,7 +80,7 @@ pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
         .pull(&super::KeypadCommands::Swtich(Command::RequestCondition(i)))
       {
         Some(s) => {
-          debug!("pull: {s:?}");
+          debug!("switch: request_condition: {s:?}");
           continue;
         }
         None => continue,
