@@ -318,7 +318,6 @@ impl App {
         // let mut port = self.keypad.port.clone().unwrap();
         // Profile::write_profile(&mut port, profile);
         // Task::none()
-
         let mut port = self.keypad.port.clone().unwrap();
         let mut buffers = self.buffers.clone();
         Task::perform(
@@ -410,19 +409,12 @@ impl App {
 
   /// Возвращает подписки на события приложения
   pub fn subscription(&self) -> Subscription<Message> {
-    let port_read_search = match self.keypad.is_open {
-      true => iced::time::every(Duration::from_millis(5)).map(|_| Message::PortReceive),
+    let port_sub = match self.keypad.is_open {
+      true => iced::Subscription::batch(vec![
+        iced::time::every(Duration::from_millis(1)).map(|_| Message::PortSend),
+        iced::time::every(Duration::from_millis(1)).map(|_| Message::PortReceive),
+      ]),
       false => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
-    };
-
-    let port_disconect = match self.keypad.port {
-      Some(_) => Subscription::none(),
-      None => iced::time::every(Duration::from_secs(5)).map(|_| Message::PortSearch),
-    };
-
-    let port_available = match self.keypad.is_open {
-      true => iced::time::every(Duration::from_secs(2)).map(|_| Message::PortAvalaible),
-      false => Subscription::none(),
     };
 
     let window = event::listen_with(|event, _status, _id| match event {
@@ -445,12 +437,7 @@ impl App {
       _ => None,
     });
 
-    Subscription::batch(vec![
-      port_read_search,
-      port_disconect,
-      port_available,
-      window,
-    ])
+    Subscription::batch(vec![port_sub, window])
   }
 
   /// Возвращает текущую тему приложения
