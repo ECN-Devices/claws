@@ -72,13 +72,7 @@ impl Value for Command {
     match self {
       Self::RequestActiveNum => vec![10],
       Self::RequestName => vec![11],
-      Self::SetName(profile_name) => {
-        let mut result = vec![12];
-        for e in profile_name {
-          result.push(*e)
-        }
-        result
-      }
+      Self::SetName(profile_name) => [12].iter().chain(profile_name.iter()).copied().collect(),
       Self::WriteActiveToRam(num) => vec![13, *num],
       Self::WriteActiveToFlash(num) => vec![14, *num],
       Self::LoadRamToActive(num) => vec![15, *num],
