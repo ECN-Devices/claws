@@ -14,7 +14,7 @@ use iced::{
   widget::{Button, Tooltip, column, container, row, svg, tooltip, vertical_rule},
   window,
 };
-use log::{debug, error};
+use log::{error, info, trace};
 use pages::{Icon, PADDING, Pages, SPACING};
 use std::{
   sync::{Arc, Mutex},
@@ -193,6 +193,11 @@ impl App {
         }
         let mut port = self.keypad.port.clone().unwrap();
         let mut buffers = self.buffers.clone();
+        // {
+        //   trace!("send: {:?}", self.buffers.send());
+        //   trace!("receive: {:?}", self.buffers.receive())
+        // }
+
         Task::perform(
           async move {
             tokio::task::spawn_blocking(move || Keypad::receive(&mut port, &mut buffers)).await
@@ -208,7 +213,8 @@ impl App {
         let mut port = self.keypad.port.clone().unwrap();
 
         let mut buf = self.buffers.clone();
-        debug!("{}", buf.send().len());
+        // debug!("{}", buf.send().len());
+
         Task::perform(
           async move { tokio::task::spawn_blocking(move || Keypad::send(&mut port, &mut buf)).await },
           |_| Message::PortSended,
@@ -234,7 +240,7 @@ impl App {
           serialport::new(&port, 115_200)
             .timeout(Duration::from_millis(10))
             .open()
-            .expect("Failed to open port"),
+            .expect("Ошибка открытия порта"),
         ));
 
         if cfg!(windows) {
@@ -248,7 +254,7 @@ impl App {
           port: Some(serial_port),
         };
 
-        debug!("Подключение к последовательному порту");
+        info!("Подключение к последовательному порту");
 
         self.pages = Pages::Profiles;
 
@@ -259,11 +265,6 @@ impl App {
         let mut buf = self.buffers.clone();
         let _ = Keypad::send(&mut port, &mut buf);
 
-        // {
-        //   debug!("buffers: {:?}", buf.send());
-        //   debug!("buffers: {:?}", buf.receive());
-        // }
-
         Task::perform(
           async move { tokio::task::spawn_blocking(move || empty::empty(&mut buf)).await },
           |_| Message::PortSended,
@@ -273,11 +274,6 @@ impl App {
         let mut port = self.keypad.port.clone().unwrap();
         let mut buf = self.buffers.clone();
         let _ = Keypad::send(&mut port, &mut buf);
-
-        // {
-        //   debug!("buffers: {:?}", buf.send());
-        //   debug!("buffers: {:?}", buf.receive());
-        // }
 
         Task::perform(
           async move { tokio::task::spawn_blocking(move || switch::request_condition(&mut buf)).await },
@@ -321,7 +317,7 @@ impl App {
           .open()
           .unwrap();
 
-        debug!("Кейпад перезагружен в режим прошивки");
+        info!("Кейпад перезагружен в режим прошивки");
         Task::none()
       }
       Message::ProfileWrite => {
@@ -454,15 +450,15 @@ impl App {
       Event::Window(event) => match event {
         #[cfg(windows)]
         window::Event::Moved(point) => {
-          debug!("subscription: event: window: moved: {point:#?}");
+          trace!("subscription: window: moved: {point:#?}");
           Some(Message::WindowMoved(point.x, point.y))
         }
         window::Event::Resized(size) => {
-          debug!("subscription: event: window: resized: {size:#?}");
+          trace!("subscription: window: resized: {size:#?}");
           Some(Message::WindowResized(size.width, size.height))
         }
         window::Event::Focused | window::Event::Unfocused | window::Event::CloseRequested => {
-          debug!("subscription: event: window: focused: сохранение настроек положения окна");
+          info!("subscription: window: сохранение настроек положения окна");
           Some(Message::WindowSettingsSave)
         }
         _ => None,
