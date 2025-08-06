@@ -10,6 +10,7 @@ use crate::{
   },
 };
 use anyhow::Result;
+use log::info;
 
 impl Keypad {
   /**
@@ -60,6 +61,7 @@ impl Keypad {
     buffers
       .send()
       .push(profile::Command::SetName(profile_name).get());
+    info!("profile_send: записываю имя профиля: {profile_name:?}");
 
     // Записываем конфигурацию кнопок
     (1..=KEYPAD_BUTTONS).for_each(|i| {
@@ -67,6 +69,7 @@ impl Keypad {
         .send()
         .push(switch::Command::SetCodeASCII(i, switch_s[i as usize - 1]).get());
     });
+    info!("profile_send: записываю конфигурацию кнопок");
 
     // Записываем конфигурацию стика
     (1..=4).for_each(|i| {
@@ -74,6 +77,7 @@ impl Keypad {
         .send()
         .push(stick::Command::SetPositionASCII(i, stick_s[i as usize - 1]).get());
     });
+    info!("profile_send: записываю конфигурацию стика");
 
     Ok(())
   }
