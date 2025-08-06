@@ -2,8 +2,8 @@ use crate::{
   App,
   data::{Config, file_dialog::FileDialog, profiles::Profile, window::Window},
   hardware::{
-    buffers::{Buffers, BuffersIO},
-    commands::{KeypadCommands, Value, empty, switch},
+    buffers::Buffers,
+    commands::{empty, switch},
     serial::{DeviceIO, Keypad, profile::SerialProfile},
   },
 };
@@ -92,56 +92,38 @@ impl App {
   */
   pub fn new() -> (Self, Task<Message>) {
     let port = match Keypad::get_port() {
-      Ok(port) if !port.is_empty() => port,
-      _ => {
-        return (
-          Self {
-            keypad: Keypad {
-              is_open: false,
-              port: None,
-            },
-            pages: if cfg!(debug_assertions) {
-              Pages::default()
-            } else {
-              Pages::ConnectedDeviceNotFound
-            },
-            window_settings: Window::load(),
-            profile: Profile::default(),
-            buffers: Buffers::default(),
-          },
-          Task::none(),
-        );
-      }
-    };
-
-    let serial_port = match serialport::new(&port, 115_200)
-      .timeout(Duration::from_millis(10))
-      .open()
-    {
-      Ok(port) => Arc::new(Mutex::new(port)),
+      Ok(s) => s,
       Err(e) => {
-        error!("Failed to open port: {e}");
-        return (
-          Self {
-            keypad: Keypad {
-              is_open: false,
-              port: None,
-            },
-            pages: Pages::ConnectedDeviceNotFound,
-            window_settings: Window::load(),
-            profile: Profile::default(),
-            buffers: Buffers::default(),
-          },
-          Task::none(),
-        );
+        error!("{e}");
+        "".to_string()
       }
     };
 
-    if cfg!(windows) {
-      if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
-        error!("Ошибка при установке DTR: {e}");
+    let keypad = match !port.is_empty() {
+      true => {
+        let serial_port = Arc::new(Mutex::new(
+          serialport::new(&port, 115_200)
+            .timeout(Duration::from_millis(10))
+            .open()
+            .expect("Ошибка открытия порта"),
+        ));
+
+        if cfg!(windows) {
+          if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
+            error!("Ошибка при установке DTR: {e}");
+          }
+        }
+
+        Keypad {
+          is_open: true,
+          port: Some(serial_port),
+        }
       }
-    }
+      false => Keypad {
+        is_open: false,
+        port: None,
+      },
+    };
 
     // let profile = Profile::read_profile(&mut keypad.port.clone().unwrap());
     // let profile = match keypad.is_open {
@@ -149,15 +131,15 @@ impl App {
     //   false => Profile::default(),
     // };
 
-    let keypad = Keypad {
-      is_open: true,
-      port: Some(serial_port),
-    };
-
-    let pages = if cfg!(debug_assertions) {
-      Pages::default()
-    } else {
-      Pages::ConnectedDeviceNotFound
+    let pages = match port.is_empty() {
+      true => {
+        if cfg!(debug_assertions) {
+          Pages::default()
+        } else {
+          Pages::ConnectedDeviceNotFound
+        }
+      }
+      false => Pages::default(),
     };
 
     (
@@ -193,6 +175,7 @@ impl App {
         }
         let mut port = self.keypad.port.clone().unwrap();
         let mut buffers = self.buffers.clone();
+
         // {
         //   trace!("send: {:?}", self.buffers.send());
         //   trace!("receive: {:?}", self.buffers.receive())
