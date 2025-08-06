@@ -1,4 +1,11 @@
 use super::Value;
+use crate::{
+  errors::serial::KeypadError,
+  hardware::buffers::{Buffers, BuffersIO},
+};
+use anyhow::Result;
+use log::debug;
+use std::time::{Duration, SystemTime};
 
 #[derive(Debug, Clone)]
 pub enum Command {
@@ -18,8 +25,7 @@ impl Value for Command {
   }
 }
 
-#[cfg(false)]
-pub fn empty(buffers: &mut Buffers) -> anyhow::Result<()> {
+pub fn empty(buffers: &mut Buffers) -> Result<()> {
   let time = SystemTime::now();
   let duration = Duration::from_secs(5);
 
