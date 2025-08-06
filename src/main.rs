@@ -16,7 +16,6 @@ mod assets;
 mod data;
 mod errors;
 mod hardware;
-mod tests;
 mod ui;
 mod utils;
 
