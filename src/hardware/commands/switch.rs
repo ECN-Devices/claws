@@ -1,4 +1,11 @@
 use super::Value;
+use crate::{
+  errors::serial::KeypadError,
+  hardware::buffers::{Buffers, BuffersIO},
+};
+use anyhow::Result;
+use log::debug;
+use std::time::{Duration, SystemTime};
 
 #[derive(Debug, Clone)]
 pub enum Command {
@@ -49,6 +56,35 @@ impl Value for Command {
         }
         result
       }
+    }
+  }
+}
+
+pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
+  let time = SystemTime::now();
+  let duration = Duration::from_secs(5);
+
+  let switch_col = 16;
+  (1..=switch_col).for_each(|i: u8| {
+    buffers.send().push(Command::RequestCondition(i).get());
+  });
+
+  loop {
+    if time.elapsed()? >= duration {
+      break Err(KeypadError::NoResponse(Command::RequestCondition(1).get()).into());
+    }
+
+    for i in 1..=switch_col {
+      match buffers
+        .receive()
+        .pull(&super::KeypadCommands::Swtich(Command::RequestCondition(i)))
+      {
+        Some(s) => {
+          debug!("pull: {s:?}");
+          continue;
+        }
+        None => continue,
+      };
     }
   }
 }
