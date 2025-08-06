@@ -120,7 +120,7 @@ impl Pages {
         let reboot_to_bootloader =
           button("Reboot to Bootloader").on_press(Message::RebootToBootloader);
 
-        let empty = button("Empty").on_press(Message::PortSend);
+        let empty = button("Empty").on_press(Message::PortAvalaible);
 
         let stick_cal = button("Stick Calibration").on_press(Message::PortSend);
 
