@@ -2,9 +2,9 @@ use crate::{
   App,
   data::{Config, file_dialog::FileDialog, profiles::Profile, window::Window},
   hardware::{
-    buffers::Buffers,
-    commands::{empty, switch},
-    serial::{DeviceIO, Keypad, profile::SerialProfile},
+    buffers::{Buffers, BuffersIO},
+    commands::{Value, profile, stick, switch},
+    serial::{DeviceIO, Keypad},
   },
 };
 use iced::{
@@ -34,15 +34,13 @@ pub const WINDOW_HEIGH: f32 = 600.;
 pub enum Message {
   None,
 
-  /// Чтение данных с последовательного порта
+  /// Port
   PortReceive,
   PortReceived,
 
-  /// Запись команды на последовательный порт
   PortSend,
   PortSended,
 
-  /// Поиск доступного последовательного порта
   PortSearch,
 
   PortAvalaible,
@@ -54,29 +52,26 @@ pub enum Message {
 
   ButtonClicked,
 
-  /// Изменение размеров окна
+  /// Подписки
   WindowResized(f32, f32),
-
-  /// Перемещение окна
   WindowMoved(f32, f32),
-
-  /// Сохранение настроек окна
   WindowSettingsSave,
+
   /// Перезагрузка устройства в режим прошивки
   RebootToBootloader,
 
-  /// Запись профиля на устройство
+  /// Профиль
   ProfileWrite,
   ProfileWrited,
+  ProfileReceive,
+  ProfileReceived(Profile),
 
-  /// Запись профиля из файла на устройство
+  ProfileFileSave,
   ProfileFileWrite(Profile),
 
-  /// Сохранение профиля из устройства
-  ProfileFileSave,
+  ProfileFlashSave,
+
   ProfileSaved,
-  ProfileRead,
-  ProfileUpdate(Profile),
 
   /// Открытие диалога выбора файла
   OpenFileDialog,
@@ -125,9 +120,9 @@ impl App {
       },
     };
 
-    // let profile = Profile::read_profile(&mut keypad.port.clone().unwrap());
+    let profile = Task::done(Message::ProfileReceive);
     // let profile = match keypad.is_open {
-    //   true => profile::Command::receive_profile(&mut keypad.port.clone().unwrap(),),
+    //   true => Keypad::receive_profile(),
     //   false => Profile::default(),
     // };
 
@@ -150,7 +145,7 @@ impl App {
         profile: Profile::default(),
         buffers: Buffers::default(),
       },
-      Task::none(),
+      Task::batch(vec![profile]),
     )
   }
 
@@ -193,8 +188,8 @@ impl App {
         if !self.keypad.is_open {
           return Task::none();
         }
-        let mut port = self.keypad.port.clone().unwrap();
 
+        let mut port = self.keypad.port.clone().unwrap();
         let mut buf = self.buffers.clone();
         // debug!("{}", buf.send().len());
 
@@ -241,13 +236,19 @@ impl App {
 
         self.pages = Pages::Profiles;
 
-        Task::done(Message::ProfileRead)
+        Task::done(Message::ProfileReceive)
       }
       Message::PortAvalaible => {
         let mut buf = self.buffers.clone();
 
+        // Task::perform(
+        //   async move { tokio::task::spawn_blocking(move || empty::empty(&mut buf)).await },
+        //   |_| Message::PortSended,
+        // )
         Task::perform(
-          async move { tokio::task::spawn_blocking(move || empty::empty(&mut buf)).await },
+          async move {
+            tokio::task::spawn_blocking(move || stick::request_position_ascii(&mut buf)).await
+          },
           |_| Message::PortSended,
         )
       }
@@ -300,58 +301,72 @@ impl App {
         Task::none()
       }
       Message::ProfileWrite => {
-        let mut port = self.keypad.port.clone().unwrap();
         let mut buffers = self.buffers.clone();
         Task::perform(
           async move {
             tokio::task::spawn_blocking(move || {
               let profile = Profile::load("Lol");
-              Keypad::send_profile(&mut port, profile, &mut buffers)
+              Keypad::profile_send(&mut buffers, profile)
             })
             .await
           },
-          |_| Message::ProfileWrited,
+          |_| Message::ProfileReceive,
         )
       }
       Message::ProfileWrited => Task::none(),
-      Message::ProfileFileWrite(profile) => {
-        // let mut port = self.keypad.port.clone().unwrap();
-        // Profile::write_profile(&mut port, profile);
-        // Task::none()
-        let mut port = self.keypad.port.clone().unwrap();
+      Message::ProfileReceive => {
         let mut buffers = self.buffers.clone();
         Task::perform(
           async move {
-            let _ = Keypad::send_profile(&mut port, profile, &mut buffers);
-            Keypad::receive_profile(&mut port, &mut buffers)
+            tokio::task::spawn_blocking(move || Keypad::profile_receive(&mut buffers).unwrap())
+              .await
           },
-          Message::ProfileUpdate,
+          |profile| match profile {
+            Ok(profile) => Message::ProfileReceived(profile),
+            Err(_) => Message::ProfileReceive,
+          },
         )
       }
+      Message::ProfileReceived(profile) => {
+        self.profile = profile;
+        Task::none()
+      }
       Message::ProfileFileSave => {
-        let mut port = self.keypad.port.clone().unwrap();
-        let mut buffers = self.buffers.clone();
+        let profile = self.profile.clone();
         Task::perform(
           async move {
-            tokio::task::spawn_blocking(move || Keypad::save_profile_file(&mut port, &mut buffers))
-              .await
+            tokio::task::spawn_blocking(move || {
+              trace!("message: ProfileFileSave : сохранение профиля в файл");
+              Keypad::save_profile_file(profile)
+            })
+            .await
           },
           |_| Message::ProfileSaved,
         )
       }
-      Message::ProfileRead => {
-        let mut port = self.keypad.port.clone().unwrap();
+      Message::ProfileFileWrite(profile) => {
         let mut buffers = self.buffers.clone();
         Task::perform(
-          async move { Keypad::receive_profile(&mut port, &mut buffers) },
-          Message::ProfileUpdate,
+          async move {
+            tokio::task::spawn_blocking(move || Keypad::profile_send(&mut buffers, profile)).await
+          },
+          |_| Message::ProfileReceive,
         )
       }
-      Message::ProfileUpdate(profile) => {
-        // let mut port = self.keypad.port.clone().unwrap();
-        // let profile = Profile::read_profile(&mut port);
-        self.profile = profile;
-        Task::none()
+      Message::ProfileFlashSave => {
+        let buf = self.buffers.clone();
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || {
+              trace!("message: ProfileFlashSave: сохранение профиля в flash память");
+              buf
+                .send()
+                .push(profile::Command::WriteActiveToFlash(1).get())
+            })
+            .await
+          },
+          |_| Message::ProfileSaved,
+        )
       }
       Message::ProfileSaved => Task::none(),
       Message::OpenFileDialog => Profile::open_load_file_dialog(),
