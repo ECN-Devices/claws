@@ -1,4 +1,11 @@
 use super::Value;
+use crate::{
+  errors::serial::KeypadError,
+  hardware::buffers::{Buffers, BuffersIO},
+};
+use anyhow::Result;
+use log::debug;
+use std::time::{Duration, SystemTime};
 
 #[derive(Debug, Clone)]
 pub enum Command {
@@ -82,5 +89,32 @@ impl OptionsCalibration {
       Self::Request => 1,
       Self::Calibrate => 2,
     }
+  }
+}
+
+pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
+  let time = SystemTime::now();
+  let duration = Duration::from_secs(5);
+
+  let mut stick_code = [0u8; 4];
+
+  buffers.send().push(Command::RequestPositionASCII.get());
+
+  loop {
+    if time.elapsed()? >= duration {
+      break Err(KeypadError::NoResponse(Command::RequestPositionASCII.get()).into());
+    }
+
+    match buffers
+      .receive()
+      .pull(&super::KeypadCommands::Stick(Command::RequestPositionASCII))
+    {
+      Some(s) => {
+        debug!("stick: request_position_ascii: {s:?}");
+        stick_code.copy_from_slice(&s[1..]);
+        break Ok(stick_code);
+      }
+      None => continue,
+    };
   }
 }
