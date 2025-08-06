@@ -4,6 +4,7 @@ use crate::{
   hardware::buffers::BuffersIO,
   utils::{BYTE_END, BYTE_START},
 };
+use anyhow::{Result, bail};
 use log::debug;
 use serialport::SerialPort;
 use std::{
@@ -28,7 +29,7 @@ pub struct Keypad {
 /// Трейт для операций с последовательным портом
 pub trait DeviceIO {
   /// Находит и возвращает имя порта, к которому подключено устройство
-  fn get_port() -> Result<String, KeypadError>;
+  fn get_port() -> Result<String>;
 
   /**
   Читает данные из последовательного порта
@@ -37,7 +38,7 @@ pub trait DeviceIO {
   # Возвращает
   Прочитанные данные или ошибку последовательного порта
   */
-  fn receive(port: &mut SerialIO, buffers: &mut Buffers) -> Result<(), KeypadError>;
+  fn receive(port: &mut SerialIO, buffers: &mut Buffers) -> Result<()>;
 
   /**
   Записывает команду в последовательный порт
@@ -47,11 +48,11 @@ pub trait DeviceIO {
   # Возвращает
   Результат операции или структуру Keypad с состоянием ошибки
   */
-  fn send(port: &mut SerialIO, buffers: &mut Buffers) -> Result<(), KeypadError>;
+  fn send(port: &mut SerialIO, buffers: &mut Buffers) -> Result<()>;
 }
 
 impl DeviceIO for Keypad {
-  fn get_port() -> Result<String, KeypadError> {
+  fn get_port() -> Result<String> {
     let ports = serialport::available_ports().map_err(|_| KeypadError::NoPortsFound)?;
     for port in ports {
       match &port.port_type {
@@ -64,10 +65,10 @@ impl DeviceIO for Keypad {
         _ => continue,
       };
     }
-    Err(KeypadError::NoPortsFound)
+    bail!(KeypadError::NoPortsFound)
   }
 
-  fn receive(port: &mut SerialIO, buffers: &mut Buffers) -> Result<(), KeypadError> {
+  fn receive(port: &mut SerialIO, buffers: &mut Buffers) -> Result<()> {
     let mut data = [0; 1];
     let mut port_lock = port
       .lock()
@@ -103,10 +104,10 @@ impl DeviceIO for Keypad {
       }
     }
 
-    Err(KeypadError::InvalidPacketFormat)
+    bail!(KeypadError::InvalidPacketFormat)
   }
 
-  fn send(port: &mut SerialIO, buffers: &mut Buffers) -> Result<(), KeypadError> {
+  fn send(port: &mut SerialIO, buffers: &mut Buffers) -> Result<()> {
     let mut port_lock = port
       .lock()
       .map_err(|e| KeypadError::LockError(e.to_string()))?;

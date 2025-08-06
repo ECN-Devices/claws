@@ -7,6 +7,7 @@ use crate::{
   hardware::buffers::Buffers,
 };
 use log::error;
+use anyhow::Result;
 use serialport::SerialPort;
 use std::{
   sync::{Arc, Mutex},
@@ -43,7 +44,7 @@ pub trait SerialProfile {
     port: &mut Arc<Mutex<Box<dyn SerialPort>>>,
     profile: Profile,
     buffers: &mut Buffers,
-  ) -> Result<(), KeypadError>;
+  ) -> Result<()>;
 }
 
 impl SerialProfile for Keypad {
@@ -106,7 +107,7 @@ impl SerialProfile for Keypad {
     port: &mut Arc<Mutex<Box<dyn SerialPort>>>,
     profile: Profile,
     buffers: &mut Buffers,
-  ) -> Result<(), KeypadError> {
+  ) -> Result<()> {
     // Записываем конфигурацию кнопок
     // (1..=KEYPAD_BUTTONS).for_each(|i| {
     //   Keypad::send(
