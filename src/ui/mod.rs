@@ -244,9 +244,7 @@ impl App {
         Task::done(Message::ProfileRead)
       }
       Message::PortAvalaible => {
-        let mut port = self.keypad.port.clone().unwrap();
         let mut buf = self.buffers.clone();
-        let _ = Keypad::send(&mut port, &mut buf);
 
         Task::perform(
           async move { tokio::task::spawn_blocking(move || empty::empty(&mut buf)).await },
@@ -254,9 +252,7 @@ impl App {
         )
       }
       Message::RequestCondition => {
-        let mut port = self.keypad.port.clone().unwrap();
         let mut buf = self.buffers.clone();
-        let _ = Keypad::send(&mut port, &mut buf);
 
         Task::perform(
           async move { tokio::task::spawn_blocking(move || switch::request_condition(&mut buf)).await },
