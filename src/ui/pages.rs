@@ -1,5 +1,9 @@
 use super::Message;
-use crate::{App, data::profiles::Profile};
+use crate::{
+  App,
+  data::profiles::Profile,
+  hardware::commands::{Value, profile},
+};
 use iced::{
   Element, Length,
   widget::{Button, button, center, column, container, row, text, vertical_rule},
@@ -122,12 +126,11 @@ impl Pages {
 
         let empty = button("Empty").on_press(Message::PortAvalaible);
 
-        let stick_cal = button("Stick Calibration").on_press(Message::PortSend);
-
-        let stick_request = button("Stick Request").on_press(Message::PortSend);
+        // let stick_cal = button("Stick Calibration").on_press(Message::PortSend);
 
         let write_profile = button("Write Profile").on_press(Message::ProfileWrite);
-        let save_profile_flash = button("Save Profile to Flash").on_press(Message::PortSend);
+        let save_profile_flash =
+          button("Save Profile to Flash").on_press(Message::ProfileFlashSave);
 
         let save_profile_file = button("Save Profile to File").on_press(Message::ProfileFileSave);
 
@@ -137,8 +140,7 @@ impl Pages {
             column![
               reboot_to_bootloader,
               empty,
-              stick_cal,
-              stick_request,
+              // stick_cal,
               write_profile,
               save_profile_flash,
               save_profile_file,
