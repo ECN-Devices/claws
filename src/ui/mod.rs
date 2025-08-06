@@ -3,7 +3,7 @@ use crate::{
   data::{Config, file_dialog::FileDialog, profiles::Profile, window::Window},
   hardware::{
     buffers::{Buffers, BuffersIO},
-    commands::{Value, profile, stick, switch},
+    commands::{Value, empty, profile, switch},
     serial::{DeviceIO, Keypad},
   },
 };
@@ -241,14 +241,8 @@ impl App {
       Message::PortAvalaible => {
         let mut buf = self.buffers.clone();
 
-        // Task::perform(
-        //   async move { tokio::task::spawn_blocking(move || empty::empty(&mut buf)).await },
-        //   |_| Message::PortSended,
-        // )
         Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || stick::request_position_ascii(&mut buf)).await
-          },
+          async move { tokio::task::spawn_blocking(move || empty::empty(&mut buf)).await },
           |_| Message::PortSended,
         )
       }
