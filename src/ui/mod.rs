@@ -77,6 +77,8 @@ pub enum Message {
   ProfileSaved,
   /// Открытие диалога выбора файла
   OpenFileDialog,
+
+  WriteButtonIsRom,
 }
 
 impl App {
@@ -146,6 +148,7 @@ impl App {
         window_settings: Window::load(),
         profile: Profile::default(),
         buffers: Buffers::default(),
+        is_rom: false,
       },
       Task::batch(vec![profile]),
     )
@@ -387,6 +390,10 @@ impl App {
       }
       Message::ProfileSaved => Task::none(),
       Message::OpenFileDialog => Profile::open_load_file_dialog(),
+      Message::WriteButtonIsRom => {
+        self.is_rom = !self.is_rom;
+        Task::none()
+      }
     }
   }
 
