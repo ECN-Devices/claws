@@ -90,10 +90,27 @@ impl Pages {
         ]
         .spacing(SPACING);
 
+        let stick_pad = row![
+          mk_stick(4, &profile, Message::ButtonClicked),
+          column![
+            mk_stick(1, &profile, Message::ButtonClicked),
+            button("").height(110).width(90),
+            mk_stick(3, &profile, Message::ButtonClicked),
+          ]
+          .spacing(SPACING),
+          mk_stick(2, &profile, Message::ButtonClicked),
+        ]
+        .spacing(SPACING)
+        .align_y(Alignment::Center);
+
         let buttons_container = container(row![col_1, col_2, col_3, col_4].spacing(SPACING))
           .center_y(Length::Fill)
           .center_x(Length::Fill)
           .padding(PADDING);
+        let stick_container = container(column![stick_pad])
+          .center_y(Length::Fill)
+          .center_x(Length::Fill);
+
         let toggler = toggler(claws.is_rom)
           .label("ОЗУ/ПЗУ")
           .on_toggle(|_| Message::WriteButtonIsRom);
@@ -139,8 +156,9 @@ impl Pages {
           container(text(profile.name).size(30))
             .center_x(Length::Fill)
             .padding(PADDING),
-          buttons_container
+          row![buttons_container, stick_container].padding(PADDING)
         ];
+
         let open_file_dialog = button("file").on_press(Message::OpenFileDialog);
 
         row!(
@@ -195,11 +213,22 @@ fn mk_button(id: u8, profile: &Profile, on_press: Message) -> Button<'static, Me
   let button_id = (id - 1) as usize;
   let button_text = profile.get_button_label(button_id);
 
-  button(text(button_text).size(20))
+  button(text(button_text).size(20).center())
     .on_press(on_press)
     .height(110)
-    .width(80)
+    .width(90)
 }
+
+fn mk_stick(id: u8, profile: &Profile, on_press: Message) -> Button<'static, Message> {
+  let stick_id = (id - 1) as usize;
+  let stick_text = profile.get_stick_label(stick_id);
+
+  button(text(stick_text).size(20).center())
+    .on_press(on_press)
+    .height(110)
+    .width(90)
+}
+
 /// Иконки для навигационного меню
 pub enum Icon {
   /// Иконка профилей
