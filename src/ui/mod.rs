@@ -71,8 +71,10 @@ pub enum Message {
 
   ProfileFlashSave,
 
-  ProfileSaved,
+  ProfileActiveWriteToRam(u8),
+  ProfileActiveWriteToRom(u8),
 
+  ProfileSaved,
   /// Открытие диалога выбора файла
   OpenFileDialog,
 }
@@ -360,6 +362,34 @@ impl App {
             .await
           },
           |_| Message::ProfileSaved,
+        )
+      }
+      Message::ProfileActiveWriteToRam(num) => {
+        let buf = self.buffers.clone();
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || {
+              buf
+                .send()
+                .push(profile::Command::WriteActiveToRam(num).get())
+            })
+            .await
+          },
+          |_| Message::None,
+        )
+      }
+      Message::ProfileActiveWriteToRom(num) => {
+        let buf = self.buffers.clone();
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || {
+              buf
+                .send()
+                .push(profile::Command::WriteActiveToFlash(num).get())
+            })
+            .await
+          },
+          |_| Message::None,
         )
       }
       Message::ProfileSaved => Task::none(),
