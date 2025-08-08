@@ -1,8 +1,8 @@
 use super::Message;
 use crate::{App, data::profiles::Profile};
 use iced::{
-  Element, Length,
-  widget::{Button, button, center, column, container, row, text, vertical_rule},
+  Alignment, Element, Length,
+  widget::{Button, button, center, column, container, row, text, toggler, vertical_rule},
 };
 
 pub const SPACING: u16 = 10;
@@ -94,8 +94,47 @@ impl Pages {
           .center_y(Length::Fill)
           .center_x(Length::Fill)
           .padding(PADDING);
+        let toggler = toggler(claws.is_rom)
+          .label("ОЗУ/ПЗУ")
+          .on_toggle(|_| Message::WriteButtonIsRom);
 
-        let all_profiles = column![screen_name].padding(PADDING);
+        let write_button = match claws.is_rom {
+          true => column![
+            button("ПЗУ 1")
+              .on_press(Message::ProfileActiveWriteToRom(1))
+              .width(80),
+            button("ПЗУ 2")
+              .on_press(Message::ProfileActiveWriteToRom(2))
+              .width(80),
+            button("ПЗУ 3")
+              .on_press(Message::ProfileActiveWriteToRom(3))
+              .width(80),
+            button("ПЗУ 4")
+              .on_press(Message::ProfileActiveWriteToRom(4))
+              .width(80)
+          ],
+          false => column![
+            button("ОЗУ 1")
+              .on_press(Message::ProfileActiveWriteToRam(1))
+              .width(80),
+            button("ОЗУ 2")
+              .on_press(Message::ProfileActiveWriteToRam(2))
+              .width(80),
+            button("ОЗУ 3")
+              .on_press(Message::ProfileActiveWriteToRam(3))
+              .width(80),
+            button("ОЗУ 4")
+              .on_press(Message::ProfileActiveWriteToRam(4))
+              .width(80)
+          ],
+        }
+        .spacing(SPACING);
+
+        let all_profiles = column![screen_name, toggler, write_button]
+          .padding(PADDING)
+          .spacing(SPACING)
+          .align_x(Alignment::Center);
+
         let active_profile = column![
           container(text(profile.name).size(30))
             .center_x(Length::Fill)
@@ -125,10 +164,6 @@ impl Pages {
         // let stick_cal = button("Stick Calibration").on_press(Message::PortSend);
 
         let write_profile = button("Write Profile").on_press(Message::ProfileWrite);
-        let save_profile_flash =
-          button("Save Profile to Flash").on_press(Message::ProfileFlashSave);
-
-        let save_profile_file = button("Save Profile to File").on_press(Message::ProfileFileSave);
 
         column!(
           screen_name,
@@ -138,8 +173,6 @@ impl Pages {
               empty,
               // stick_cal,
               write_profile,
-              save_profile_flash,
-              save_profile_file,
             ]
             .spacing(SPACING)
           )
