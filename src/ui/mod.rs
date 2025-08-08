@@ -307,11 +307,17 @@ impl App {
       }
       Message::ProfileWrited => Task::none(),
       Message::ProfileReceive => {
+        if !self.keypad.is_open {
+          return Task::none();
+        };
+
         let mut buffers = self.buffers.clone();
         Task::perform(
           async move {
-            tokio::task::spawn_blocking(move || Keypad::profile_receive(&mut buffers).unwrap())
-              .await
+            tokio::task::spawn_blocking(move || {
+              Keypad::profile_receive(&mut buffers).unwrap_or_default()
+            })
+            .await
           },
           |profile| match profile {
             Ok(profile) => Message::ProfileReceived(profile),
