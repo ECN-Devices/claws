@@ -26,6 +26,7 @@ pub struct App {
   pub window_settings: Window,
   pub profile: Profile,
   pub buffers: Buffers,
+  pub is_rom: bool,
 }
 
 /**
@@ -66,8 +67,8 @@ fn main() -> iced::Result {
       height: window_config.height,
     }, // Установка размера окна
     min_size: Some(Size {
-      width: 660.,
-      height: 820.,
+      width: 1100.,
+      height: 620.,
     }), // Установка минимального размера окна
     position: Position::Specific(Point {
       x: window_config.x,
