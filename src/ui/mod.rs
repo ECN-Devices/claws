@@ -167,9 +167,6 @@ impl App {
     match message {
       Message::None => Task::none(),
       Message::PortReceive => {
-        if !self.keypad.is_open {
-          return Task::none();
-        }
         let mut port = self.keypad.port.clone().unwrap();
         let mut buffers = self.buffers.clone();
 
@@ -187,10 +184,6 @@ impl App {
       }
       Message::PortReceived => Task::none(),
       Message::PortSend => {
-        if !self.keypad.is_open {
-          return Task::none();
-        }
-
         let mut port = self.keypad.port.clone().unwrap();
         let mut buf = self.buffers.clone();
         // debug!("{}", buf.send().len());
