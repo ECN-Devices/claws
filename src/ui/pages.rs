@@ -105,8 +105,8 @@ impl Pages {
 
         let buttons_container = container(row![col_1, col_2, col_3, col_4].spacing(SPACING))
           .center_y(Length::Fill)
-          .center_x(Length::Fill)
-          .padding(PADDING);
+          .center_x(Length::Fill);
+
         let stick_container = container(column![stick_pad])
           .center_y(Length::Fill)
           .center_x(Length::Fill);
