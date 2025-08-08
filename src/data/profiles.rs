@@ -67,6 +67,11 @@ impl Profile {
       27 => "Esc".to_string(),
       128 => "Ctrl".to_string(),
       179 => "Tab".to_string(),
+      // stick
+      218 => "↑".to_string(),
+      215 => "→".to_string(),
+      217 => "↓".to_string(),
+      216 => "←".to_string(),
       _ => char::from_u32(code as u32).unwrap_or('?').to_string(),
     }
   }
@@ -77,7 +82,17 @@ impl Profile {
       .filter(|code| *code != 0)
       .map(Self::code_to_char)
       .collect::<Vec<_>>()
-      .join("+")
+      .join(" + ")
+  }
+  pub fn get_stick_label(&self, stick_id: usize) -> String {
+    let code = self.stick[stick_id];
+
+    [code]
+      .iter() // Создаем итератор из одного элемента
+      .filter(|&&c| c != 0)
+      .map(|&c| Self::code_to_char(c))
+      .collect::<Vec<_>>()
+      .join(" + ")
   }
 }
 
