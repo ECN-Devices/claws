@@ -1,7 +1,7 @@
 use super::Config;
 use crate::assets::APPLICATION_NAME;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::Path;
 
 pub const KEYPAD_BUTTONS: u8 = 16;
 
@@ -56,8 +56,8 @@ impl Profile {
   # Аргументы
   * `path` - Путь к файлу профиля
   */
-  pub fn load_file(path: PathBuf) -> Self {
-    confy::load_path(&path).expect("Не удалось загрузить конфигурацию профиля из файла")
+  pub fn load_file(path: &Path) -> Self {
+    confy::load_path(path).expect("Не удалось загрузить конфигурацию профиля из файла")
   }
 
   /// Преобразует код клавиши в читаемый символ
@@ -88,9 +88,9 @@ impl Profile {
     let code = self.stick[stick_id];
 
     [code]
-      .iter() // Создаем итератор из одного элемента
-      .filter(|&&c| c != 0)
-      .map(|&c| Self::code_to_char(c))
+      .into_iter() // Создаем итератор из одного элемента
+      .filter(|&c| c != 0)
+      .map(Self::code_to_char)
       .collect::<Vec<_>>()
       .join(" + ")
   }
