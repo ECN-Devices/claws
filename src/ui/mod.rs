@@ -107,10 +107,10 @@ impl App {
             .expect("Ошибка открытия порта"),
         ));
 
-        if cfg!(windows) {
-          if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
-            error!("Ошибка при установке DTR: {e}");
-          }
+        if cfg!(windows)
+          && let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true)
+        {
+          error!("Ошибка при установке DTR: {e}");
         }
 
         Keypad {
@@ -219,10 +219,10 @@ impl App {
             .expect("Ошибка открытия порта"),
         ));
 
-        if cfg!(windows) {
-          if let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true) {
-            error!("Ошибка при установке DTR: {e}");
-          }
+        if cfg!(windows)
+          && let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true)
+        {
+          error!("Ошибка при установке DTR: {e}");
         }
 
         self.keypad = Keypad {
@@ -407,7 +407,7 @@ impl App {
   Возвращает текущее представление приложения
   Строит UI на основе текущего состояния приложения
   */
-  pub fn view(&self) -> Element<Message> {
+  pub fn view(&self) -> Element<'_, Message> {
     let page = Pages::get_content(self, self.profile.clone());
 
     let sidebar = container(

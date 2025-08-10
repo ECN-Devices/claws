@@ -17,11 +17,11 @@ pub struct Buffers {
 }
 
 impl Buffers {
-  pub fn send(&self) -> MutexGuard<Send> {
+  pub fn send(&self) -> MutexGuard<'_, Send> {
     self.send.lock().unwrap()
   }
 
-  pub fn receive(&self) -> MutexGuard<Receive> {
+  pub fn receive(&self) -> MutexGuard<'_, Receive> {
     self.receive.lock().unwrap()
   }
 }
