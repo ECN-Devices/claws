@@ -41,7 +41,7 @@ pub fn empty(buffers: &mut Buffers) -> Result<()> {
       .pull(&super::KeypadCommands::Empty(Command::VoidRequest))
     {
       Some(s) => {
-        debug!("empty: {s:?}");
+        debug!("{s:?}");
         break Ok(());
       }
       None => continue,

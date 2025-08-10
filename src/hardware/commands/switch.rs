@@ -79,7 +79,7 @@ pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
         .receive()
         .pull(&super::KeypadCommands::Swtich(Command::RequestCondition(i)))
       {
-        debug!("switch: request_condition: {s:?}");
+        debug!("request_condition: {s:?}");
       }
     });
   }
@@ -108,7 +108,7 @@ pub fn request_code_ascii(buffers: &mut Buffers) -> Result<[[u8; 6]; 16]> {
         .receive()
         .pull(&super::KeypadCommands::Swtich(Command::RequestCodeASCII(i)))
       {
-        debug!("switch: request_code_ascii: {s:?}");
+        debug!("request_code_ascii: {s:?}");
         let switch_num = s[1] as usize;
         switch_code[switch_num - 1].copy_from_slice(&s[2..]);
         received[switch_num - 1] = true;

@@ -110,7 +110,7 @@ pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
       .pull(&super::KeypadCommands::Stick(Command::RequestPositionASCII))
     {
       Some(s) => {
-        debug!("stick: request_position_ascii: {s:?}");
+        debug!("request_position_ascii: {s:?}");
         stick_code.copy_from_slice(&s[1..]);
         break Ok(stick_code);
       }
