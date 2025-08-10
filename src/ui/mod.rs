@@ -1,6 +1,6 @@
 use crate::{
   App,
-  data::{Config, file_dialog::FileDialog, profiles::Profile, window::Window},
+  data::{Config, profiles::Profile, window::Window},
   hardware::{
     buffers::{Buffers, BuffersIO},
     commands::{Value, empty, profile, switch},
@@ -156,7 +156,7 @@ impl App {
 
   /// Возвращает заголовок окна приложения
   pub fn title(&self) -> String {
-    String::from("Claws")
+    "Claws".to_string()
   }
 
   /**
