@@ -97,7 +97,7 @@ pub fn request_name(buffers: &mut Buffers) -> Result<Vec<u8>> {
       .pull(&super::KeypadCommands::Profile(Command::RequestName))
     {
       Some(s) => {
-        debug!("profile: request_name: {s:?}");
+        debug!("request_name: {s:?}");
         break Ok(s[1..].to_vec());
       }
       None => continue,
