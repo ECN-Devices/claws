@@ -83,25 +83,25 @@ impl DeviceIO for Keypad {
 
     port_lock.read_exact(&mut data)?;
 
-    if let [start, ..] = data.as_slice() {
-      if *start == BYTE_START {
-        // Чтение длины пакета
-        port_lock.read_exact(&mut data)?;
-        let pack_len = data[0] as usize;
+    if let [start, ..] = data.as_slice()
+      && *start == BYTE_START
+    {
+      // Чтение длины пакета
+      port_lock.read_exact(&mut data)?;
+      let pack_len = data[0] as usize;
 
-        // Чтение пакета данных
-        let mut buf = vec![0u8; pack_len];
-        port_lock.read_exact(&mut buf)?;
+      // Чтение пакета данных
+      let mut buf = vec![0u8; pack_len];
+      port_lock.read_exact(&mut buf)?;
 
-        // Проверка конца сообщения
-        port_lock.read_exact(&mut data)?;
-        if let [end, ..] = data.as_slice() {
-          if *end == BYTE_END {
-            // debug!("receive: {buf:?}");
-            buffers.receive().push(buf);
-            return Ok(());
-          }
-        }
+      // Проверка конца сообщения
+      port_lock.read_exact(&mut data)?;
+      if let [end, ..] = data.as_slice()
+        && *end == BYTE_END
+      {
+        // debug!("receive: {buf:?}");
+        buffers.receive().push(buf);
+        return Ok(());
       }
     }
 

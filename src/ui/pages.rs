@@ -48,7 +48,7 @@ impl Pages {
   # Возвращает
   Элемент интерфейса для отображения
   */
-  pub fn get_content(claws: &App, profile: Profile) -> Element<Message> {
+  pub fn get_content(claws: &App, profile: Profile) -> Element<'_, Message> {
     let screen_name = text(claws.pages.name())
       .size(HEADING_SIZE)
       .width(match claws.pages {
