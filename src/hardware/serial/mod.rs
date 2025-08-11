@@ -1,14 +1,18 @@
 use super::buffers::Buffers;
 use crate::{
   errors::serial::KeypadError,
-  hardware::buffers::BuffersIO,
+  hardware::{
+    buffers::BuffersIO,
+    commands::{KeypadCommands, Value, empty},
+  },
   utils::{BYTE_END, BYTE_START},
 };
 use anyhow::{Result, bail};
-use log::debug;
+use log::{debug, error};
 use serialport::SerialPort;
 use std::{
   sync::{Arc, Mutex},
+  time::{Duration, SystemTime},
   vec,
 };
 
@@ -53,14 +57,55 @@ pub trait DeviceIO {
 
 impl DeviceIO for Keypad {
   fn get_port() -> Result<String> {
+    let time = SystemTime::now();
+    let mut buffers = Buffers::default();
     let ports = serialport::available_ports().map_err(|_| KeypadError::NoPortsFound)?;
     for port in ports {
       match &port.port_type {
         serialport::SerialPortType::UsbPort(usb_port_info) => {
-          if (usb_port_info.vid == 11914 || usb_port_info.vid == 9114) && usb_port_info.pid == 32778
+          if usb_port_info.vid == 11914 && usb_port_info.pid == 32778
+            || usb_port_info.vid == 9114 && usb_port_info.pid == 33012
           {
-            debug!("port name: {}", &port.port_name);
-            return Ok(port.port_name);
+            let port = port.port_name;
+
+            let mut serial_port = match serialport::new(&port, 115_200)
+              .timeout(Duration::from_millis(10))
+              .open()
+            {
+              Ok(port) => Arc::new(Mutex::new(port)),
+              Err(e) => {
+                error!("Ошибка открытия порта {port}: {e}");
+                continue;
+              }
+            };
+
+            if cfg!(windows)
+              && let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true)
+            {
+              error!("Ошибка при установке DTR: {e}");
+            }
+
+            buffers.send().push(empty::Command::VoidRequest.get());
+            Self::send(&mut serial_port, &mut buffers)?;
+
+            loop {
+              if time.elapsed()? == Duration::from_secs(5) {
+                return Ok("".to_string());
+              }
+
+              Self::receive(&mut serial_port, &mut buffers)?;
+              match buffers
+                .receive()
+                .pull(&KeypadCommands::Empty(empty::Command::VoidRequest))
+              {
+                Some(_) => {
+                  debug!("port name: {}", &port);
+                  return Ok(port);
+                }
+
+                None => continue,
+              };
+            }
           }
         }
         _ => continue,
