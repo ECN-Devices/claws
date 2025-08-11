@@ -89,7 +89,7 @@ impl DeviceIO for Keypad {
             Self::send(&mut serial_port, &mut buffers)?;
 
             loop {
-              if time.elapsed()? == Duration::from_secs(5) {
+              if time.elapsed()? >= Duration::from_secs(5) {
                 return Ok("".to_string());
               }
 
