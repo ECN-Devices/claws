@@ -4,7 +4,7 @@ use crate::{
   hardware::{
     buffers::{Buffers, BuffersIO},
     commands::{Value, empty, profile, switch},
-    serial::{DeviceIO, Keypad},
+    serial::{DeviceIO, Keypad, buttons::KeypadButton},
   },
 };
 use iced::{
@@ -143,12 +143,13 @@ impl App {
 
     (
       Self {
+        buffers: Buffers::default(),
+        button: KeypadButton::default(),
+        is_rom: false,
         keypad,
         pages,
-        window_settings: Window::load(),
         profile: Profile::default(),
-        buffers: Buffers::default(),
-        is_rom: false,
+        window_settings: Window::load(),
       },
       Task::batch(vec![profile]),
     )

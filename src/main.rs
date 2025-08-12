@@ -1,6 +1,7 @@
 //Убираем консоль при старте приложения на windows
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use crate::hardware::serial::buttons::KeypadButton;
 use assets::{APPLICATION_NAME, INTER_FONT, INTER_FONT_BYTES, WINDOW_ICON};
 use data::{profiles::Profile, window::Window};
 use hardware::{buffers::Buffers, serial::Keypad};
@@ -21,12 +22,13 @@ mod utils;
 
 #[derive(Debug, Clone, Default)]
 pub struct App {
+  pub buffers: Buffers,
+  pub button: KeypadButton,
+  pub is_rom: bool,
   pub keypad: Keypad,
   pub pages: Pages,
-  pub window_settings: Window,
   pub profile: Profile,
-  pub buffers: Buffers,
-  pub is_rom: bool,
+  pub window_settings: Window,
 }
 
 /**
