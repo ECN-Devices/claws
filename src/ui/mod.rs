@@ -475,7 +475,7 @@ impl App {
           Some(Message::WindowResized(size.width, size.height))
         }
         window::Event::Focused | window::Event::Unfocused | window::Event::CloseRequested => {
-          info!("subscription: window: сохранение настроек положения окна");
+          info!("subscription: window: сохранение положения окна");
           Some(Message::WindowSettingsSave)
         }
         _ => None,
