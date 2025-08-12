@@ -50,7 +50,8 @@ pub enum Message {
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
 
-  ButtonClicked,
+  GetButtonSettings(usize, String),
+  SetButtonSettings(String),
 
   /// Подписки
   WindowResized(f32, f32),
@@ -257,8 +258,13 @@ impl App {
         self.pages = page;
         Task::none()
       }
-      Message::ButtonClicked => {
-        println!("click");
+      Message::GetButtonSettings(id, label) => {
+        self.button.id = id;
+        self.button.label = label;
+        Task::none()
+      }
+      Message::SetButtonSettings(label) => {
+        self.button.label = label;
         Task::none()
       }
       Message::WindowResized(width, height) => {
