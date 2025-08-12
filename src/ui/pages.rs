@@ -191,21 +191,11 @@ impl Pages {
 
         let empty = button("Empty").on_press(Message::PortAvalaible);
 
-        // let stick_cal = button("Stick Calibration").on_press(Message::PortSend);
-
         let write_profile = button("Write Profile").on_press(Message::ProfileWrite);
 
         column!(
           screen_name,
-          center(
-            column![
-              reboot_to_bootloader,
-              empty,
-              // stick_cal,
-              write_profile,
-            ]
-            .spacing(SPACING)
-          )
+          center(column![reboot_to_bootloader, empty, write_profile,].spacing(SPACING))
         )
         .into()
       }
