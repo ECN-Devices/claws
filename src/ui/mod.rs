@@ -8,9 +8,9 @@ use crate::{
   },
 };
 use iced::{
-  Alignment, Element, Event,
+  Alignment, Color, Element, Event,
   Length::{self, Fill},
-  Subscription, Task, Theme, event,
+  Point, Subscription, Task, Theme, event,
   widget::{Button, Tooltip, column, container, row, svg, tooltip, vertical_rule},
   window,
 };
@@ -54,7 +54,7 @@ pub enum Message {
 
   /// Подписки
   WindowResized(f32, f32),
-  WindowMoved(f32, f32),
+  WindowMoved(Point),
   WindowSettingsSave,
 
   /// Перезагрузка устройства в режим прошивки
@@ -467,7 +467,7 @@ impl App {
         #[cfg(windows)]
         window::Event::Moved(point) => {
           trace!("subscription: window: moved: {point:#?}");
-          Some(Message::WindowMoved(point.x, point.y))
+          Some(Message::WindowMoved(point))
         }
         window::Event::Resized(size) => {
           trace!("subscription: window: resized: {size:#?}");
