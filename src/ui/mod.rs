@@ -266,9 +266,9 @@ impl App {
         self.window_settings.height = height;
         Task::none()
       }
-      Message::WindowMoved(x, y) => {
-        self.window_settings.x = x;
-        self.window_settings.y = y;
+      Message::WindowMoved(point) => {
+        self.window_settings.x = point.x;
+        self.window_settings.y = point.y;
         Task::none()
       }
       Message::WindowSettingsSave => {
