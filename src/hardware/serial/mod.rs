@@ -16,6 +16,7 @@ use std::{
   vec,
 };
 
+pub mod buttons;
 pub mod profile;
 
 type SerialIO = Arc<Mutex<Box<dyn SerialPort>>>;
