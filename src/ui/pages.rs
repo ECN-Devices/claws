@@ -2,7 +2,9 @@ use super::Message;
 use crate::{App, data::profiles::Profile};
 use iced::{
   Alignment, Element, Length,
-  widget::{Button, button, center, column, container, row, text, toggler, vertical_rule},
+  widget::{
+    Button, button, center, column, container, row, text, text_input, toggler, vertical_rule,
+  },
 };
 
 pub const SPACING: u16 = 10;
@@ -58,59 +60,6 @@ impl Pages {
 
     match claws.pages {
       Self::Profiles => {
-        let col_1 = column![
-          mk_button(1, &profile, Message::ButtonClicked),
-          mk_button(2, &profile, Message::ButtonClicked),
-          mk_button(3, &profile, Message::ButtonClicked),
-          mk_button(4, &profile, Message::ButtonClicked),
-        ]
-        .spacing(SPACING);
-
-        let col_2 = column![
-          mk_button(5, &profile, Message::ButtonClicked),
-          mk_button(6, &profile, Message::ButtonClicked),
-          mk_button(7, &profile, Message::ButtonClicked),
-          mk_button(8, &profile, Message::ButtonClicked),
-        ]
-        .spacing(SPACING);
-
-        let col_3 = column![
-          mk_button(9, &profile, Message::ButtonClicked),
-          mk_button(10, &profile, Message::ButtonClicked),
-          mk_button(11, &profile, Message::ButtonClicked),
-          mk_button(12, &profile, Message::ButtonClicked),
-        ]
-        .spacing(SPACING);
-
-        let col_4 = column![
-          mk_button(13, &profile, Message::ButtonClicked),
-          mk_button(14, &profile, Message::ButtonClicked),
-          mk_button(15, &profile, Message::ButtonClicked),
-          mk_button(16, &profile, Message::ButtonClicked),
-        ]
-        .spacing(SPACING);
-
-        let stick_pad = row![
-          mk_stick(4, &profile, Message::ButtonClicked),
-          column![
-            mk_stick(1, &profile, Message::ButtonClicked),
-            button("").height(110).width(90),
-            mk_stick(3, &profile, Message::ButtonClicked),
-          ]
-          .spacing(SPACING),
-          mk_stick(2, &profile, Message::ButtonClicked),
-        ]
-        .spacing(SPACING)
-        .align_y(Alignment::Center);
-
-        let buttons_container = container(row![col_1, col_2, col_3, col_4].spacing(SPACING))
-          .center_y(Length::Fill)
-          .center_x(Length::Fill);
-
-        let stick_container = container(column![stick_pad])
-          .center_y(Length::Fill)
-          .center_x(Length::Fill);
-
         let toggler = toggler(claws.is_rom)
           .label("ОЗУ/ПЗУ")
           .on_toggle(|_| Message::WriteButtonIsRom);
@@ -147,26 +96,89 @@ impl Pages {
         }
         .spacing(SPACING);
 
+        let col_1 = column![
+          mk_button(1, &profile, false),
+          mk_button(2, &profile, false),
+          mk_button(3, &profile, false),
+          mk_button(4, &profile, false),
+        ]
+        .spacing(SPACING);
+
+        let col_2 = column![
+          mk_button(5, &profile, false),
+          mk_button(6, &profile, false),
+          mk_button(7, &profile, false),
+          mk_button(8, &profile, false),
+        ]
+        .spacing(SPACING);
+
+        let col_3 = column![
+          mk_button(9, &profile, false),
+          mk_button(10, &profile, false),
+          mk_button(11, &profile, false),
+          mk_button(12, &profile, false),
+        ]
+        .spacing(SPACING);
+
+        let col_4 = column![
+          mk_button(13, &profile, false),
+          mk_button(14, &profile, false),
+          mk_button(15, &profile, false),
+          mk_button(16, &profile, false),
+        ]
+        .spacing(SPACING);
+
+        let stick_pad = row![
+          mk_button(4, &profile, true),
+          column![
+            mk_button(1, &profile, true),
+            button("").height(120).width(100),
+            mk_button(3, &profile, true),
+          ]
+          .spacing(SPACING),
+          mk_button(2, &profile, true),
+        ]
+        .spacing(SPACING)
+        .align_y(Alignment::Center);
+
         let all_profiles = column![screen_name, toggler, write_button]
           .padding(PADDING)
           .spacing(SPACING)
           .align_x(Alignment::Center);
 
         let active_profile = column![
-          container(text(profile.name).size(30))
-            .center_x(Length::Fill)
-            .padding(PADDING),
-          row![buttons_container, stick_container].padding(PADDING)
-        ];
+          container(text(profile.name).size(30)).center_x(Length::Fill),
+          container(
+            row![
+              row![col_1, col_2, col_3, col_4].spacing(SPACING),
+              column![stick_pad]
+            ]
+            .spacing(SPACING)
+            .align_y(Alignment::End)
+          )
+          .center(Length::Fill)
+        ]
+        .padding(PADDING);
 
         let open_file_dialog = button("file").on_press(Message::OpenFileDialog);
+
+        let profile_settings = column![
+          text(format!("{}", claws.button.id)),
+          text_input("Нажмите любую клавишу...", claws.button.label.as_str())
+            .align_x(Alignment::Center)
+            .width(Length::Fixed(300.)),
+          open_file_dialog,
+        ]
+        .align_x(Alignment::Center)
+        .spacing(SPACING)
+        .padding(PADDING);
 
         row!(
           all_profiles,
           vertical_rule(2),
           active_profile,
           vertical_rule(2),
-          open_file_dialog
+          profile_settings
         )
         .into()
       }
@@ -209,24 +221,28 @@ impl Pages {
 # Возвращает
 Готовый элемент кнопки с заданными параметрами
 */
-fn mk_button(id: u8, profile: &Profile, on_press: Message) -> Button<'static, Message> {
-  let button_id = (id - 1) as usize;
-  let button_text = profile.get_button_label(button_id);
+fn mk_button<'a>(id: usize, profile: &Profile, stick: bool) -> Button<'a, Message> {
+  let _id = id - 1;
+  let _text = if stick {
+    profile.get_stick_label(_id)
+  } else {
+    profile.get_button_label(_id)
+  };
 
-  button(text(button_text).size(20).center())
-    .on_press(on_press)
-    .height(110)
-    .width(90)
-}
-
-fn mk_stick(id: u8, profile: &Profile, on_press: Message) -> Button<'static, Message> {
-  let stick_id = (id - 1) as usize;
-  let stick_text = profile.get_stick_label(stick_id);
-
-  button(text(stick_text).size(20).center())
-    .on_press(on_press)
-    .height(110)
-    .width(90)
+  button(
+    column![
+      container(text(_text.clone()).size(20)).center(Length::Fill),
+      text(format!("#{}", id))
+        .size(10)
+        .align_x(Alignment::End)
+        .align_y(Alignment::End),
+    ]
+    .width(Length::Fill)
+    .height(Length::Fill),
+  )
+  .on_press(Message::GetButtonSettings(id, _text))
+  .height(120)
+  .width(100)
 }
 
 /// Иконки для навигационного меню
