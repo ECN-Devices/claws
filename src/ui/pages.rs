@@ -10,6 +10,8 @@ use iced::{
 pub const SPACING: u16 = 10;
 pub const PADDING: u16 = 10;
 const HEADING_SIZE: u16 = 30;
+const BUTTON_HEIGH: u16 = 120;
+const BUTTON_WIDTH: u16 = 100;
 
 /// Перечисление экранов приложения
 #[derive(Clone, Debug, Default)]
@@ -132,7 +134,7 @@ impl Pages {
           mk_button(4, &profile, true),
           column![
             mk_button(1, &profile, true),
-            button("").height(120).width(100),
+            button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH),
             mk_button(3, &profile, true),
           ]
           .spacing(SPACING),
@@ -231,8 +233,8 @@ fn mk_button<'a>(id: usize, profile: &Profile, stick: bool) -> Button<'a, Messag
     .height(Length::Fill),
   )
   .on_press(Message::GetButtonSettings(id, _text))
-  .height(120)
-  .width(100)
+  .height(BUTTON_HEIGH)
+  .width(BUTTON_WIDTH)
 }
 
 /// Иконки для навигационного меню
