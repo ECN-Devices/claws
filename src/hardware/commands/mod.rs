@@ -10,7 +10,7 @@ pub enum KeypadCommands {
   Empty(empty::Command),
   Profile(profile::Command),
   Stick(stick::Command),
-  Swtich(switch::Command),
+  Switch(switch::Command),
 }
 
 pub trait Value {
@@ -24,7 +24,7 @@ impl Value for KeypadCommands {
       Self::Empty(empty) => empty.get(),
       Self::Profile(profile) => profile.get(),
       Self::Stick(stick) => stick.get(),
-      Self::Swtich(switch) => switch.get(),
+      Self::Switch(switch) => switch.get(),
     }
   }
 }
