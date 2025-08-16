@@ -49,13 +49,11 @@ impl Value for Command {
     match self {
       Self::RequestCondition(num) => vec![7, *num],
       Self::RequestCodeASCII(num) => vec![8, *num],
-      Self::SetCodeASCII(num, buttons_code) => {
-        let mut result = vec![9, *num];
-        for code in buttons_code {
-          result.push(*code)
-        }
-        result
-      }
+      Self::SetCodeASCII(num, buttons_code) => [9, *num]
+        .iter()
+        .chain(buttons_code.iter())
+        .copied()
+        .collect(),
     }
   }
 }
