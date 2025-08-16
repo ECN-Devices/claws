@@ -77,7 +77,7 @@ pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
     (1..=switch_col).for_each(|i| {
       if let Some(s) = buffers
         .receive()
-        .pull(&super::KeypadCommands::Swtich(Command::RequestCondition(i)))
+        .pull(&super::KeypadCommands::Switch(Command::RequestCondition(i)))
       {
         debug!("request_condition: {s:?}");
       }
@@ -106,7 +106,7 @@ pub fn request_code_ascii(buffers: &mut Buffers) -> Result<[[u8; 6]; 16]> {
     (1..=switch_col).for_each(|i| {
       if let Some(s) = buffers
         .receive()
-        .pull(&super::KeypadCommands::Swtich(Command::RequestCodeASCII(i)))
+        .pull(&super::KeypadCommands::Switch(Command::RequestCodeASCII(i)))
       {
         debug!("request_code_ascii: {s:?}");
         let switch_num = s[1] as usize;
