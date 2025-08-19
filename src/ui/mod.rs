@@ -531,7 +531,29 @@ impl State {
       _ => None,
     });
 
-    Subscription::batch(vec![port_sub, window])
+    let keyboard = match self.allow_input {
+      true => event::listen_with(|event, _status, _id| match event {
+        Event::Keyboard(event) => {
+          if let iced::keyboard::Event::KeyReleased { key, .. } = event {
+            match key {
+              iced::keyboard::Key::Named(named) => {
+                Some(Message::WriteButtonCombination(format!("{named:?}")))
+              }
+              iced::keyboard::Key::Character(c) => {
+                Some(Message::WriteButtonCombination(format!("{c:?}")))
+              }
+              _ => None,
+            }
+          } else {
+            None
+          }
+        }
+        _ => None,
+      }),
+      false => Subscription::none(),
+    };
+
+    Subscription::batch(vec![port_sub, window, keyboard])
   }
 
   /// Возвращает текущую тему приложения
