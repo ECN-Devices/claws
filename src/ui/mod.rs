@@ -453,6 +453,10 @@ impl State {
         self.button.label.clear();
         Task::none()
       }
+      Message::WriteButtonCombination(s) => {
+        info!("{s}");
+        Task::none()
+      }
     }
   }
 
