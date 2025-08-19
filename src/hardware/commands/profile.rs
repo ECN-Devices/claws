@@ -81,6 +81,30 @@ impl Value for Command {
   }
 }
 
+pub fn request_active_num(buffers: &mut Buffers) -> Result<u8> {
+  let time = SystemTime::now();
+  let duration = Duration::from_secs(5);
+
+  buffers.send().push(Command::RequestActiveNum.get());
+
+  loop {
+    if time.elapsed()? >= duration {
+      break Err(KeypadError::NoResponse(Command::RequestActiveNum.get()).into());
+    }
+
+    match buffers
+      .receive()
+      .pull(&super::KeypadCommands::Profile(Command::RequestActiveNum))
+    {
+      Some(s) => {
+        debug!("request_active_num: {s:?}");
+        break Ok(*s.last().unwrap());
+      }
+      None => continue,
+    };
+  }
+}
+
 pub fn request_name(buffers: &mut Buffers) -> Result<Vec<u8>> {
   let time = SystemTime::now();
   let duration = Duration::from_secs(5);

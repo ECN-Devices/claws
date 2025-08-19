@@ -375,7 +375,7 @@ impl App {
       }
       Message::ProfileActiveWriteToRam(num) => {
         let buf = self.buffers.clone();
-        Task::perform(
+        let task = Task::perform(
           async move {
             tokio::task::spawn_blocking(move || {
               buf
@@ -384,12 +384,14 @@ impl App {
             })
             .await
           },
-          |_| Message::None,
-        )
+          |_| Message::ProfileRequestActiveNum,
+        );
+
+        Task::done(Message::ProfileWrite).chain(task)
       }
       Message::ProfileActiveWriteToRom(num) => {
         let buf = self.buffers.clone();
-        Task::perform(
+        let task = Task::perform(
           async move {
             tokio::task::spawn_blocking(move || {
               buf
@@ -398,7 +400,24 @@ impl App {
             })
             .await
           },
-          |_| Message::None,
+          |_| Message::ProfileRequestActiveNum,
+        );
+
+        Task::done(Message::ProfileWrite).chain(task)
+      }
+      Message::ProfileRequestActiveNum => {
+        let mut buf = self.buffers.clone();
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf).unwrap())
+              .await
+          },
+          |res| match res {
+            Ok(num) => Message::ProfileLoadRamToActive(num),
+            Err(_) => Message::None,
+          },
+        )
+      }
         )
       }
       Message::ProfileSaved => Task::none(),
