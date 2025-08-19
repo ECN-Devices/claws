@@ -1,5 +1,5 @@
 use crate::{
-  App,
+  State,
   data::{Config, profiles::Profile, window::Window},
   hardware::{
     buffers::{Buffers, BuffersIO},
@@ -11,7 +11,7 @@ use iced::{
   Alignment, Color, Element, Event,
   Length::{self, Fill},
   Point, Subscription, Task, Theme, event,
-  widget::{Button, Tooltip, column, container, row, svg, tooltip, vertical_rule},
+  widget::{Button, column, container, row, svg, vertical_rule},
   window,
 };
 use log::{error, info, trace};
@@ -75,14 +75,24 @@ pub enum Message {
   ProfileActiveWriteToRam(u8),
   ProfileActiveWriteToRom(u8),
 
+  ProfileRequestActiveNum,
+  ProfileLoadRamToActive(u8),
+
   ProfileSaved,
+
   /// Открытие диалога выбора файла
   OpenFileDialog,
 
   WriteButtonIsRom,
+
+  AllowWriteButtonCombination,
+  ClearButtonCombination,
+  WriteButtonCombination(String),
+
+  WriteDeadZone(u8),
 }
 
-impl App {
+impl State {
   /**
   Создает новый экземпляр приложения с инициализацией
   # Возвращает
@@ -144,6 +154,7 @@ impl App {
 
     (
       Self {
+        allow_input: false,
         buffers: Buffers::default(),
         button: KeypadButton::default(),
         is_rom: false,
@@ -172,31 +183,39 @@ impl App {
     match message {
       Message::None => Task::none(),
       Message::PortReceive => {
-        let mut port = self.keypad.port.clone().unwrap();
-        let mut buffers = self.buffers.clone();
+        if self.keypad.is_open {
+          let mut port = self.keypad.port.clone().unwrap();
+          let mut buffers = self.buffers.clone();
 
-        // {
-        //   trace!("send: {:?}", self.buffers.send());
-        //   trace!("receive: {:?}", self.buffers.receive())
-        // }
+          // {
+          //   trace!("send: {:?}", self.buffers.send());
+          //   trace!("receive: {:?}", self.buffers.receive())
+          // }
 
-        Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || Keypad::receive(&mut port, &mut buffers)).await
-          },
-          |_| Message::PortReceived,
-        )
+          Task::perform(
+            async move {
+              tokio::task::spawn_blocking(move || Keypad::receive(&mut port, &mut buffers)).await
+            },
+            |_| Message::PortReceived,
+          )
+        } else {
+          Task::none()
+        }
       }
       Message::PortReceived => Task::none(),
       Message::PortSend => {
-        let mut port = self.keypad.port.clone().unwrap();
-        let mut buf = self.buffers.clone();
-        // debug!("{}", buf.send().len());
+        if self.keypad.is_open {
+          let mut port = self.keypad.port.clone().unwrap();
+          let mut buf = self.buffers.clone();
+          // debug!("{}", buf.send().len());
 
-        Task::perform(
-          async move { tokio::task::spawn_blocking(move || Keypad::send(&mut port, &mut buf)).await },
-          |_| Message::PortSended,
-        )
+          Task::perform(
+            async move { tokio::task::spawn_blocking(move || Keypad::send(&mut port, &mut buf)).await },
+            |_| Message::PortSended,
+          )
+        } else {
+          Task::none()
+        }
       }
       Message::PortSended => {
         // match res {
@@ -434,27 +453,15 @@ impl App {
   Строит UI на основе текущего состояния приложения
   */
   pub fn view(&self) -> Element<'_, Message> {
-    let page = Pages::get_content(self, self.profile.clone());
+    let page =
+      Pages::get_content(self, self.profile.clone()).explain(Color::from_rgb(255., 0., 0.));
 
     let sidebar = container(
       column![
+        create_button_with_svg_and_text(Icon::Profiles, Message::ChangePage(Pages::Profiles)),
+        create_button_with_svg_and_text(Icon::Settings, Message::ChangePage(Pages::Settings)),
+        create_button_with_svg_and_text(Icon::Update, Message::ChangePage(Pages::Updater)),
         create_button_with_svg_and_text(
-          "Профили",
-          Icon::Profiles,
-          Message::ChangePage(Pages::Profiles)
-        ),
-        create_button_with_svg_and_text(
-          "Настройки",
-          Icon::Settings,
-          Message::ChangePage(Pages::Settings)
-        ),
-        create_button_with_svg_and_text(
-          "Обновление",
-          Icon::Update,
-          Message::ChangePage(Pages::Updater)
-        ),
-        create_button_with_svg_and_text(
-          "Экспериментальные настройки",
           Icon::Experimental,
           Message::ChangePage(Pages::Experimental)
         ),
@@ -532,19 +539,13 @@ impl App {
 # Возвращает
 Элемент интерфейса с кнопкой и подсказкой
 */
-fn create_button_with_svg_and_text<'a>(
-  button_text: &'a str,
-  icon: Icon,
-  on_press: Message,
-) -> Tooltip<'a, Message> {
-  let button = Button::new(column![
+fn create_button_with_svg_and_text<'a>(icon: Icon, on_press: Message) -> Button<'a, Message> {
+  Button::new(column![
     svg(svg::Handle::from_memory(icon.icon()))
       .height(Fill)
       .width(Fill),
   ])
   .width(Length::Fixed(50.))
   .height(Length::Fixed(50.))
-  .on_press(on_press);
-
-  tooltip(button, button_text, tooltip::Position::Right)
+  .on_press(on_press)
 }
