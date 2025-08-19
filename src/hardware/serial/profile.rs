@@ -34,7 +34,10 @@ impl Keypad {
 
     // Читаем конфигурацию стика (4 направления)
     let stick_s = stick::request_position_ascii(buffers).unwrap_or([b'?'; 4]);
-    keypad_profile.stick = stick_s;
+    keypad_profile.stick.word = stick_s;
+
+    let stick_d = stick::calibration_request(buffers)?;
+    keypad_profile.stick.deadzone = stick_d;
 
     Ok(keypad_profile)
   }
@@ -55,7 +58,8 @@ impl Keypad {
       .for_each(|(i, c)| profile_name[i] = c as u8);
 
     let switch_s = profile.buttons;
-    let stick_s = profile.stick;
+    let stick_s = profile.stick.word;
+    let stick_d = profile.stick.deadzone;
 
     // Записываем имя профиля
     buffers
@@ -78,6 +82,11 @@ impl Keypad {
         .push(stick::Command::SetPositionASCII(i, stick_s[i as usize - 1]).get());
     });
     info!("profile_send: записываю конфигурацию стика");
+
+    buffers
+      .send()
+      .push(stick::Command::SetParameters(4, stick_d).get());
+    info!("profile_send: записываю мертвую зону");
 
     Ok(())
   }
