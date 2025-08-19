@@ -449,6 +449,10 @@ impl State {
         self.allow_input = !self.allow_input;
         Task::none()
       }
+      Message::ClearButtonCombination => {
+        self.button.label.clear();
+        Task::none()
+      }
     }
   }
 
