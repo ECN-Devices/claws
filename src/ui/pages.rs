@@ -66,7 +66,7 @@ impl Pages {
           .label("ОЗУ/ПЗУ")
           .on_toggle(|_| Message::WriteButtonIsRom);
 
-        let write_button = match claws.is_rom {
+        let ram_rom_button = match claws.is_rom {
           true => column![
             button("ПЗУ 1")
               .on_press(Message::ProfileActiveWriteToRom(1))
@@ -143,7 +143,7 @@ impl Pages {
         .spacing(SPACING)
         .align_y(Alignment::Center);
 
-        let all_profiles = column![screen_name, toggler, write_button]
+        let all_profiles = column![screen_name, toggler, ram_rom_button]
           .padding(PADDING)
           .spacing(SPACING)
           .align_x(Alignment::Center);
