@@ -1,5 +1,5 @@
 use super::Message;
-use crate::{App, data::profiles::Profile};
+use crate::{State, data::profiles::Profile};
 use iced::{
   Alignment, Element, Length,
   widget::{
@@ -52,7 +52,7 @@ impl Pages {
   # Возвращает
   Элемент интерфейса для отображения
   */
-  pub fn get_content(claws: &App, profile: Profile) -> Element<'_, Message> {
+  pub fn get_content(claws: &State, profile: Profile) -> Element<'_, Message> {
     let screen_name = text(claws.pages.name())
       .size(HEADING_SIZE)
       .width(match claws.pages {

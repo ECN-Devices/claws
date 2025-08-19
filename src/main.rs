@@ -21,7 +21,7 @@ mod ui;
 mod utils;
 
 #[derive(Debug, Clone, Default)]
-pub struct App {
+pub struct State {
   pub buffers: Buffers,
   pub button: KeypadButton,
   pub is_rom: bool,
@@ -83,10 +83,10 @@ fn main() -> iced::Result {
   };
 
   // Создание приложения iced с указанными настройками
-  iced::application(App::title, App::update, App::view)
+  iced::application(State::title, State::update, State::view)
     .settings(iced_settings) // Установка настроек приложения
     .window(window_settings) // Установка настроек окна
-    .theme(App::theme)
-    .subscription(App::subscription)
-    .run_with(App::new) // Запуск приложения с указанным стартовым состоянием
+    .theme(State::theme)
+    .subscription(State::subscription)
+    .run_with(State::new) // Запуск приложения с указанным стартовым состоянием
 }
