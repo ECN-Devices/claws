@@ -22,6 +22,7 @@ mod utils;
 
 #[derive(Debug, Clone, Default)]
 pub struct State {
+  pub allow_input: bool,
   pub buffers: Buffers,
   pub button: KeypadButton,
   pub is_rom: bool,
