@@ -131,18 +131,31 @@ impl Pages {
         ]
         .spacing(SPACING);
 
-        let stick_pad = row![
-          mk_button(4, &profile, true),
+        let stick_pad = column![
           column![
-            mk_button(1, &profile, true),
-            button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH),
-            mk_button(3, &profile, true),
+            text(format!("{}%", claws.profile.stick.deadzone)).size(25),
+            slider(1..=100, claws.profile.stick.deadzone, |deadzone| {
+              Message::WriteDeadZone(deadzone)
+            })
+            .step(1),
           ]
-          .spacing(SPACING),
-          mk_button(2, &profile, true),
+          .spacing(SPACING)
+          .align_x(Alignment::Center),
+          row![
+            mk_button(4, &profile, true),
+            column![
+              mk_button(1, &profile, true),
+              button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH),
+              mk_button(3, &profile, true),
+            ]
+            .spacing(SPACING),
+            mk_button(2, &profile, true),
+          ]
+          .spacing(SPACING)
+          .align_y(Alignment::Center)
         ]
         .spacing(SPACING)
-        .align_y(Alignment::Center);
+        .width(317.);
 
         let all_profiles = column![screen_name, toggler, ram_rom_button]
           .padding(PADDING)
