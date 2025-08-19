@@ -320,15 +320,12 @@ impl State {
       }
       Message::ProfileWrite => {
         let mut buffers = self.buffers.clone();
+        let profile = self.profile.clone();
         Task::perform(
           async move {
-            tokio::task::spawn_blocking(move || {
-              let profile = Profile::load("Lol");
-              Keypad::profile_send(&mut buffers, profile)
-            })
-            .await
+            tokio::task::spawn_blocking(move || Keypad::profile_send(&mut buffers, profile)).await
           },
-          |_| Message::ProfileReceive,
+          |_| Message::ProfileWrited,
         )
       }
       Message::ProfileWrited => Task::none(),
