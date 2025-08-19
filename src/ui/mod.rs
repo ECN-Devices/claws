@@ -183,39 +183,33 @@ impl State {
     match message {
       Message::None => Task::none(),
       Message::PortReceive => {
-        if self.keypad.is_open {
-          let mut port = self.keypad.port.clone().unwrap();
-          let mut buffers = self.buffers.clone();
-
-          // {
-          //   trace!("send: {:?}", self.buffers.send());
-          //   trace!("receive: {:?}", self.buffers.receive())
-          // }
-
-          Task::perform(
-            async move {
-              tokio::task::spawn_blocking(move || Keypad::receive(&mut port, &mut buffers)).await
-            },
-            |_| Message::PortReceived,
-          )
-        } else {
-          Task::none()
+        if !self.keypad.is_open {
+          return Task::none();
         }
+
+        let mut port = self.keypad.port.clone().unwrap();
+        let mut buffers = self.buffers.clone();
+
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || Keypad::receive(&mut port, &mut buffers)).await
+          },
+          |_| Message::PortReceived,
+        )
       }
       Message::PortReceived => Task::none(),
       Message::PortSend => {
-        if self.keypad.is_open {
-          let mut port = self.keypad.port.clone().unwrap();
-          let mut buf = self.buffers.clone();
-          // debug!("{}", buf.send().len());
-
-          Task::perform(
-            async move { tokio::task::spawn_blocking(move || Keypad::send(&mut port, &mut buf)).await },
-            |_| Message::PortSended,
-          )
-        } else {
-          Task::none()
+        if !self.keypad.is_open {
+          return Task::none();
         }
+
+        let mut port = self.keypad.port.clone().unwrap();
+        let mut buf = self.buffers.clone();
+
+        Task::perform(
+          async move { tokio::task::spawn_blocking(move || Keypad::send(&mut port, &mut buf)).await },
+          |_| Message::PortSended,
+        )
       }
       Message::PortSended => {
         // match res {
