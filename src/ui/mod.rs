@@ -437,6 +437,18 @@ impl State {
           },
         )
       }
+      Message::ProfileLoadRamToActive(num) => {
+        let buf = self.buffers.clone();
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || {
+              buf
+                .send()
+                .push(profile::Command::LoadRamToActive(num).get())
+            })
+            .await
+          },
+          |_| Message::ProfileReceive,
         )
       }
       Message::ProfileSaved => Task::none(),
