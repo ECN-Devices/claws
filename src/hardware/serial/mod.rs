@@ -18,6 +18,7 @@ use std::{
 
 pub mod buttons;
 pub mod profile;
+pub mod stick;
 
 type SerialIO = Arc<Mutex<Box<dyn SerialPort>>>;
 
