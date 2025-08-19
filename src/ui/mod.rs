@@ -445,6 +445,10 @@ impl State {
         self.is_rom = !self.is_rom;
         Task::none()
       }
+      Message::AllowWriteButtonCombination => {
+        self.allow_input = !self.allow_input;
+        Task::none()
+      }
     }
   }
 
