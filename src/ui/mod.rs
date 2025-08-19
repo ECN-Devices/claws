@@ -457,6 +457,10 @@ impl State {
         info!("{s}");
         Task::none()
       }
+      Message::WriteDeadZone(deadzone) => {
+        self.profile.stick.deadzone = deadzone;
+        Task::none()
+      }
     }
   }
 
