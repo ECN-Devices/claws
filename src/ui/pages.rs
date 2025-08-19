@@ -3,7 +3,8 @@ use crate::{State, data::profiles::Profile};
 use iced::{
   Alignment, Element, Length,
   widget::{
-    Button, button, center, column, container, row, text, text_input, toggler, vertical_rule,
+    Button, button, center, column, container, row, slider, text, toggler, vertical_rule,
+    vertical_space,
   },
 };
 
@@ -193,11 +194,22 @@ impl Pages {
 
         let empty = button("Empty").on_press(Message::PortAvalaible);
 
-        let write_profile = button("Write Profile").on_press(Message::ProfileWrite);
+        let update_profile = button("Update Profile").on_press(Message::ProfileReceive);
+
+        let save_active_profile_to_file =
+          button("Save Active Profile to File").on_press(Message::ProfileFileSave);
 
         column!(
           screen_name,
-          center(column![reboot_to_bootloader, empty, write_profile,].spacing(SPACING))
+          center(
+            column![
+              reboot_to_bootloader,
+              empty,
+              update_profile,
+              save_active_profile_to_file
+            ]
+            .spacing(SPACING)
+          )
         )
         .into()
       }
