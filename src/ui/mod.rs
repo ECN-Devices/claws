@@ -8,7 +8,7 @@ use crate::{
   },
 };
 use iced::{
-  Alignment, Color, Element, Event,
+  Alignment, Element, Event,
   Length::{self, Fill},
   Point, Subscription, Task, Theme, event,
   widget::{Button, column, container, row, svg, vertical_rule},
@@ -478,8 +478,7 @@ impl State {
   Строит UI на основе текущего состояния приложения
   */
   pub fn view(&self) -> Element<'_, Message> {
-    let page =
-      Pages::get_content(self, self.profile.clone()).explain(Color::from_rgb(255., 0., 0.));
+    let page = Pages::get_content(self, self.profile.clone());
 
     let sidebar = container(
       column![
