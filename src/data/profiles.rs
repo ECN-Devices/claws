@@ -1,5 +1,5 @@
 use super::Config;
-use crate::assets::APPLICATION_NAME;
+use crate::{assets::APPLICATION_NAME, hardware::serial::stick::Stick};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -27,7 +27,7 @@ pub struct Profile {
   Массив из 4 элементов, содержащий коды для:
   [Вверх, Вправо, Вниз, Влево]
   */
-  pub stick: [u8; 4],
+  pub stick: Stick,
 }
 
 impl Default for Profile {
@@ -35,7 +35,10 @@ impl Default for Profile {
     Self {
       name: "Default".to_string(),
       buttons: [[0; 6]; 16],
-      stick: [0; 4],
+      stick: Stick {
+        word: [0u8; 4],
+        deadzone: 20,
+      },
     }
   }
 }
