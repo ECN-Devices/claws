@@ -34,7 +34,7 @@ pub enum Command {
     3 - радиус физической мертвой зоны (Значение АЦП) (2 байта) (Не рекомендуется менять вручную)
     4 - виртуальная внутренняя мертвая зона (Процент от физической мертвой зоны от 1 до 100) (1 байт)
   */
-  SetParameters(u8),
+  SetParameters(u8, u8),
 
   /**
   Запрос: 0x73, 0x3, 0x5, (код положения стика), (ascii код), 0x65
@@ -77,7 +77,7 @@ impl Value for Command {
     match self {
       Self::RequestPositionXY => vec![1],
       Self::RequestPositionASCII => vec![3],
-      Self::SetParameters(percent) => vec![4, *percent],
+      Self::SetParameters(num, value) => vec![4, *num, *value],
       Self::SetPositionASCII(position, ascii_code) => vec![5, *position, *ascii_code],
       Self::Calibration(option) => vec![6, option.get()],
     }
@@ -113,6 +113,35 @@ pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
         debug!("request_position_ascii: {s:?}");
         stick_code.copy_from_slice(&s[1..]);
         break Ok(stick_code);
+      }
+      None => continue,
+    };
+  }
+}
+
+pub fn calibration_request(buffers: &mut Buffers) -> Result<u8> {
+  let time = SystemTime::now();
+  let duration = Duration::from_secs(5);
+
+  buffers
+    .send()
+    .push(Command::Calibration(OptionsCalibration::Request).get());
+
+  loop {
+    if time.elapsed()? >= duration {
+      break Err(
+        KeypadError::NoResponse(Command::Calibration(OptionsCalibration::Request).get()).into(),
+      );
+    }
+
+    match buffers
+      .receive()
+      .pull(&super::KeypadCommands::Stick(Command::Calibration(
+        OptionsCalibration::Request,
+      ))) {
+      Some(s) => {
+        debug!("calibration_request: {s:?}");
+        break Ok(*s.last().unwrap());
       }
       None => continue,
     };
