@@ -176,13 +176,20 @@ impl Pages {
         ]
         .padding(PADDING);
 
-        let open_file_dialog = button("file").on_press(Message::OpenFileDialog);
+        let open_file_dialog = button("Импорт Профиля").on_press(Message::OpenFileDialog);
 
         let profile_settings = column![
-          text(format!("{}", claws.button.id)),
-          text_input("Нажмите любую клавишу...", claws.button.label.as_str())
+          text(format!("Кнопка: #{}", claws.button.id)),
+          container(text(&claws.button.label).size(25))
             .align_x(Alignment::Center)
-            .width(Length::Fixed(300.)),
+            .width(Length::Shrink),
+          button("Записать комбинацию")
+            .width(Length::Fixed(300.))
+            .on_press(Message::AllowWriteButtonCombination),
+          button("Очистить")
+            .width(Length::Fixed(300.))
+            .on_press(Message::ClearButtonCombination),
+          vertical_space(),
           open_file_dialog,
         ]
         .align_x(Alignment::Center)
