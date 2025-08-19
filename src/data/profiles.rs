@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 pub const KEYPAD_BUTTONS: u8 = 16;
+const SEPARATOR: &str = " ";
 
 /**
 Профиль конфигурации контроллера
@@ -85,18 +86,18 @@ impl Profile {
       .filter(|code| *code != 0)
       .map(Self::code_to_char)
       .collect::<Vec<_>>()
-      .join(" + ")
+      .join(SEPARATOR)
   }
 
   pub fn get_stick_label(&self, stick_id: usize) -> String {
-    let code = self.stick[stick_id];
+    let code = self.stick.word[stick_id];
 
     [code]
       .into_iter() // Создаем итератор из одного элемента
       .filter(|&c| c != 0)
       .map(Self::code_to_char)
       .collect::<Vec<_>>()
-      .join(" + ")
+      .join(SEPARATOR)
   }
 
   fn char_to_code(symbol: &str) -> Option<u8> {
