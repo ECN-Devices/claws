@@ -92,7 +92,8 @@ impl DeviceIO for Keypad {
 
             loop {
               if time.elapsed()? >= Duration::from_secs(5) {
-                return Ok("".to_string());
+                // return Ok("".to_string());
+                return Err(KeypadError::NoPortsFound.into());
               }
 
               match Self::receive(&mut serial_port, &mut buffers) {
