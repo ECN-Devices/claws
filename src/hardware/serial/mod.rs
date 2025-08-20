@@ -95,7 +95,11 @@ impl DeviceIO for Keypad {
                 return Ok("".to_string());
               }
 
-              Self::receive(&mut serial_port, &mut buffers)?;
+              match Self::receive(&mut serial_port, &mut buffers) {
+                Ok(_) => (),
+                Err(_) => continue,
+              };
+
               match buffers
                 .receive()
                 .pull(&KeypadCommands::Empty(empty::Command::VoidRequest))
