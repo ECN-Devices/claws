@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 pub const KEYPAD_BUTTONS: u8 = 16;
-const SEPARATOR: &str = " ";
+pub const SEPARATOR: &str = " ";
 
 /**
 Профиль конфигурации контроллера
