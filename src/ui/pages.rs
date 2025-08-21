@@ -57,7 +57,7 @@ impl Pages {
   # Возвращает
   Элемент интерфейса для отображения
   */
-  pub fn get_content(state: &State, profile: Profile) -> Element<'_, Message> {
+  pub fn get_content<'a>(state: &'a State, profile: &'a Profile) -> Element<'a, Message> {
     let screen_name = text(state.pages.name())
       .size(HEADING_SIZE)
       .width(match state.pages {
@@ -128,34 +128,34 @@ impl Pages {
         .spacing(SPACING);
 
         let col_1 = column![
-          mk_button(1, &profile, false),
-          mk_button(2, &profile, false),
-          mk_button(3, &profile, false),
-          mk_button(4, &profile, false),
+          mk_button(1, profile, false),
+          mk_button(2, profile, false),
+          mk_button(3, profile, false),
+          mk_button(4, profile, false),
         ]
         .spacing(SPACING);
 
         let col_2 = column![
-          mk_button(5, &profile, false),
-          mk_button(6, &profile, false),
-          mk_button(7, &profile, false),
-          mk_button(8, &profile, false),
+          mk_button(5, profile, false),
+          mk_button(6, profile, false),
+          mk_button(7, profile, false),
+          mk_button(8, profile, false),
         ]
         .spacing(SPACING);
 
         let col_3 = column![
-          mk_button(9, &profile, false),
-          mk_button(10, &profile, false),
-          mk_button(11, &profile, false),
-          mk_button(12, &profile, false),
+          mk_button(9, profile, false),
+          mk_button(10, profile, false),
+          mk_button(11, profile, false),
+          mk_button(12, profile, false),
         ]
         .spacing(SPACING);
 
         let col_4 = column![
-          mk_button(13, &profile, false),
-          mk_button(14, &profile, false),
-          mk_button(15, &profile, false),
-          mk_button(16, &profile, false),
+          mk_button(13, profile, false),
+          mk_button(14, profile, false),
+          mk_button(15, profile, false),
+          mk_button(16, profile, false),
         ]
         .spacing(SPACING);
 
@@ -170,14 +170,14 @@ impl Pages {
           .spacing(SPACING)
           .align_x(Alignment::Center),
           row![
-            mk_button(4, &profile, true),
+            mk_button(4, profile, true),
             column![
-              mk_button(1, &profile, true),
+              mk_button(1, profile, true),
               button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH),
-              mk_button(3, &profile, true),
+              mk_button(3, profile, true),
             ]
             .spacing(SPACING),
-            mk_button(2, &profile, true),
+            mk_button(2, profile, true),
           ]
           .spacing(SPACING)
           .align_y(Alignment::Center)
@@ -191,7 +191,7 @@ impl Pages {
           .align_x(Alignment::Center);
 
         let active_profile = column![
-          container(text(profile.name).size(30)).center_x(Length::Fill),
+          container(text(&profile.name).size(30)).center_x(Length::Fill),
           container(
             row![
               row![col_1, col_2, col_3, col_4].spacing(SPACING),
