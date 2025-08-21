@@ -1,10 +1,17 @@
 use crate::{
   State,
-  data::{Config, profiles::Profile, window::Window},
+  data::{
+    Config,
+    profiles::{Profile, SEPARATOR},
+    window::Window,
+  },
   hardware::{
     buffers::{Buffers, BuffersIO},
     commands::{Value, empty, profile, switch},
-    serial::{DeviceIO, Keypad, buttons::KeypadButton},
+    serial::{
+      DeviceIO, Keypad,
+      buttons::{CodeAscii, KeypadButton},
+    },
   },
 };
 use iced::{
@@ -14,7 +21,7 @@ use iced::{
   widget::{Button, column, container, row, svg, vertical_rule},
   window,
 };
-use log::{error, info, trace};
+use log::{debug, error, info, trace};
 use pages::{Icon, PADDING, Pages, SPACING};
 use std::{
   sync::{Arc, Mutex},
@@ -87,7 +94,8 @@ pub enum Message {
 
   AllowWriteButtonCombination,
   ClearButtonCombination,
-  WriteButtonCombination(String),
+  WriteButtonCombination(String, Option<u8>),
+  SaveButtonCombination(usize),
 
   WriteDeadZone(u8),
 }
@@ -384,10 +392,12 @@ impl State {
         )
       }
       Message::ProfileActiveWriteToRam(num) => {
-        let buf = self.buffers.clone();
-        let task = Task::perform(
+        let mut buf = self.buffers.clone();
+        let profile = self.profile.clone();
+        Task::perform(
           async move {
             tokio::task::spawn_blocking(move || {
+              let _ = Keypad::profile_send(&mut buf, profile);
               buf
                 .send()
                 .push(profile::Command::WriteActiveToRam(num).get())
@@ -395,15 +405,15 @@ impl State {
             .await
           },
           |_| Message::ProfileRequestActiveNum,
-        );
-
-        Task::done(Message::ProfileWrite).chain(task)
+        )
       }
       Message::ProfileActiveWriteToRom(num) => {
-        let buf = self.buffers.clone();
-        let task = Task::perform(
+        let mut buf = self.buffers.clone();
+        let profile = self.profile.clone();
+        Task::perform(
           async move {
             tokio::task::spawn_blocking(move || {
+              let _ = Keypad::profile_send(&mut buf, profile);
               buf
                 .send()
                 .push(profile::Command::WriteActiveToFlash(num).get())
@@ -411,9 +421,7 @@ impl State {
             .await
           },
           |_| Message::ProfileRequestActiveNum,
-        );
-
-        Task::done(Message::ProfileWrite).chain(task)
+        )
       }
       Message::ProfileRequestActiveNum => {
         let mut buf = self.buffers.clone();
@@ -454,11 +462,43 @@ impl State {
       }
       Message::ClearButtonCombination => {
         self.button.label.clear();
+        self.button.vec_str.clear();
+        self.button.code.clear();
         Task::none()
       }
-      Message::WriteButtonCombination(s) => {
-        info!("{s}");
+      Message::WriteButtonCombination(el, code) => {
+        if self.button.vec_str.len() >= 6 {
+          return Task::none();
+        }
+
+        let elem = KeypadButton::reduce_label(el.as_str());
+        let code = code.unwrap_or(0);
+
+        if self.button.vec_str.contains(&elem) {
+          return Task::none();
+        };
+
+        self.button.vec_str.push(elem);
+        self.button.label = self.button.vec_str.join(SEPARATOR).to_string();
+        self.button.code.push(code);
+
         Task::none()
+      }
+      Message::SaveButtonCombination(id) => {
+        debug!("{:?}", self.profile.buttons);
+
+        let code: [u8; 6] = if self.button.code.len() < 6 {
+          self.button.code.resize(6, 0);
+          self.button.code.clone().try_into().unwrap()
+        } else {
+          self.button.code.clone().try_into().unwrap()
+        };
+
+        self.profile.buttons[id - 1] = code;
+
+        debug!("{:?}", self.profile.buttons);
+
+        Task::done(Message::ClearButtonCombination)
       }
       Message::WriteDeadZone(deadzone) => {
         self.profile.stick.deadzone = deadzone;
@@ -536,13 +576,24 @@ impl State {
     let keyboard = match self.allow_input {
       true => event::listen_with(|event, _status, _id| match event {
         Event::Keyboard(event) => {
-          if let iced::keyboard::Event::KeyReleased { key, .. } = event {
-            match key {
-              iced::keyboard::Key::Named(named) => {
-                Some(Message::WriteButtonCombination(format!("{named:?}")))
+          if let iced::keyboard::Event::KeyPressed {
+            key, physical_key, ..
+          } = event
+          {
+            match (key, physical_key) {
+              (iced::keyboard::Key::Named(named), iced::keyboard::key::Physical::Code(code)) => {
+                debug!("named: {:?}, code {:?}", named, code.to_ascii());
+                Some(Message::WriteButtonCombination(
+                  format!("{:?}", named),
+                  code.to_ascii(),
+                ))
               }
-              iced::keyboard::Key::Character(c) => {
-                Some(Message::WriteButtonCombination(format!("{c:?}")))
+              (iced::keyboard::Key::Character(c), iced::keyboard::key::Physical::Code(code)) => {
+                debug!("named: {:?}, code {:?}", c, code.to_ascii());
+                Some(Message::WriteButtonCombination(
+                  c.to_string(),
+                  code.to_ascii(),
+                ))
               }
               _ => None,
             }
