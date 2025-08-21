@@ -2,16 +2,14 @@ use crate::{
   State,
   data::{
     Config,
+    code::CodeAscii,
     profiles::{Profile, SEPARATOR},
     window::Window,
   },
   hardware::{
     buffers::{Buffers, BuffersIO},
     commands::{Value, empty, profile, switch},
-    serial::{
-      DeviceIO, Keypad,
-      buttons::{CodeAscii, KeypadButton},
-    },
+    serial::{DeviceIO, Keypad, buttons::KeypadButton},
   },
 };
 use iced::{
@@ -57,7 +55,7 @@ pub enum Message {
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
 
-  GetButtonSettings(usize, String),
+  GetButtonSettings(usize, String, bool),
   SetButtonSettings(String),
 
   /// Подписки
@@ -279,9 +277,17 @@ impl State {
         self.pages = page;
         Task::none()
       }
-      Message::GetButtonSettings(id, label) => {
+      Message::GetButtonSettings(id, label, stick) => {
+        self.button.label.clear();
+        self.button.vec_str.clear();
+        self.button.code.clear();
+
         self.button.id = id;
         self.button.label = label;
+        if stick {
+          self.button.code = self.profile.stick.word.to_vec();
+        }
+        self.button.is_stick = stick;
         Task::none()
       }
       Message::SetButtonSettings(label) => {
@@ -454,7 +460,21 @@ impl State {
       Message::OpenFileDialog => Profile::open_load_file_dialog(),
       Message::WriteButtonIsRom => {
         self.is_rom = !self.is_rom;
-        Task::none()
+        match self.is_rom {
+          true => {
+            let buf = self.buffers.clone();
+            Task::perform(
+              async move {
+                tokio::task::spawn_blocking(move || {
+                  buf.send().push(profile::Command::LoadFlashToRam.get())
+                })
+                .await
+              },
+              |_| Message::ProfileReceive,
+            )
+          }
+          false => Task::none(),
+        }
       }
       Message::AllowWriteButtonCombination => {
         self.allow_input = !self.allow_input;
@@ -467,8 +487,17 @@ impl State {
         Task::none()
       }
       Message::WriteButtonCombination(el, code) => {
-        if self.button.vec_str.len() >= 6 {
-          return Task::none();
+        match self.button.is_stick {
+          true => {
+            if !self.button.vec_str.is_empty() {
+              return Task::none();
+            }
+          }
+          false => {
+            if self.button.vec_str.len() >= 6 {
+              return Task::none();
+            }
+          }
         }
 
         let elem = KeypadButton::reduce_label(el.as_str());
@@ -480,23 +509,31 @@ impl State {
 
         self.button.vec_str.push(elem);
         self.button.label = self.button.vec_str.join(SEPARATOR).to_string();
-        self.button.code.push(code);
+        match self.button.is_stick {
+          true => self.button.code[self.button.id - 1] = code,
+          false => self.button.code.push(code),
+        };
 
         Task::none()
       }
       Message::SaveButtonCombination(id) => {
         debug!("{:?}", self.profile.buttons);
 
-        let code: [u8; 6] = if self.button.code.len() < 6 {
-          self.button.code.resize(6, 0);
-          self.button.code.clone().try_into().unwrap()
-        } else {
-          self.button.code.clone().try_into().unwrap()
-        };
+        let mut code = self.button.code.clone();
 
-        self.profile.buttons[id - 1] = code;
+        match self.button.is_stick {
+          true => {
+            code.resize(4, 0);
+            self.profile.stick.word = code.try_into().unwrap();
+          }
+          false => {
+            code.resize(6, 0);
+            self.profile.buttons[id - 1] = code.try_into().unwrap();
+          }
+        }
 
         debug!("{:?}", self.profile.buttons);
+        debug!("{:?}", self.profile.stick.word);
 
         Task::done(Message::ClearButtonCombination)
       }
@@ -631,11 +668,11 @@ impl State {
 Элемент интерфейса с кнопкой и подсказкой
 */
 fn create_button_with_svg_and_text<'a>(icon: Icon, on_press: Message) -> Button<'a, Message> {
-  Button::new(column![
+  Button::new(container(
     svg(svg::Handle::from_memory(icon.icon()))
       .height(Fill)
       .width(Fill),
-  ])
+  ))
   .width(Length::Fixed(50.))
   .height(Length::Fixed(50.))
   .on_press(on_press)
