@@ -473,8 +473,17 @@ impl State {
         Task::none()
       }
       Message::WriteButtonCombination(el, code) => {
-        if self.button.vec_str.len() >= 6 {
-          return Task::none();
+        match self.button.is_stick {
+          true => {
+            if !self.button.vec_str.is_empty() {
+              return Task::none();
+            }
+          }
+          false => {
+            if self.button.vec_str.len() >= 6 {
+              return Task::none();
+            }
+          }
         }
 
         let elem = KeypadButton::reduce_label(el.as_str());
@@ -486,23 +495,31 @@ impl State {
 
         self.button.vec_str.push(elem);
         self.button.label = self.button.vec_str.join(SEPARATOR).to_string();
-        self.button.code.push(code);
+        match self.button.is_stick {
+          true => self.button.code[self.button.id - 1] = code,
+          false => self.button.code.push(code),
+        };
 
         Task::none()
       }
       Message::SaveButtonCombination(id) => {
         debug!("{:?}", self.profile.buttons);
 
-        let code: [u8; 6] = if self.button.code.len() < 6 {
-          self.button.code.resize(6, 0);
-          self.button.code.clone().try_into().unwrap()
-        } else {
-          self.button.code.clone().try_into().unwrap()
-        };
+        let mut code = self.button.code.clone();
 
-        self.profile.buttons[id - 1] = code;
+        match self.button.is_stick {
+          true => {
+            code.resize(4, 0);
+            self.profile.stick.word = code.try_into().unwrap();
+          }
+          false => {
+            code.resize(6, 0);
+            self.profile.buttons[id - 1] = code.try_into().unwrap();
+          }
+        }
 
         debug!("{:?}", self.profile.buttons);
+        debug!("{:?}", self.profile.stick.word);
 
         Task::done(Message::ClearButtonCombination)
       }
