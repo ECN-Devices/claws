@@ -27,6 +27,7 @@ use std::{
 };
 
 pub mod pages;
+pub mod style;
 
 pub const WINDOW_WIDTH: f32 = 800.;
 pub const WINDOW_HEIGH: f32 = 600.;
@@ -80,7 +81,8 @@ pub enum Message {
   ProfileActiveWriteToRam(u8),
   ProfileActiveWriteToRom(u8),
 
-  ProfileRequestActiveNum,
+  ProfileRequestActiveNum(bool),
+  ProfileRequestActiveNumState(u8),
   ProfileLoadRamToActive(u8),
 
   ProfileSaved,
@@ -160,6 +162,7 @@ impl State {
 
     (
       Self {
+        active_profile_num: None,
         allow_input: false,
         buffers: Buffers::default(),
         button: KeypadButton::default(),
@@ -429,18 +432,34 @@ impl State {
           |_| Message::ProfileRequestActiveNum,
         )
       }
-      Message::ProfileRequestActiveNum => {
+      Message::ProfileRequestActiveNum(state) => {
         let mut buf = self.buffers.clone();
-        Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf).unwrap())
-              .await
-          },
-          |res| match res {
-            Ok(num) => Message::ProfileLoadRamToActive(num),
-            Err(_) => Message::None,
-          },
-        )
+        match state {
+          true => Task::perform(
+            async move {
+              tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf).unwrap())
+                .await
+            },
+            |res| match res {
+              Ok(num) => Message::ProfileRequestActiveNumState(num),
+              Err(_) => Message::None,
+            },
+          ),
+          false => Task::perform(
+            async move {
+              tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf).unwrap())
+                .await
+            },
+            |res| match res {
+              Ok(num) => Message::ProfileLoadRamToActive(num),
+              Err(_) => Message::None,
+            },
+          ),
+        }
+      }
+      Message::ProfileRequestActiveNumState(num) => {
+        self.active_profile_num = Some(num);
+        Task::none()
       }
       Message::ProfileLoadRamToActive(num) => {
         let buf = self.buffers.clone();
@@ -647,7 +666,13 @@ impl State {
       false => Subscription::none(),
     };
 
-    Subscription::batch(vec![port_sub, window, keyboard])
+    let profile_active = match self.pages {
+      Pages::Profiles => iced::time::every(Duration::from_millis(500))
+        .map(|_| Message::ProfileRequestActiveNum(true)),
+      _ => Subscription::none(),
+    };
+
+    Subscription::batch(vec![port_sub, window, keyboard, profile_active])
   }
 
   /// Возвращает текущую тему приложения

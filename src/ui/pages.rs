@@ -1,7 +1,11 @@
 use super::Message;
-use crate::{State, data::profiles::Profile};
+use crate::{
+  State,
+  data::profiles::Profile,
+  ui::style::{self, button_active_profile},
+};
 use iced::{
-  Alignment, Element, Length,
+  Alignment, Element, Length, Theme,
   widget::{
     Button, button, center, column, container, row, slider, text, toggler, vertical_rule,
     vertical_space,
@@ -71,30 +75,54 @@ impl Pages {
           true => column![
             button("ПЗУ 1")
               .on_press(Message::ProfileActiveWriteToRom(1))
-              .width(80),
+              .width(80)
+              .style(|theme: &Theme, status| style::button::active_profile(
+                theme, status, state, 1
+              )),
             button("ПЗУ 2")
               .on_press(Message::ProfileActiveWriteToRom(2))
-              .width(80),
+              .width(80)
+              .style(|theme: &Theme, status| style::button::active_profile(
+                theme, status, state, 2
+              )),
             button("ПЗУ 3")
               .on_press(Message::ProfileActiveWriteToRom(3))
-              .width(80),
+              .width(80)
+              .style(|theme: &Theme, status| style::button::active_profile(
+                theme, status, state, 3
+              )),
             button("ПЗУ 4")
               .on_press(Message::ProfileActiveWriteToRom(4))
               .width(80)
+              .style(|theme: &Theme, status| style::button::active_profile(
+                theme, status, state, 4
+              )),
           ],
           false => column![
             button("ОЗУ 1")
               .on_press(Message::ProfileActiveWriteToRam(1))
-              .width(80),
+              .width(80)
+              .style(|theme: &Theme, status| style::button::active_profile(
+                theme, status, state, 1
+              )),
             button("ОЗУ 2")
               .on_press(Message::ProfileActiveWriteToRam(2))
-              .width(80),
+              .width(80)
+              .style(|theme: &Theme, status| style::button::active_profile(
+                theme, status, state, 2
+              )),
             button("ОЗУ 3")
               .on_press(Message::ProfileActiveWriteToRam(3))
-              .width(80),
+              .width(80)
+              .style(|theme: &Theme, status| style::button::active_profile(
+                theme, status, state, 3
+              )),
             button("ОЗУ 4")
               .on_press(Message::ProfileActiveWriteToRam(4))
               .width(80)
+              .style(|theme: &Theme, status| style::button::active_profile(
+                theme, status, state, 4
+              ))
           ],
         }
         .spacing(SPACING);
