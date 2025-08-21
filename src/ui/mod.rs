@@ -55,7 +55,7 @@ pub enum Message {
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
 
-  GetButtonSettings(usize, String),
+  GetButtonSettings(usize, String, bool),
   SetButtonSettings(String),
 
   /// Подписки
@@ -277,9 +277,13 @@ impl State {
         self.pages = page;
         Task::none()
       }
-      Message::GetButtonSettings(id, label) => {
+      Message::GetButtonSettings(id, label, stick) => {
         self.button.id = id;
         self.button.label = label;
+        if stick {
+          self.button.code = self.profile.stick.word.to_vec();
+        }
+        self.button.is_stick = stick;
         Task::none()
       }
       Message::SetButtonSettings(label) => {

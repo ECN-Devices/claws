@@ -4,6 +4,7 @@ pub struct KeypadButton {
   pub label: String,
   pub vec_str: Vec<String>,
   pub code: Vec<u8>,
+  pub is_stick: bool,
 }
 
 impl KeypadButton {

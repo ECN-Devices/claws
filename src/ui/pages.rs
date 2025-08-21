@@ -272,7 +272,7 @@ fn mk_button<'a>(id: usize, profile: &Profile, stick: bool) -> Button<'a, Messag
     .width(Length::Fill)
     .height(Length::Fill),
   )
-  .on_press(Message::GetButtonSettings(id, _text))
+  .on_press(Message::GetButtonSettings(id, _text, stick))
   .height(BUTTON_HEIGH)
   .width(BUTTON_WIDTH)
 }
