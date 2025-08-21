@@ -133,7 +133,7 @@ impl Pages {
 
         let stick_pad = column![
           column![
-            text(format!("{}%", state.profile.stick.deadzone)).size(25),
+            text!("{}%", state.profile.stick.deadzone).size(25),
             slider(1..=100, state.profile.stick.deadzone, |deadzone| {
               Message::WriteDeadZone(deadzone)
             })
@@ -188,7 +188,7 @@ impl Pages {
         };
 
         let profile_settings = column![
-          text(format!("Кнопка: #{}", state.button.id)),
+          text!("Кнопка: #{}", state.button.id),
           container(text(&state.button.label).size(25))
             .align_x(Alignment::Center)
             .width(Length::Shrink),
@@ -264,7 +264,7 @@ fn mk_button<'a>(id: usize, profile: &Profile, stick: bool) -> Button<'a, Messag
   button(
     column![
       container(text(_text.clone()).size(20)).center(Length::Fill),
-      text(format!("#{}", id))
+      text!("#{}", id)
         .size(10)
         .align_x(Alignment::End)
         .align_y(Alignment::End),
