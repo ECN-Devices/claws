@@ -69,6 +69,7 @@ impl Profile {
     match code {
       16 | 212 => "Del".to_string(),
       27 | 177 => "Esc".to_string(),
+      32 => "Space".to_string(),
       128 => "LCtrl".to_string(),
       129 => "LShift".to_string(),
       130 => "LAlt".to_string(),
