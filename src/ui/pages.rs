@@ -53,21 +53,21 @@ impl Pages {
   # Возвращает
   Элемент интерфейса для отображения
   */
-  pub fn get_content(claws: &State, profile: Profile) -> Element<'_, Message> {
-    let screen_name = text(claws.pages.name())
+  pub fn get_content(state: &State, profile: Profile) -> Element<'_, Message> {
+    let screen_name = text(state.pages.name())
       .size(HEADING_SIZE)
-      .width(match claws.pages {
+      .width(match state.pages {
         Pages::Profiles => Length::Shrink,
         _ => Length::Fill,
       });
 
-    match claws.pages {
+    match state.pages {
       Self::Profiles => {
-        let toggler = toggler(claws.is_rom)
+        let toggler = toggler(state.is_rom)
           .label("ОЗУ/ПЗУ")
           .on_toggle(|_| Message::WriteButtonIsRom);
 
-        let ram_rom_button = match claws.is_rom {
+        let ram_rom_button = match state.is_rom {
           true => column![
             button("ПЗУ 1")
               .on_press(Message::ProfileActiveWriteToRom(1))
@@ -133,8 +133,8 @@ impl Pages {
 
         let stick_pad = column![
           column![
-            text(format!("{}%", claws.profile.stick.deadzone)).size(25),
-            slider(1..=100, claws.profile.stick.deadzone, |deadzone| {
+            text(format!("{}%", state.profile.stick.deadzone)).size(25),
+            slider(1..=100, state.profile.stick.deadzone, |deadzone| {
               Message::WriteDeadZone(deadzone)
             })
             .step(1),
@@ -178,20 +178,27 @@ impl Pages {
 
         let open_file_dialog = button("Импорт Профиля").on_press(Message::OpenFileDialog);
 
-        let profile_settings = column![
-          text(format!("Кнопка: #{}", claws.button.id)),
-          container(text(&claws.button.label).size(25))
-            .align_x(Alignment::Center)
-            .width(Length::Shrink),
-          button("Записать комбинацию")
+        let write_button_combination = match state.allow_input {
+          true => button("Закончить запись")
             .width(Length::Fixed(300.))
             .on_press(Message::AllowWriteButtonCombination),
-          button("Очистить")
+          false => button("Начать запись")
             .width(Length::Fixed(300.))
-            .on_press(Message::ClearButtonCombination),
+            .on_press(Message::AllowWriteButtonCombination),
+        };
+
+        let profile_settings = column![
+          text(format!("Кнопка: #{}", state.button.id)),
+          container(text(&state.button.label).size(25))
+            .align_x(Alignment::Center)
+            .width(Length::Shrink),
+          write_button_combination,
+          button("Очистить").on_press(Message::ClearButtonCombination),
+          button("Сохранить").on_press(Message::SaveButtonCombination(state.button.id)),
           vertical_space(),
           open_file_dialog,
         ]
+        .width(Length::Fixed(300.))
         .align_x(Alignment::Center)
         .spacing(SPACING)
         .padding(PADDING);
