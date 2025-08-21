@@ -142,33 +142,6 @@ impl Profile {
       .collect::<Vec<_>>()
       .join(SEPARATOR)
   }
-
-  fn char_to_code(symbol: &str) -> Option<u8> {
-    match symbol {
-      "Del" => Some(16),
-      "Esc" => Some(27),
-      "Ctrl" => Some(128),
-      "Tab" => Some(179),
-      "↑" => Some(218),
-      "→" => Some(215),
-      "↓" => Some(217),
-      "←" => Some(216),
-      _ => {
-        if symbol.len() == 1 {
-          let c = symbol.chars().next().unwrap();
-          if c.is_ascii() { Some(c as u8) } else { None }
-        } else {
-          None
-        }
-      }
-    }
-  }
-
-  pub fn parse_button_label(label: &str) -> Vec<u8> {
-    let mut code: Vec<u8> = label.split(" + ").filter_map(Self::char_to_code).collect();
-    code.resize(6, 0);
-    code
-  }
 }
 
 impl Config for Profile {
