@@ -1,9 +1,5 @@
 use super::Message;
-use crate::{
-  State,
-  data::profiles::Profile,
-  ui::style::{self, button_active_profile},
-};
+use crate::{State, assets::APPLICATION_VERSION, data::profiles::Profile, ui::style};
 use iced::{
   Alignment, Element, Length, Theme,
   widget::{
