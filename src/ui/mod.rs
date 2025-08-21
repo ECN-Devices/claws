@@ -278,6 +278,10 @@ impl State {
         Task::none()
       }
       Message::GetButtonSettings(id, label, stick) => {
+        self.button.label.clear();
+        self.button.vec_str.clear();
+        self.button.code.clear();
+
         self.button.id = id;
         self.button.label = label;
         if stick {
