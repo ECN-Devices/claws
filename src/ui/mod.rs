@@ -413,7 +413,8 @@ impl State {
             })
             .await
           },
-          |_| Message::ProfileRequestActiveNum,
+          // |_| Message::ProfileRequestActiveNum,
+          |_| Message::None,
         )
       }
       Message::ProfileActiveWriteToRom(num) => {
@@ -429,7 +430,8 @@ impl State {
             })
             .await
           },
-          |_| Message::ProfileRequestActiveNum,
+          // |_| Message::ProfileRequestActiveNum,
+          |_| Message::None,
         )
       }
       Message::ProfileRequestActiveNum(state) => {
