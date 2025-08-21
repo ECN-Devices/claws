@@ -668,11 +668,11 @@ impl State {
 Элемент интерфейса с кнопкой и подсказкой
 */
 fn create_button_with_svg_and_text<'a>(icon: Icon, on_press: Message) -> Button<'a, Message> {
-  Button::new(column![
+  Button::new(container(
     svg(svg::Handle::from_memory(icon.icon()))
       .height(Fill)
       .width(Fill),
-  ])
+  ))
   .width(Length::Fixed(50.))
   .height(Length::Fixed(50.))
   .on_press(on_press)
