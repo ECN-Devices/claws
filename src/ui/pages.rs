@@ -214,6 +214,7 @@ impl Pages {
 
         let empty = button("Empty").on_press(Message::PortAvalaible);
 
+        let write_profile = button("Write Profile").on_press(Message::ProfileWrite);
         let update_profile = button("Update Profile").on_press(Message::ProfileReceive);
 
         let save_active_profile_to_file =
@@ -225,6 +226,7 @@ impl Pages {
             column![
               reboot_to_bootloader,
               empty,
+              write_profile,
               update_profile,
               save_active_profile_to_file
             ]
