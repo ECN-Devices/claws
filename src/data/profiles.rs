@@ -38,7 +38,7 @@ impl Default for Profile {
       buttons: [[0; 6]; 16],
       stick: Stick {
         word: [0u8; 4],
-        deadzone: 20,
+        deadzone: 50,
       },
     }
   }
