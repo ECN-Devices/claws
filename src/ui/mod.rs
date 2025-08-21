@@ -2,16 +2,14 @@ use crate::{
   State,
   data::{
     Config,
+    code::CodeAscii,
     profiles::{Profile, SEPARATOR},
     window::Window,
   },
   hardware::{
     buffers::{Buffers, BuffersIO},
     commands::{Value, empty, profile, switch},
-    serial::{
-      DeviceIO, Keypad,
-      buttons::{CodeAscii, KeypadButton},
-    },
+    serial::{DeviceIO, Keypad, buttons::KeypadButton},
   },
 };
 use iced::{
