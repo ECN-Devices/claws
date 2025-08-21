@@ -256,10 +256,9 @@ impl Pages {
 */
 fn mk_button<'a>(id: usize, profile: &Profile, stick: bool) -> Button<'a, Message> {
   let _id = id - 1;
-  let _text = if stick {
-    profile.get_stick_label(_id)
-  } else {
-    profile.get_button_label(_id)
+  let _text = match stick {
+    true => profile.get_stick_label(_id),
+    false => profile.get_button_label(_id),
   };
 
   button(
