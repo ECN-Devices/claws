@@ -94,7 +94,7 @@ pub enum Message {
 
   AllowWriteButtonCombination,
   ClearButtonCombination,
-  WriteButtonCombination(String, Option<u8>),
+  WriteButtonCombination(Option<u8>),
   SaveButtonCombination(usize),
 
   WriteDeadZone(u8),
@@ -508,7 +508,7 @@ impl State {
         self.button.code.clear();
         Task::none()
       }
-      Message::WriteButtonCombination(el, code) => {
+      Message::WriteButtonCombination(code) => {
         match self.button.is_stick {
           true => {
             if !self.button.vec_str.is_empty() {
@@ -522,7 +522,7 @@ impl State {
           }
         }
 
-        let elem = KeypadButton::reduce_label(el.as_str());
+        let elem = Profile::code_to_title(code.unwrap_or(0));
         let code = code.unwrap_or(0);
 
         if self.button.vec_str.contains(&elem) {
@@ -530,7 +530,8 @@ impl State {
         };
 
         self.button.vec_str.push(elem);
-        self.button.label = self.button.vec_str.join(SEPARATOR).to_string();
+        self.button.label = self.button.vec_str.join(SEPARATOR);
+
         match self.button.is_stick {
           true => self.button.code[self.button.id - 1] = code,
           false => self.button.code.push(code),
@@ -646,17 +647,11 @@ impl State {
             match (key, physical_key) {
               (iced::keyboard::Key::Named(named), iced::keyboard::key::Physical::Code(code)) => {
                 debug!("named: {:?}, code {:?}", named, code.to_ascii());
-                Some(Message::WriteButtonCombination(
-                  format!("{:?}", named),
-                  code.to_ascii(),
-                ))
+                Some(Message::WriteButtonCombination(code.to_ascii()))
               }
               (iced::keyboard::Key::Character(c), iced::keyboard::key::Physical::Code(code)) => {
                 debug!("named: {:?}, code {:?}", c, code.to_ascii());
-                Some(Message::WriteButtonCombination(
-                  c.to_string(),
-                  code.to_ascii(),
-                ))
+                Some(Message::WriteButtonCombination(code.to_ascii()))
               }
               _ => None,
             }
