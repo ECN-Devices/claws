@@ -65,7 +65,7 @@ impl Profile {
   }
 
   /// Преобразует код клавиши в читаемый символ
-  fn code_to_char(code: u8) -> String {
+  pub fn code_to_title(code: u8) -> String {
     match code {
       16 | 212 => "Del".to_string(),
       27 | 177 => "Esc".to_string(),
@@ -128,7 +128,7 @@ impl Profile {
     self.buttons[button_id]
       .into_iter()
       .filter(|code| *code != 0)
-      .map(Self::code_to_char)
+      .map(Self::code_to_title)
       .collect::<Vec<_>>()
       .join(SEPARATOR)
   }
@@ -139,7 +139,7 @@ impl Profile {
     [code]
       .into_iter() // Создаем итератор из одного элемента
       .filter(|&c| c != 0)
-      .map(Self::code_to_char)
+      .map(Self::code_to_title)
       .collect::<Vec<_>>()
       .join(SEPARATOR)
   }
