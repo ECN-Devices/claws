@@ -65,9 +65,7 @@ impl DeviceIO for Keypad {
     for port in ports {
       match &port.port_type {
         serialport::SerialPortType::UsbPort(usb_port_info) => {
-          if usb_port_info.vid == 11914 && usb_port_info.pid == 32778
-            || usb_port_info.vid == 9114 && usb_port_info.pid == 33012
-          {
+          if usb_port_info.vid == 11914 || usb_port_info.vid == 9114 {
             let port = port.port_name;
 
             let mut serial_port = match serialport::new(&port, 115_200)
