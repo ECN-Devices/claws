@@ -109,7 +109,7 @@ impl Pages {
 
         let stick_pad = column![
           column![
-            text!("{}%", state.profile.stick.deadzone).size(25),
+            text!("Мертвая зона: {}%", state.profile.stick.deadzone).size(25),
             slider(1..=100, state.profile.stick.deadzone, |deadzone| {
               Message::WriteDeadZone(deadzone)
             })
