@@ -81,7 +81,7 @@ pub enum Message {
   ProfileActiveWriteToRam(u8),
   ProfileActiveWriteToRom(u8),
 
-  ProfileRequestActiveNum(bool),
+  ProfileRequestActiveNum,
   ProfileRequestActiveNumState(u8),
   ProfileLoadRamToActive(u8),
 
@@ -434,30 +434,18 @@ impl State {
           |_| Message::None,
         )
       }
-      Message::ProfileRequestActiveNum(state) => {
+      Message::ProfileRequestActiveNum => {
         let mut buf = self.buffers.clone();
-        match state {
-          true => Task::perform(
-            async move {
-              tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf).unwrap())
-                .await
-            },
-            |res| match res {
-              Ok(num) => Message::ProfileRequestActiveNumState(num),
-              Err(_) => Message::None,
-            },
-          ),
-          false => Task::perform(
-            async move {
-              tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf).unwrap())
-                .await
-            },
-            |res| match res {
-              Ok(num) => Message::ProfileLoadRamToActive(num),
-              Err(_) => Message::None,
-            },
-          ),
-        }
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf).unwrap())
+              .await
+          },
+          |res| match res {
+            Ok(num) => Message::ProfileRequestActiveNumState(num),
+            Err(_) => Message::None,
+          },
+        )
       }
       Message::ProfileRequestActiveNumState(num) => {
         self.active_profile_num = Some(num);

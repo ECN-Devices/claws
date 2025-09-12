@@ -3,16 +3,16 @@ use crate::{State, assets::APPLICATION_VERSION, data::profiles::Profile, ui::sty
 use iced::{
   Alignment, Element, Length, Theme,
   widget::{
-    Button, button, center, column, container, row, slider, text, toggler, vertical_rule,
-    vertical_space,
+    Button, Row, button, center, column, container, horizontal_space, row, slider, svg, text,
+    toggler, vertical_rule, vertical_space,
   },
 };
 
 pub const SPACING: u16 = 10;
 pub const PADDING: u16 = 10;
 const HEADING_SIZE: u16 = 30;
-const BUTTON_HEIGH: u16 = 120;
-const BUTTON_WIDTH: u16 = 100;
+const BUTTON_HEIGH: u16 = 100;
+const BUTTON_WIDTH: u16 = 90;
 
 /// Перечисление экранов приложения
 #[derive(Clone, Debug, Default)]
@@ -67,60 +67,12 @@ impl Pages {
           .label("ОЗУ/ПЗУ")
           .on_toggle(|_| Message::WriteButtonIsRom);
 
-        let ram_rom_button = match state.is_rom {
-          true => column![
-            button("ПЗУ 1")
-              .on_press(Message::ProfileActiveWriteToRom(1))
-              .width(80)
-              .style(|theme: &Theme, status| style::button::active_profile(
-                theme, status, state, 1
-              )),
-            button("ПЗУ 2")
-              .on_press(Message::ProfileActiveWriteToRom(2))
-              .width(80)
-              .style(|theme: &Theme, status| style::button::active_profile(
-                theme, status, state, 2
-              )),
-            button("ПЗУ 3")
-              .on_press(Message::ProfileActiveWriteToRom(3))
-              .width(80)
-              .style(|theme: &Theme, status| style::button::active_profile(
-                theme, status, state, 3
-              )),
-            button("ПЗУ 4")
-              .on_press(Message::ProfileActiveWriteToRom(4))
-              .width(80)
-              .style(|theme: &Theme, status| style::button::active_profile(
-                theme, status, state, 4
-              )),
-          ],
-          false => column![
-            button("ОЗУ 1")
-              .on_press(Message::ProfileActiveWriteToRam(1))
-              .width(80)
-              .style(|theme: &Theme, status| style::button::active_profile(
-                theme, status, state, 1
-              )),
-            button("ОЗУ 2")
-              .on_press(Message::ProfileActiveWriteToRam(2))
-              .width(80)
-              .style(|theme: &Theme, status| style::button::active_profile(
-                theme, status, state, 2
-              )),
-            button("ОЗУ 3")
-              .on_press(Message::ProfileActiveWriteToRam(3))
-              .width(80)
-              .style(|theme: &Theme, status| style::button::active_profile(
-                theme, status, state, 3
-              )),
-            button("ОЗУ 4")
-              .on_press(Message::ProfileActiveWriteToRam(4))
-              .width(80)
-              .style(|theme: &Theme, status| style::button::active_profile(
-                theme, status, state, 4
-              ))
-          ],
-        }
+        let ram_rom_button = column![
+          mk_button_profile_row(state, &1),
+          mk_button_profile_row(state, &2),
+          mk_button_profile_row(state, &3),
+          mk_button_profile_row(state, &4),
+        ]
         .spacing(SPACING);
 
         let col_1 = column![
@@ -314,15 +266,47 @@ pub enum Icon {
 
   /// Иконка экспериментальных функций
   Experimental,
+
+  Download,
 }
 impl Icon {
   /// Возвращает SVG-иконку в виде байтового массива
   pub fn icon(&self) -> &'static [u8] {
     match self {
-      Icon::Profiles => include_bytes!("../../assets/icons/profiles.svg"),
-      Icon::Settings => include_bytes!("../../assets/icons/settings.svg"),
-      Icon::Update => include_bytes!("../../assets/icons/updater.svg"),
-      Icon::Experimental => include_bytes!("../../assets/icons/test.svg"),
+      Self::Profiles => include_bytes!("../../assets/icons/profiles.svg"),
+      Self::Settings => include_bytes!("../../assets/icons/settings.svg"),
+      Self::Update => include_bytes!("../../assets/icons/updater.svg"),
+      Self::Experimental => include_bytes!("../../assets/icons/test.svg"),
+      Self::Download => include_bytes!("../../assets/icons/download.svg"),
     }
   }
+}
+
+fn mk_button_profile_row<'a>(state: &'a State, num: &'a u8) -> Row<'a, Message> {
+  let profile_assignment = match state.is_rom {
+    true => "ПЗУ",
+    false => "ОЗУ",
+  };
+
+  let write_profile = match state.is_rom {
+    true => Message::ProfileActiveWriteToRom(*num),
+    false => Message::ProfileActiveWriteToRam(*num),
+  };
+
+  row![
+    button(text!("{} {}", profile_assignment, num).center())
+      .on_press(Message::ProfileLoadRamToActive(*num))
+      .width(80)
+      .height(35)
+      .style(|theme: &Theme, status| style::button::active_profile(theme, status, state, *num)),
+    button(container(
+      svg(svg::Handle::from_memory(Icon::Download.icon()))
+        .height(Length::Fill)
+        .width(Length::Fill),
+    ))
+    .width(60)
+    .height(35)
+    .on_press(write_profile)
+  ]
+  .spacing(SPACING)
 }
