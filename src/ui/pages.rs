@@ -239,7 +239,7 @@ fn mk_button<'a>(id: usize, profile: &Profile, stick: bool) -> Button<'a, Messag
 
   button(
     column![
-      container(text(_text.clone()).size(20)).center(Length::Fill),
+      container(text(_text.clone()).size(15)).center(Length::Fill),
       text!("#{}", id)
         .size(10)
         .align_x(Alignment::End)
