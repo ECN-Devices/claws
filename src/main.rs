@@ -23,7 +23,7 @@ mod utils;
 #[derive(Debug, Clone, Default)]
 pub struct State {
   pub active_profile_num: Option<u8>,
-  pub allow_input: bool,
+  pub allow_write: bool,
   pub buffers: Buffers,
   pub button: KeypadButton,
   pub is_rom: bool,

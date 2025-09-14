@@ -8,7 +8,7 @@ use crate::{
   },
   hardware::{
     buffers::{Buffers, BuffersIO},
-    commands::{Value, empty, profile, switch},
+    commands::{Value, device, empty, profile, switch},
     serial::{DeviceIO, Keypad, buttons::KeypadButton},
   },
 };
@@ -56,7 +56,7 @@ pub enum Message {
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
 
-  GetButtonSettings(usize, String, bool),
+  GetButtonSettings(usize, bool),
   SetButtonSettings(String),
 
   /// Подписки
@@ -93,7 +93,8 @@ pub enum Message {
   WriteButtonIsRom,
 
   AllowWriteButtonCombination,
-  ClearButtonCombination,
+  DisallowWriteButtonCombination,
+  ClearButtonCombination(usize, bool),
   WriteButtonCombination(Option<u8>),
   SaveButtonCombination(usize),
 
@@ -280,18 +281,19 @@ impl State {
         self.pages = page;
         Task::none()
       }
-      Message::GetButtonSettings(id, label, stick) => {
-        self.button.label.clear();
+      Message::GetButtonSettings(id, stick) => {
         self.button.vec_str.clear();
         self.button.code.clear();
 
         self.button.id = id;
-        self.button.label = label;
+
         if stick {
           self.button.code = self.profile.stick.word.to_vec();
         }
+
         self.button.is_stick = stick;
-        Task::none()
+
+        Task::done(Message::AllowWriteButtonCombination)
       }
       Message::SetButtonSettings(label) => {
         self.button.label = label;
@@ -487,14 +489,20 @@ impl State {
         Task::none()
       }
       Message::AllowWriteButtonCombination => {
-        self.allow_input = !self.allow_input;
+        self.allow_write = true;
         Task::none()
       }
-      Message::ClearButtonCombination => {
-        self.button.label.clear();
-        self.button.vec_str.clear();
-        self.button.code.clear();
+      Message::DisallowWriteButtonCombination => {
+        self.allow_write = false;
         Task::none()
+      }
+      Message::ClearButtonCombination(id, is_stick) => {
+        match is_stick {
+          true => self.profile.stick.word[id - 1] = 0,
+          false => self.profile.buttons[id - 1] = [0u8; 6],
+        };
+
+        Task::done(Message::DisallowWriteButtonCombination)
       }
       Message::WriteButtonCombination(code) => {
         match self.button.is_stick {
@@ -525,7 +533,7 @@ impl State {
           false => self.button.code.push(code),
         };
 
-        Task::none()
+        Task::done(Message::SaveButtonCombination(self.button.id))
       }
       Message::SaveButtonCombination(id) => {
         debug!("{:?}", self.profile.buttons);
@@ -546,7 +554,8 @@ impl State {
         debug!("{:?}", self.profile.buttons);
         debug!("{:?}", self.profile.stick.word);
 
-        Task::done(Message::ClearButtonCombination)
+        // Task::done(Message::ClearButtonCombination)
+        Task::none()
       }
       Message::WriteDeadZone(deadzone) => {
         self.profile.stick.deadzone = deadzone;
@@ -625,7 +634,7 @@ impl State {
       _ => None,
     });
 
-    let keyboard = match self.allow_input {
+    let keyboard = match self.allow_write {
       true => event::listen_with(|event, _status, _id| match event {
         Event::Keyboard(event) => {
           if let iced::keyboard::Event::KeyPressed {
