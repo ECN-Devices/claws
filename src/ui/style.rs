@@ -1,6 +1,6 @@
 pub mod button {
   use crate::State;
-  use iced::{Color, Theme, widget::button};
+  use iced::{Border, Color, Theme, widget::button};
 
   pub fn active_profile(
     theme: &Theme,
@@ -17,6 +17,63 @@ pub mod button {
         false => button::primary(theme, status),
       },
       None => button::primary(theme, status),
+    }
+  }
+
+  pub fn active_write(
+    theme: &Theme,
+    status: button::Status,
+    state: &State,
+    id: usize,
+    is_stick: bool,
+  ) -> button::Style {
+    match (state.button.id == id, state.allow_write, is_stick) {
+      (true, true, false) => button::Style {
+        background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
+        border: Border {
+          radius: 10.into(),
+          ..Default::default()
+        },
+        ..Default::default()
+      },
+      _ => button::Style {
+        border: Border {
+          radius: 10.into(),
+          ..Default::default()
+        },
+        ..button::primary(theme, status)
+      },
+    }
+  }
+}
+
+pub mod button_stick {
+  use crate::State;
+  use iced::{Border, Color, Theme, widget::button};
+
+  pub fn active_write(
+    theme: &Theme,
+    status: button::Status,
+    state: &State,
+    id: usize,
+    is_stick: bool,
+  ) -> button::Style {
+    match (state.button.id == id, state.allow_write, is_stick) {
+      (true, true, true) => button::Style {
+        background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
+        border: Border {
+          radius: 10.into(),
+          ..Default::default()
+        },
+        ..Default::default()
+      },
+      _ => button::Style {
+        border: Border {
+          radius: 10.into(),
+          ..Default::default()
+        },
+        ..button::primary(theme, status)
+      },
     }
   }
 }

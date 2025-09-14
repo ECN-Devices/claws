@@ -3,8 +3,8 @@ use crate::{State, assets::APPLICATION_VERSION, data::profiles::Profile, ui::sty
 use iced::{
   Alignment, Element, Length, Theme,
   widget::{
-    Button, Row, button, center, column, container, horizontal_space, row, slider, svg, text,
-    toggler, vertical_rule, vertical_space,
+    MouseArea, Row, button, center, column, container, horizontal_space, mouse_area, row, slider,
+    svg, text, toggler, vertical_rule, vertical_space,
   },
 };
 
@@ -76,34 +76,34 @@ impl Pages {
         .spacing(SPACING);
 
         let col_1 = column![
-          mk_button(1, profile, false),
-          mk_button(2, profile, false),
-          mk_button(3, profile, false),
-          mk_button(4, profile, false),
+          mk_button(state, 1, profile),
+          mk_button(state, 2, profile),
+          mk_button(state, 3, profile),
+          mk_button(state, 4, profile),
         ]
         .spacing(SPACING);
 
         let col_2 = column![
-          mk_button(5, profile, false),
-          mk_button(6, profile, false),
-          mk_button(7, profile, false),
-          mk_button(8, profile, false),
+          mk_button(state, 5, profile),
+          mk_button(state, 6, profile),
+          mk_button(state, 7, profile),
+          mk_button(state, 8, profile),
         ]
         .spacing(SPACING);
 
         let col_3 = column![
-          mk_button(9, profile, false),
-          mk_button(10, profile, false),
-          mk_button(11, profile, false),
-          mk_button(12, profile, false),
+          mk_button(state, 9, profile),
+          mk_button(state, 10, profile),
+          mk_button(state, 11, profile),
+          mk_button(state, 12, profile),
         ]
         .spacing(SPACING);
 
         let col_4 = column![
-          mk_button(13, profile, false),
-          mk_button(14, profile, false),
-          mk_button(15, profile, false),
-          mk_button(16, profile, false),
+          mk_button(state, 13, profile),
+          mk_button(state, 14, profile),
+          mk_button(state, 15, profile),
+          mk_button(state, 16, profile),
         ]
         .spacing(SPACING);
 
@@ -118,14 +118,18 @@ impl Pages {
           .spacing(SPACING)
           .align_x(Alignment::Center),
           row![
-            mk_button(4, profile, true),
+            mk_button_stick(state, 4, profile),
             column![
-              mk_button(1, profile, true),
-              button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH),
-              mk_button(3, profile, true),
+              mk_button_stick(state, 1, profile),
+              button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH).style(
+                move |theme: &Theme, status| {
+                  style::button_stick::active_write(theme, status, state, 0, state.button.is_stick)
+                }
+              ),
+              mk_button_stick(state, 3, profile),
             ]
             .spacing(SPACING),
-            mk_button(2, profile, true),
+            mk_button_stick(state, 2, profile),
           ]
           .spacing(SPACING)
           .align_y(Alignment::Center)
@@ -185,8 +189,24 @@ impl Pages {
           active_profile,
           vertical_rule(2),
           profile_settings
+        let active_profile = mouse_area(
+          column![
+            container(text(&profile.name).size(30)).center_x(Length::Fill),
+            container(
+              row![
+                row![col_1, col_2, col_3, col_4].spacing(SPACING),
+                column![stick_pad]
+              ]
+              .spacing(SPACING)
+              .align_y(Alignment::End)
+            )
+            .center(Length::Fill)
+          ]
+          .padding(PADDING),
         )
-        .into()
+        .on_press(Message::DisallowWriteButtonCombination);
+
+        row!(all_profiles, vertical_rule(2), active_profile,).into()
       }
       Self::Settings => container(screen_name).padding(PADDING).into(),
       Self::Updater => container(screen_name).padding(PADDING).into(),
@@ -222,37 +242,6 @@ impl Pages {
   }
 }
 
-/**
-Создает стандартизированную кнопку для клавиатурной панели
-# Аргументы
-* `button_text` - Текст на кнопке
-* `on_press` - Сообщение при нажатии
-# Возвращает
-Готовый элемент кнопки с заданными параметрами
-*/
-fn mk_button<'a>(id: usize, profile: &Profile, stick: bool) -> Button<'a, Message> {
-  let _id = id - 1;
-  let _text = match stick {
-    true => profile.get_stick_label(_id),
-    false => profile.get_button_label(_id),
-  };
-
-  button(
-    column![
-      container(text(_text.clone()).size(15)).center(Length::Fill),
-      text!("#{}", id)
-        .size(10)
-        .align_x(Alignment::End)
-        .align_y(Alignment::End),
-    ]
-    .width(Length::Fill)
-    .height(Length::Fill),
-  )
-  .on_press(Message::GetButtonSettings(id, _text, stick))
-  .height(BUTTON_HEIGH)
-  .width(BUTTON_WIDTH)
-}
-
 /// Иконки для навигационного меню
 pub enum Icon {
   /// Иконка профилей
@@ -282,16 +271,77 @@ impl Icon {
   }
 }
 
-fn mk_button_profile_row<'a>(state: &'a State, num: &'a u8) -> Row<'a, Message> {
-  let profile_assignment = match state.is_rom {
-    true => "ПЗУ",
-    false => "ОЗУ",
-  };
+/**
+Создает стандартизированную кнопку для клавиатурной панели
+# Аргументы
+* `button_text` - Текст на кнопке
+* `on_press` - Сообщение при нажатии
+# Возвращает
+Готовый элемент кнопки с заданными параметрами
+*/
+fn mk_button<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseArea<'a, Message> {
+  let _id = id - 1;
+  let _text = profile.get_button_label(_id);
 
-  let write_profile = match state.is_rom {
-    true => Message::ProfileActiveWriteToRom(*num),
-    false => Message::ProfileActiveWriteToRam(*num),
-  };
+  mouse_area(
+    button(
+      column![
+        container(text(_text.clone()).size(15)).center(Length::Fill),
+        text!("#{}", id)
+          .size(10)
+          .align_x(Alignment::End)
+          .align_y(Alignment::End),
+      ]
+      .width(Length::Fill)
+      .height(Length::Fill),
+    )
+    .on_press(Message::GetButtonSettings(id, false))
+    .height(BUTTON_HEIGH)
+    .width(BUTTON_WIDTH)
+    .style(move |theme: &Theme, status| {
+      style::button::active_write(theme, status, state, id, state.button.is_stick)
+    }),
+  )
+  .on_right_press(Message::ClearButtonCombination(id, false))
+}
+
+fn mk_button_stick<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseArea<'a, Message> {
+  let _id = id - 1;
+  let _text = profile.get_stick_label(_id);
+
+  mouse_area(
+    button(
+      column![
+        container(text(_text.clone()).size(15)).center(Length::Fill),
+        text!("#{}", id)
+          .size(10)
+          .align_x(Alignment::End)
+          .align_y(Alignment::End),
+      ]
+      .width(Length::Fill)
+      .height(Length::Fill),
+    )
+    .on_press(Message::GetButtonSettings(id, true))
+    .height(BUTTON_HEIGH)
+    .width(BUTTON_WIDTH)
+    .style(move |theme: &Theme, status| {
+      style::button_stick::active_write(theme, status, state, id, state.button.is_stick)
+    }),
+  )
+  .on_right_press(Message::ClearButtonCombination(id, true))
+}
+
+fn mk_button_profile_row<'a>(state: &'a State, num: &'a u8) -> Row<'a, Message> {
+  let (profile_assignment, write_profile) = (
+    match state.is_rom {
+      true => "ПЗУ",
+      false => "ОЗУ",
+    },
+    match state.is_rom {
+      true => Message::ProfileActiveWriteToRom(*num),
+      false => Message::ProfileActiveWriteToRam(*num),
+    },
+  );
 
   row![
     button(text!("{} {}", profile_assignment, num).center())
@@ -299,12 +349,12 @@ fn mk_button_profile_row<'a>(state: &'a State, num: &'a u8) -> Row<'a, Message> 
       .width(80)
       .height(35)
       .style(|theme: &Theme, status| style::button::active_profile(theme, status, state, *num)),
-    button(container(
+    button(
       svg(svg::Handle::from_memory(Icon::Download.icon()))
         .height(Length::Fill)
         .width(Length::Fill),
-    ))
-    .width(60)
+    )
+    .width(50)
     .height(35)
     .on_press(write_profile)
   ]
