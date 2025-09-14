@@ -164,7 +164,7 @@ impl State {
     (
       Self {
         active_profile_num: None,
-        allow_input: false,
+        allow_write: false,
         buffers: Buffers::default(),
         button: KeypadButton::default(),
         is_rom: false,
