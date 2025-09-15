@@ -475,22 +475,22 @@ impl State {
       Message::OpenFileDialog => Profile::open_load_file_dialog(),
       Message::WriteButtonIsRom => {
         self.is_rom = !self.is_rom;
-        // match self.is_rom {
-        //   true => {
-        //     let buf = self.buffers.clone();
-        //     Task::perform(
-        //       async move {
-        //         tokio::task::spawn_blocking(move || {
-        //           buf.send().push(profile::Command::LoadFlashToRam.get())
-        //         })
-        //         .await
-        //       },
-        //       |_| Message::ProfileReceive,
-        //     )
-        //   }
-        //   false => Task::none(),
-        // }
-        Task::none()
+
+        match self.is_rom {
+          true => {
+            let buf = self.buffers.clone();
+            Task::perform(
+              async move {
+                tokio::task::spawn_blocking(move || {
+                  buf.send().push(profile::Command::LoadFlashToRam.get())
+                })
+                .await
+              },
+              |_| Message::None,
+            )
+          }
+          false => Task::none(),
+        }
       }
       Message::AllowWriteButtonCombination => {
         self.allow_write = true;
