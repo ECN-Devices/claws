@@ -12,7 +12,7 @@ iced = { version = "0.13.1", default-features = true, features = [
   "tokio",
   "advanced",
 ] }
-tokio = { version = "1.47.1", features = ["full"] }
+tokio = "1.47.1"
 serialport = { version = "4.7.2", features = ["serde"] }
 pretty_env_logger = "0.5.0"
 log = { version = "0.4.27", features = ["release_max_level_warn"] }
