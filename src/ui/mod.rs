@@ -22,7 +22,7 @@ use std::{
 };
 
 pub mod pages;
-pub mod style;
+pub mod styles;
 
 pub const WINDOW_WIDTH: f32 = 800.;
 pub const WINDOW_HEIGH: f32 = 600.;
@@ -78,6 +78,7 @@ pub enum Message {
   ProfileRequestActiveNum,
   ProfileRequestActiveNumState(u8),
   ProfileLoadRamToActive(u8),
+  ProfileUpdateName(String),
 
   ProfileSaved,
 
@@ -472,6 +473,10 @@ impl State {
           |_| Message::ProfileReceive,
         )
       }
+      Message::ProfileUpdateName(string) => {
+        self.profile.name = string;
+        Task::none()
+      }
       Message::ProfileSaved => Task::none(),
       Message::OpenFileDialog => Profile::open_load_file_dialog(),
       Message::WriteButtonIsRom => {
@@ -745,5 +750,5 @@ fn create_button_with_svg_and_text<'a>(icon: Icon, on_press: Message) -> Button<
   .width(Length::Fixed(50.))
   .height(Length::Fixed(50.))
   .on_press(on_press)
-  .style(style::button::rounding)
+  .style(styles::button::rounding)
 }

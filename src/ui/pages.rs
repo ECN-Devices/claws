@@ -1,10 +1,10 @@
 use super::Message;
-use crate::{State, assets::APPLICATION_VERSION, data::profiles::Profile, ui::style};
+use crate::{State, assets::APPLICATION_VERSION, data::profiles::Profile, ui::styles};
 use iced::{
   Alignment, Element, Length, Theme,
   widget::{
     MouseArea, Row, button, center, column, container, horizontal_space, mouse_area, row, slider,
-    svg, text, toggler, vertical_rule, vertical_space,
+    svg, text, text_input, toggler, vertical_rule, vertical_space,
   },
 };
 
@@ -117,7 +117,13 @@ impl Pages {
               mk_button_stick(state, 1, profile),
               button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH).style(
                 move |theme: &Theme, status| {
-                  style::button::stick::active_write(theme, status, state, 0, state.button.is_stick)
+                  styles::button::stick::active_write(
+                    theme,
+                    status,
+                    state,
+                    0,
+                    state.button.is_stick,
+                  )
                 }
               ),
               mk_button_stick(state, 3, profile),
@@ -134,11 +140,11 @@ impl Pages {
         let import_profile = button(text("Импорт профиля").center())
           .on_press(Message::OpenFileDialog)
           .width(180)
-          .style(style::button::rounding);
+          .style(styles::button::rounding);
         let export_profile = button(text("Экспорт профиля").center())
           .on_press(Message::ProfileFileSave)
           .width(180)
-          .style(style::button::rounding);
+          .style(styles::button::rounding);
 
         let all_profiles = column![
           screen_name,
@@ -156,7 +162,15 @@ impl Pages {
 
         let active_profile = mouse_area(
           column![
-            container(text(&profile.name).size(30)).center_x(Length::Fill),
+            container(
+              text_input(&profile.name, &profile.name)
+                .align_x(Alignment::Center)
+                .size(30)
+                .width(300)
+                .on_input(Message::ProfileUpdateName)
+                .style(styles::text_input::rounding)
+            )
+            .center_x(Length::Fill),
             container(
               row![
                 row![col_1, col_2, col_3, col_4].spacing(SPACING),
@@ -176,7 +190,7 @@ impl Pages {
       Self::Settings => {
         let reboot_to_bootloader = button("Reboot to Bootloader")
           .on_press(Message::RebootToBootloader)
-          .style(style::button::rounding);
+          .style(styles::button::rounding);
 
         column![screen_name, center(reboot_to_bootloader)]
           .padding(PADDING)
@@ -263,7 +277,7 @@ fn mk_button<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseArea<'a
     .height(BUTTON_HEIGH)
     .width(BUTTON_WIDTH)
     .style(move |theme: &Theme, status| {
-      style::button::active_write(theme, status, state, id, state.button.is_stick)
+      styles::button::active_write(theme, status, state, id, state.button.is_stick)
     }),
   )
   .on_right_press(Message::ClearButtonCombination(id, false))
@@ -289,7 +303,7 @@ fn mk_button_stick<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseA
     .height(BUTTON_HEIGH)
     .width(BUTTON_WIDTH)
     .style(move |theme: &Theme, status| {
-      style::button::stick::active_write(theme, status, state, id, state.button.is_stick)
+      styles::button::stick::active_write(theme, status, state, id, state.button.is_stick)
     }),
   )
   .on_right_press(Message::ClearButtonCombination(id, true))
@@ -312,7 +326,7 @@ fn mk_button_profile_row<'a>(state: &'a State, num: &'a u8) -> Row<'a, Message> 
       .on_press(Message::ProfileLoadRamToActive(*num))
       .width(80)
       .height(35)
-      .style(|theme: &Theme, status| style::button::active_profile(theme, status, state, *num)),
+      .style(|theme: &Theme, status| styles::button::active_profile(theme, status, state, *num)),
     button(
       svg(svg::Handle::from_memory(Icon::Download.icon()))
         .height(Length::Fill)
@@ -321,7 +335,7 @@ fn mk_button_profile_row<'a>(state: &'a State, num: &'a u8) -> Row<'a, Message> 
     .width(50)
     .height(35)
     .on_press(write_profile)
-    .style(style::button::rounding)
+    .style(styles::button::rounding)
   ]
   .spacing(SPACING)
 }
