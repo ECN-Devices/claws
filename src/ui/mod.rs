@@ -747,4 +747,5 @@ fn create_button_with_svg_and_text<'a>(icon: Icon, on_press: Message) -> Button<
   .width(Length::Fixed(50.))
   .height(Length::Fixed(50.))
   .on_press(on_press)
+  .style(style::button::rounding)
 }

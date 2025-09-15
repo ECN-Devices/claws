@@ -321,6 +321,7 @@ fn mk_button_profile_row<'a>(state: &'a State, num: &'a u8) -> Row<'a, Message> 
     .width(50)
     .height(35)
     .on_press(write_profile)
+    .style(style::button::rounding)
   ]
   .spacing(SPACING)
 }
