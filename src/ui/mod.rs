@@ -616,10 +616,6 @@ impl State {
         create_button_with_svg_and_text(Icon::Profiles, Message::ChangePage(Pages::Profiles)),
         create_button_with_svg_and_text(Icon::Settings, Message::ChangePage(Pages::Settings)),
         create_button_with_svg_and_text(Icon::Update, Message::ChangePage(Pages::Updater)),
-        create_button_with_svg_and_text(
-          Icon::Experimental,
-          Message::ChangePage(Pages::Experimental)
-        ),
       ]
       .spacing(SPACING),
     )
