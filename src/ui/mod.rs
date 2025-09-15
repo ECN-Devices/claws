@@ -629,17 +629,6 @@ impl State {
       _ => None,
     });
 
-    let disallow_write = event::listen_with(|event, _status, _id| match event {
-      Event::Window(event) => {
-        if let window::Event::Unfocused = event {
-          Some(Message::DisallowWriteButtonCombination)
-        } else {
-          None
-        }
-      }
-      _ => None,
-    });
-
     let keyboard = match self.allow_write {
       true => event::listen_with(|event, _status, _id| match event {
         Event::Keyboard(event) => {
@@ -673,13 +662,7 @@ impl State {
       _ => Subscription::none(),
     };
 
-    Subscription::batch(vec![
-      port_sub,
-      window,
-      keyboard,
-      profile_active,
-      disallow_write,
-    ])
+    Subscription::batch(vec![port_sub, window, keyboard, profile_active])
   }
 
   /// Возвращает текущую тему приложения
