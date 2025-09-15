@@ -204,36 +204,39 @@ impl Pages {
 
         row!(all_profiles, vertical_rule(2), active_profile,).into()
       }
-      Self::Settings => container(screen_name).padding(PADDING).into(),
-      Self::Updater => container(screen_name).padding(PADDING).into(),
-      Self::ConnectedDeviceNotFound => center(screen_name.center()).padding(PADDING).into(),
-      Self::Experimental => {
-        let reboot_to_bootloader =
-          button("Reboot to Bootloader").on_press(Message::RebootToBootloader);
+      Self::Settings => {
+        let reboot_to_bootloader = button("Reboot to Bootloader")
+          .on_press(Message::RebootToBootloader)
+          .style(style::button::rounding);
 
-        let empty = button("Empty").on_press(Message::PortAvalaible);
-
-        let write_profile = button("Write Profile").on_press(Message::ProfileWrite);
-        let update_profile = button("Update Profile").on_press(Message::ProfileReceive);
-
-        let save_active_profile_to_file =
-          button("Save Active Profile to File").on_press(Message::ProfileFileSave);
-
-        column!(
-          screen_name,
-          center(
-            column![
-              reboot_to_bootloader,
-              empty,
-              write_profile,
-              update_profile,
-              save_active_profile_to_file
-            ]
-            .spacing(SPACING)
-          )
-        )
-        .into()
+        column![screen_name, center(reboot_to_bootloader)]
+          .padding(PADDING)
+          .into()
       }
+      Self::Updater => {
+        let app_version = row![
+          text("Версия приложения:"),
+          horizontal_space(),
+          text(APPLICATION_VERSION)
+        ];
+
+        let firmware_version = row![
+          text("Версия прошивки:"),
+          horizontal_space(),
+          text(state.device_info.firmware_version)
+        ];
+
+        let about = center(
+          column![app_version, firmware_version]
+            .spacing(SPACING)
+            .width(Length::Fixed(300.)),
+        );
+
+        container(column![screen_name, about])
+          .padding(PADDING)
+          .into()
+      }
+      Self::ConnectedDeviceNotFound => center(screen_name.center()).padding(PADDING).into(),
     }
   }
 }
