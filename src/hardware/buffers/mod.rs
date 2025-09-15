@@ -45,22 +45,22 @@ impl Receive {
 }
 
 pub trait BuffersIO {
-  fn len(&self) -> usize;
+  // fn len(&self) -> usize;
   fn push(&mut self, data: Vec<u8>);
 }
 impl BuffersIO for Send {
-  fn len(&self) -> usize {
-    self.buffer.len()
-  }
+  // fn len(&self) -> usize {
+  //   self.buffer.len()
+  // }
 
   fn push(&mut self, data: Vec<u8>) {
     self.buffer.push(data);
   }
 }
 impl BuffersIO for Receive {
-  fn len(&self) -> usize {
-    self.buffer.len()
-  }
+  // fn len(&self) -> usize {
+  //   self.buffer.len()
+  // }
 
   fn push(&mut self, data: Vec<u8>) {
     self.buffer.push(data)
