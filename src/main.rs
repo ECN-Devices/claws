@@ -30,6 +30,7 @@ pub struct State {
   pub keypad: Keypad,
   pub pages: Pages,
   pub profile: Profile,
+  pub time_write: Option<std::time::Instant>,
   pub window_settings: Window,
 }
 
