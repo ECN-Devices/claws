@@ -2,6 +2,16 @@ pub mod button {
   use crate::State;
   use iced::{Border, Color, Theme, widget::button};
 
+  pub fn rounding(theme: &Theme, status: button::Status) -> button::Style {
+    button::Style {
+      border: Border {
+        radius: 5.into(),
+        ..Default::default()
+      },
+      ..button::primary(theme, status)
+    }
+  }
+
   pub fn active_profile(
     theme: &Theme,
     status: button::Status,
@@ -12,9 +22,19 @@ pub mod button {
       Some(i) => match i == number {
         true => button::Style {
           background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
+          border: Border {
+            radius: 5.into(),
+            ..Default::default()
+          },
           ..Default::default()
         },
-        false => button::primary(theme, status),
+        false => button::Style {
+          border: Border {
+            radius: 5.into(),
+            ..Default::default()
+          },
+          ..button::primary(theme, status)
+        },
       },
       None => button::primary(theme, status),
     }
