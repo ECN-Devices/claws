@@ -98,6 +98,8 @@ pub enum Message {
   SaveButtonCombination(usize),
 
   WriteDeadZone(u8),
+
+  TimerWriteCheck,
 }
 
 impl State {
@@ -170,6 +172,7 @@ impl State {
         keypad,
         pages,
         profile: Profile::default(),
+        time_write: None,
         window_settings: Window::load(),
       },
       Task::batch(vec![profile]),
@@ -486,10 +489,12 @@ impl State {
       }
       Message::AllowWriteButtonCombination => {
         self.allow_write = true;
+        self.time_write = Some(std::time::Instant::now());
         Task::none()
       }
       Message::DisallowWriteButtonCombination => {
         self.allow_write = false;
+        self.time_write = None;
         Task::none()
       }
       Message::ClearButtonCombination(id, is_stick) => {
@@ -501,6 +506,7 @@ impl State {
         Task::done(Message::DisallowWriteButtonCombination)
       }
       Message::WriteButtonCombination(code) => {
+        self.time_write = Some(std::time::Instant::now());
         match self.button.is_stick {
           true => {
             if !self.button.vec_str.is_empty() {
@@ -554,6 +560,15 @@ impl State {
       }
       Message::WriteDeadZone(deadzone) => {
         self.profile.stick.deadzone = deadzone;
+        Task::none()
+      }
+      Message::TimerWriteCheck => {
+        if let Some(start_time) = self.time_write
+          && start_time.elapsed() >= Duration::from_secs(2)
+        {
+          self.allow_write = false;
+          self.time_write = None;
+        }
         Task::none()
       }
     }
@@ -662,7 +677,18 @@ impl State {
       _ => Subscription::none(),
     };
 
-    Subscription::batch(vec![port_sub, window, keyboard, profile_active])
+    let timer_check = match self.allow_write {
+      true => iced::time::every(Duration::from_millis(100)).map(|_| Message::TimerWriteCheck),
+      false => Subscription::none(),
+    };
+
+    Subscription::batch(vec![
+      port_sub,
+      window,
+      keyboard,
+      profile_active,
+      timer_check,
+    ])
   }
 
   /// Возвращает текущую тему приложения
