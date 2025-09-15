@@ -123,7 +123,7 @@ impl Pages {
               mk_button_stick(state, 1, profile),
               button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH).style(
                 move |theme: &Theme, status| {
-                  style::button_stick::active_write(theme, status, state, 0, state.button.is_stick)
+                  style::button::stick::active_write(theme, status, state, 0, state.button.is_stick)
                 }
               ),
               mk_button_stick(state, 3, profile),
@@ -325,7 +325,7 @@ fn mk_button_stick<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseA
     .height(BUTTON_HEIGH)
     .width(BUTTON_WIDTH)
     .style(move |theme: &Theme, status| {
-      style::button_stick::active_write(theme, status, state, id, state.button.is_stick)
+      style::button::stick::active_write(theme, status, state, id, state.button.is_stick)
     }),
   )
   .on_right_press(Message::ClearButtonCombination(id, true))
