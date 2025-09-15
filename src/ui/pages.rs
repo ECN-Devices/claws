@@ -59,9 +59,7 @@ impl Pages {
 
     match state.pages {
       Self::Profiles => {
-        let toggler = toggler(state.is_rom)
-          .label("ОЗУ/ПЗУ")
-          .on_toggle(|_| Message::WriteButtonIsRom);
+        let toggler = toggler(state.is_rom).on_toggle(|_| Message::WriteButtonIsRom);
 
         let ram_rom_button = column![
           mk_button_profile_row(state, &1),
@@ -133,58 +131,29 @@ impl Pages {
         .spacing(SPACING)
         .width(317.);
 
-        let all_profiles = column![screen_name, toggler, ram_rom_button]
-          .padding(PADDING)
-          .spacing(SPACING)
-          .align_x(Alignment::Center);
+        let import_profile = button(text("Импорт профиля").center())
+          .on_press(Message::OpenFileDialog)
+          .width(180)
+          .style(style::button::rounding);
+        let export_profile = button(text("Экспорт профиля").center())
+          .on_press(Message::ProfileFileSave)
+          .width(180)
+          .style(style::button::rounding);
 
-        let active_profile = column![
-          container(text(&profile.name).size(30)).center_x(Length::Fill),
-          container(
-            row![
-              row![col_1, col_2, col_3, col_4].spacing(SPACING),
-              column![stick_pad]
-            ]
-            .spacing(SPACING)
-            .align_y(Alignment::End)
-          )
-          .center(Length::Fill)
-        ]
-        .padding(PADDING);
-
-        let open_file_dialog = button("Импорт Профиля").on_press(Message::OpenFileDialog);
-
-        let write_button_combination = match state.allow_input {
-          true => button("Закончить запись")
-            .width(Length::Fixed(300.))
-            .on_press(Message::AllowWriteButtonCombination),
-          false => button("Начать запись")
-            .width(Length::Fixed(300.))
-            .on_press(Message::AllowWriteButtonCombination),
-        };
-
-        let profile_settings = column![
-          text!("Кнопка: #{}", state.button.id),
-          container(text(&state.button.label).size(25))
-            .align_x(Alignment::Center)
-            .width(Length::Shrink),
-          write_button_combination,
-          button("Очистить").on_press(Message::ClearButtonCombination),
-          button("Сохранить").on_press(Message::SaveButtonCombination(state.button.id)),
+        let all_profiles = column![
+          screen_name,
+          row![text("ОЗУ"), toggler, text("ПЗУ")]
+            .align_y(Alignment::Center)
+            .spacing(SPACING),
+          ram_rom_button,
           vertical_space(),
-          open_file_dialog,
+          import_profile,
+          export_profile
         ]
-        .width(Length::Fixed(300.))
         .align_x(Alignment::Center)
         .spacing(SPACING)
         .padding(PADDING);
 
-        row!(
-          all_profiles,
-          vertical_rule(2),
-          active_profile,
-          vertical_rule(2),
-          profile_settings
         let active_profile = mouse_area(
           column![
             container(text(&profile.name).size(30)).center_x(Length::Fill),
