@@ -1,6 +1,7 @@
 use iced::{Font, font::Weight};
 
 pub const APPLICATION_NAME: &str = "Claws";
+pub const APPLICATION_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub static WINDOW_ICON: &[u8] = include_bytes!("../assets/icons/claws.ico");
 pub const INTER_FONT: Font = Font {
   weight: Weight::Medium,

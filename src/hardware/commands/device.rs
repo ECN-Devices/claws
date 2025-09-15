@@ -1,4 +1,11 @@
 use super::Value;
+use crate::{
+  errors::serial::KeypadError,
+  hardware::buffers::{Buffers, BuffersIO},
+};
+use anyhow::Result;
+use log::debug;
+use std::time::{Duration, SystemTime};
 
 #[derive(Debug, Clone)]
 pub enum Command {
@@ -31,5 +38,29 @@ impl Value for Command {
         ]
       }
     }
+  }
+}
+
+pub fn request_info(buffers: &mut Buffers) -> Result<Vec<u8>> {
+  let time = SystemTime::now();
+  let duration = Duration::from_secs(5);
+
+  buffers.send().push(Command::RequestInfo.get());
+
+  loop {
+    if time.elapsed()? >= duration {
+      break Err(KeypadError::NoResponse(Command::RequestInfo.get()).into());
+    }
+
+    match buffers
+      .receive()
+      .pull(&super::KeypadCommands::Device(Command::RequestInfo))
+    {
+      Some(s) => {
+        debug!("request_info: {s:?}");
+        break Ok(s);
+      }
+      None => continue,
+    };
   }
 }
