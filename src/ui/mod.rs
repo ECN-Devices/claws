@@ -459,6 +459,7 @@ impl State {
       }
       Message::ProfileLoadRamToActive(num) => {
         let buf = self.buffers.clone();
+        self.active_profile_num = Some(num);
         Task::perform(
           async move {
             tokio::task::spawn_blocking(move || {
