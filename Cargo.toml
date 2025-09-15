@@ -1,6 +1,6 @@
 [package]
 name = "claws"
-version = "0.1.2"
+version = "1.0.0"
 edition = "2024"
 authors = ["Yaroslav Malykh <fisuri@murena.io>"]
 license = "MIT"
