@@ -57,7 +57,6 @@ pub enum Message {
   ChangePage(Pages),
 
   GetButtonSettings(usize, bool),
-  SetButtonSettings(String),
 
   /// Подписки
   WindowResized(f32, f32),
@@ -295,10 +294,6 @@ impl State {
 
         Task::done(Message::AllowWriteButtonCombination)
       }
-      Message::SetButtonSettings(label) => {
-        self.button.label = label;
-        Task::none()
-      }
       Message::WindowResized(width, height) => {
         self.window_settings.width = width;
         self.window_settings.height = height;
@@ -526,7 +521,6 @@ impl State {
         };
 
         self.button.vec_str.push(elem);
-        self.button.label = self.button.vec_str.join(SEPARATOR);
 
         match self.button.is_stick {
           true => self.button.code[self.button.id - 1] = code,
