@@ -693,9 +693,10 @@ impl State {
       false => Subscription::none(),
     };
 
-    let profile_active = match self.pages {
-      Pages::Profiles => iced::time::every(Duration::from_millis(500))
-        .map(|_| Message::ProfileRequestActiveNum(true)),
+    let profile_active = match (&self.pages, &self.keypad.is_open) {
+      (Pages::Profiles, true) => {
+        iced::time::every(Duration::from_millis(500)).map(|_| Message::ProfileRequestActiveNum)
+      }
       _ => Subscription::none(),
     };
 
