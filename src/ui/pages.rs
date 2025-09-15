@@ -29,9 +29,6 @@ pub enum Pages {
 
   /// Экран отображения ошибки подключения устройства
   ConnectedDeviceNotFound,
-
-  /// Экран экспериментальных функций
-  Experimental,
 }
 
 impl Pages {
@@ -42,7 +39,6 @@ impl Pages {
       Self::Settings => "Настройки",
       Self::Updater => "Обновление",
       Self::ConnectedDeviceNotFound => "Устройство не найдено",
-      Self::Experimental => "Экспериментальные настройки",
     }
   }
 
@@ -253,9 +249,6 @@ pub enum Icon {
   /// Иконка обновления
   Update,
 
-  /// Иконка экспериментальных функций
-  Experimental,
-
   Download,
 }
 impl Icon {
@@ -265,7 +258,6 @@ impl Icon {
       Self::Profiles => include_bytes!("../../assets/icons/profiles.svg"),
       Self::Settings => include_bytes!("../../assets/icons/settings.svg"),
       Self::Update => include_bytes!("../../assets/icons/updater.svg"),
-      Self::Experimental => include_bytes!("../../assets/icons/test.svg"),
       Self::Download => include_bytes!("../../assets/icons/download.svg"),
     }
   }
