@@ -423,7 +423,8 @@ impl State {
               let _ = Keypad::profile_send(&mut buf, profile);
               buf
                 .send()
-                .push(profile::Command::WriteActiveToFlash(num).get())
+                .push(profile::Command::WriteActiveToFlash(num).get());
+              buf.send().push(profile::Command::LoadFlashToRam.get())
             })
             .await
           },
