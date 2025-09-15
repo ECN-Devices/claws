@@ -1,11 +1,6 @@
 use crate::{
   State,
-  data::{
-    Config,
-    code::CodeAscii,
-    profiles::{Profile, SEPARATOR},
-    window::Window,
-  },
+  data::{Config, code::CodeAscii, device::Device, profiles::Profile, window::Window},
   hardware::{
     buffers::{Buffers, BuffersIO},
     commands::{Value, device, empty, profile, switch},
@@ -99,6 +94,10 @@ pub enum Message {
 
   WriteDeadZone(u8),
 
+  GetDeviceInfo,
+  DeviceInfoParse(Vec<u8>),
+  DeviceInfoSave(Device),
+
   TimerWriteCheck,
 }
 
@@ -151,6 +150,11 @@ impl State {
     //   false => Profile::default(),
     // };
 
+    let device_info_task = match keypad.is_open {
+      true => Task::done(Message::GetDeviceInfo),
+      false => Task::none(),
+    };
+
     let pages = match port.is_empty() {
       true => {
         if cfg!(debug_assertions) {
@@ -168,6 +172,7 @@ impl State {
         allow_write: false,
         buffers: Buffers::default(),
         button: KeypadButton::default(),
+        device_info: Device::default(),
         is_rom: false,
         keypad,
         pages,
@@ -175,7 +180,7 @@ impl State {
         time_write: None,
         window_settings: Window::load(),
       },
-      Task::batch(vec![profile]),
+      Task::batch(vec![profile, device_info_task]),
     )
   }
 
@@ -507,6 +512,7 @@ impl State {
       }
       Message::WriteButtonCombination(code) => {
         self.time_write = Some(std::time::Instant::now());
+
         match self.button.is_stick {
           true => {
             if !self.button.vec_str.is_empty() {
@@ -560,6 +566,26 @@ impl State {
       }
       Message::WriteDeadZone(deadzone) => {
         self.profile.stick.deadzone = deadzone;
+        Task::none()
+      }
+      Message::GetDeviceInfo => {
+        let mut buffers = self.buffers.clone();
+        Task::perform(
+          async move {
+            tokio::task::spawn_blocking(move || device::request_info(&mut buffers).unwrap()).await
+          },
+          |res| match res {
+            Ok(res) => Message::DeviceInfoParse(res),
+            Err(_) => Message::GetDeviceInfo,
+          },
+        )
+      }
+      Message::DeviceInfoParse(res) => Task::perform(
+        async move { Device::parse(&res).await },
+        Message::DeviceInfoSave,
+      ),
+      Message::DeviceInfoSave(device) => {
+        self.device_info = device;
         Task::none()
       }
       Message::TimerWriteCheck => {
