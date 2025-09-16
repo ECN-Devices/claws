@@ -1,3 +1,5 @@
+//! Страницы интерфейса и элементы управления для конфигурации профилей и настроек.
+
 use super::Message;
 use crate::{State, assets::APPLICATION_VERSION, data::profiles::Profile, ui::styles};
 use iced::{
@@ -8,7 +10,9 @@ use iced::{
   },
 };
 
+/// Отступ между элементами
 pub const SPACING: u16 = 10;
+/// Внутренние отступы контейнеров
 pub const PADDING: u16 = 10;
 const HEADING_SIZE: u16 = 30;
 const BUTTON_HEIGH: u16 = 100;
@@ -45,7 +49,8 @@ impl Pages {
   /**
   Генерирует содержимое экрана на основе текущего состояния
   # Аргументы
-  * `claws` - Ссылка на главное приложение с текущим состоянием
+  * `state` - Ссылка на состояние приложения
+  * `profile` - Активный профиль
   # Возвращает
   Элемент интерфейса для отображения
   */
@@ -138,11 +143,11 @@ impl Pages {
         .width(317.);
 
         let import_profile = button(text("Импорт профиля").center())
-          .on_press(Message::OpenFileDialog)
+          .on_press(Message::ProfileImport)
           .width(180)
           .style(styles::button::rounding);
         let export_profile = button(text("Экспорт профиля").center())
-          .on_press(Message::ProfileFileSave)
+          .on_press(Message::ProfileExport)
           .width(180)
           .style(styles::button::rounding);
 
@@ -154,7 +159,7 @@ impl Pages {
           ram_rom_button,
           vertical_space(),
           import_profile,
-          export_profile
+          export_profile,
         ]
         .align_x(Alignment::Center)
         .spacing(SPACING)
@@ -252,8 +257,8 @@ impl Icon {
 /**
 Создает стандартизированную кнопку для клавиатурной панели
 # Аргументы
-* `button_text` - Текст на кнопке
-* `on_press` - Сообщение при нажатии
+* `id` - Номер клавиши (1..=16)
+* `profile` - Активный профиль
 # Возвращает
 Готовый элемент кнопки с заданными параметрами
 */

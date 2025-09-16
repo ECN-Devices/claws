@@ -1,3 +1,6 @@
+//! Ошибки взаимодействия с последовательным портом и протоколом кейпада.
+
+/// Перечень возможных ошибок при работе с Serial и буферами
 #[derive(Debug, thiserror::Error)]
 pub enum KeypadError {
   #[error("No serial ports found")]

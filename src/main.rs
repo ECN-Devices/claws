@@ -20,18 +20,40 @@ mod hardware;
 mod ui;
 mod utils;
 
+/// Глобальное состояние приложения Iced.
 #[derive(Debug, Clone, Default)]
 pub struct State {
+  /// Номер активного профиля на устройстве, если известен
   pub active_profile_num: Option<u8>,
+
+  /// Разрешение на запись комбинации клавиш/стика из UI
   pub allow_write: bool,
+
+  /// Двунаправленные буферы обмена с устройством
   pub buffers: Buffers,
+
+  /// Текущее редактируемое состояние кнопки/стика
   pub button: KeypadButton,
+
+  /// Информация об устройстве
   pub device_info: Device,
+
+  /// Флаг записи в ПЗУ (true) или ОЗУ (false)
   pub is_rom: bool,
+
+  /// Дескриптор последовательного порта и его состояние
   pub keypad: Keypad,
+
+  /// Текущая страница
   pub pages: Pages,
+
+  /// Активный профиль
   pub profile: Profile,
+
+  /// Таймер для автоотмены режима записи
   pub time_write: Option<std::time::Instant>,
+
+  /// Параметры окна
   pub window_settings: Window,
 }
 

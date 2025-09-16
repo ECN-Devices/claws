@@ -1,3 +1,5 @@
+//! Пользовательский интерфейс на базе Iced: состояние, сообщения и представления.
+
 use crate::{
   State,
   data::{Config, code::CodeAscii, device::Device, profiles::Profile, window::Window},
@@ -24,7 +26,9 @@ use std::{
 pub mod pages;
 pub mod styles;
 
+/// Базовая ширина окна по умолчанию
 pub const WINDOW_WIDTH: f32 = 800.;
+/// Базовая высота окна по умолчанию
 pub const WINDOW_HEIGH: f32 = 600.;
 
 /**
@@ -33,72 +37,113 @@ pub const WINDOW_HEIGH: f32 = 600.;
 */
 #[derive(Debug, Clone)]
 pub enum Message {
+  /// Пустое сообщение (ничего не делает)
   None,
 
-  /// Port
+  // --- Порт / последовательный интерфейс ---
+  /// Запрос чтения данных из последовательного порта (асинхронно)
   PortReceive,
+  /// Сигнал о завершении операции чтения порта
   PortReceived,
 
+  /// Запрос записи данных в последовательный порт (асинхронно)
   PortSend,
+  /// Сигнал о завершении операции записи в порт
   PortSended,
 
+  /// Поиск доступного порта устройства
   PortSearch,
 
+  /// Проверка доступности порта (ping пустой командой)
   PortAvalaible,
 
+  /// Запрос состояния всех переключателей на устройстве
   RequestCondition,
 
+  // --- Навигация/страницы ---
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
 
+  // --- UI и настройки окна ---
+  /// Сохранение выбранной клавиши/стика для редактирования
   GetButtonSettings(usize, bool),
 
-  /// Подписки
+  /// Сообщение о ресайзе окна (ширина, высота)
   WindowResized(f32, f32),
+  /// Сообщение о перемещении окна
   WindowMoved(Point),
+  /// Сохранить текущие параметры окна
   WindowSettingsSave,
 
-  /// Перезагрузка устройства в режим прошивки
+  // --- Служебные операции устройства ---
+  /// Перезагрузка устройства в загрузчик прошивки
   RebootToBootloader,
 
-  /// Профиль
+  // --- Профили ---
+  /// Отправить текущий профиль в устройство
   ProfileWrite,
+  /// Завершение отправки профиля
   ProfileWrited,
+  /// Запросить профиль с устройства
   ProfileReceive,
+  /// Сохранить полученный профиль в состоянии
   ProfileReceived(Profile),
 
-  ProfileFileSave,
+  /// Импорт профиля из файла
+  ProfileImport,
+  /// Экспорт текущего профиля в файл
+  ProfileExport,
+  /// Записать в устройство профиль, загруженный из файла
   ProfileFileWrite(Profile),
 
+  /// Сохранить активный профиль устройства во Flash
   ProfileFlashSave,
 
+  /// Сделать профиль активным в RAM (1..=4)
   ProfileActiveWriteToRam(u8),
+  /// Сделать профиль активным в ROM/Flash (1..=4)
   ProfileActiveWriteToRom(u8),
 
+  /// Запрос номера активного профиля
   ProfileRequestActiveNum,
+  /// Сохранить номер активного профиля в состоянии
   ProfileRequestActiveNumState(u8),
+  /// Загрузить профиль из RAM в активный
   ProfileLoadRamToActive(u8),
+  /// Обновить имя профиля из поля ввода
   ProfileUpdateName(String),
 
+  /// Завершение операций сохранения профиля (в файл или Flash)
   ProfileSaved,
 
-  /// Открытие диалога выбора файла
-  OpenFileDialog,
-
+  // --- Редактирование комбинаций ---
+  /// Переключить режим записи в ROM/Flash
   WriteButtonIsRom,
 
+  /// Разрешить ввод комбинации (кнопки/стик)
   AllowWriteButtonCombination,
+  /// Запретить ввод комбинации и сбросить таймер
   DisallowWriteButtonCombination,
+  /// Очистить комбинацию у кнопки/стика
   ClearButtonCombination(usize, bool),
+  /// Добавить код в текущую комбинацию (если разрешено)
   WriteButtonCombination(Option<u8>),
+  /// Сохранить набранную комбинацию в профиль
   SaveButtonCombination(usize),
 
+  /// Установить мёртвую зону стика
   WriteDeadZone(u8),
 
+  // --- Информация об устройстве ---
+  /// Запросить информацию об устройстве
   GetDeviceInfo,
+  /// Распарсить ответ об устройстве в структуру
   DeviceInfoParse(Vec<u8>),
+  /// Сохранить информацию об устройстве
   DeviceInfoSave(Device),
 
+  // --- Таймеры/служебные ---
+  /// Периодическая проверка таймаута режима записи комбинации
   TimerWriteCheck,
 }
 
@@ -191,7 +236,18 @@ impl State {
   }
 
   /**
-  Обрабатывает входящие сообщения и обновляет состояние приложения
+  Обрабатывает входящие сообщения и обновляет состояние приложения.
+  Это "сердце" приложения: реакция на события UI, таймеры и обмен с устройством.
+
+  Группы действий:
+  - Порт: чтение/запись/поиск (`PortReceive`, `PortSend`, `PortSearch`, `PortAvalaible`, `PortSended`, `PortReceived`)
+  - Навигация: смена страниц (`ChangePage`)
+  - Окно: размеры/позиция/сохранение (`WindowResized`, `WindowMoved`, `WindowSettingsSave`)
+  - Профили: запрос/получение/запись/экспорт/импорт/активация (`Profile*`)
+  - Редактирование комбинаций: разрешение, ввод, очистка, сохранение (`Allow*/Disallow*`, `WriteButtonCombination`, `Clear*`, `SaveButtonCombination`)
+  - Устройство: информация (`GetDeviceInfo`, `DeviceInfoParse`, `DeviceInfoSave`) и перезагрузка в загрузчик (`RebootToBootloader`)
+  - Таймеры: автоотключение режима записи (`TimerWriteCheck`)
+
   # Аргументы
   * `message` - Сообщение для обработки
   # Возвращает
@@ -199,7 +255,9 @@ impl State {
   */
   pub fn update(&mut self, message: Message) -> Task<Message> {
     match message {
+      // Ничего не делаем
       Message::None => Task::none(),
+      // Читает данные из порта
       Message::PortReceive => {
         if !self.keypad.is_open {
           return Task::none();
@@ -215,7 +273,9 @@ impl State {
           |_| Message::PortReceived,
         )
       }
+      // Завершение чтения порта — побочных действий нет
       Message::PortReceived => Task::none(),
+      // Записывает данные в порт
       Message::PortSend => {
         if !self.keypad.is_open {
           return Task::none();
@@ -229,6 +289,7 @@ impl State {
           |_| Message::PortSended,
         )
       }
+      // Завершение записи в порт — побочных действий нет
       Message::PortSended => {
         // match res {
         //   Ok(_) => (),
@@ -239,6 +300,7 @@ impl State {
         // }
         Task::none()
       }
+      // Пытаемся найти и открыть последовательный порт устройства
       Message::PortSearch => {
         let port = match Keypad::get_port() {
           Ok(port) if !port.is_empty() => port,
@@ -267,8 +329,10 @@ impl State {
 
         self.pages = Pages::Profiles;
 
+        // После подключения — запросить профиль
         Task::done(Message::ProfileReceive)
       }
+      // Проверка доступности порта пустой командой
       Message::PortAvalaible => {
         let mut buf = self.buffers.clone();
 
@@ -277,6 +341,7 @@ impl State {
           |_| Message::PortSended,
         )
       }
+      // Запрос состояния переключателей
       Message::RequestCondition => {
         let mut buf = self.buffers.clone();
 
@@ -285,10 +350,12 @@ impl State {
           |_| Message::PortSended,
         )
       }
+      // Переключение страницы
       Message::ChangePage(page) => {
         self.pages = page;
         Task::none()
       }
+      // Подготовка к вводу/редактированию комбинации кнопки или стика
       Message::GetButtonSettings(id, stick) => {
         self.button.vec_str.clear();
         self.button.code.clear();
@@ -301,22 +368,28 @@ impl State {
 
         self.button.is_stick = stick;
 
+
+        // Разрешаем запись комбинации
         Task::done(Message::AllowWriteButtonCombination)
       }
+      // Обновление размеров окна
       Message::WindowResized(width, height) => {
         self.window_settings.width = width;
         self.window_settings.height = height;
         Task::none()
       }
+      // Обновление позиции окна
       Message::WindowMoved(point) => {
         self.window_settings.x = point.x;
         self.window_settings.y = point.y;
         Task::none()
       }
+      // Сохранение настроек окна
       Message::WindowSettingsSave => {
         self.window_settings.save();
         Task::none()
       }
+      // Перезагрузка устройства в режим загрузчика
       Message::RebootToBootloader => {
         self.keypad.is_open = false;
         self.keypad.port = None;
@@ -326,7 +399,7 @@ impl State {
           Ok(port) => port,
           Err(_) => return Task::none(),
         };
-
+        // Открытие порта на 1200 бод для входа в бутлоадер
         serialport::new(&port, 1200)
           .timeout(Duration::from_millis(10))
           .open()
@@ -335,6 +408,7 @@ impl State {
         info!("Кейпад перезагружен в режим прошивки");
         Task::none()
       }
+      // Отправка текущего профиля в устройство
       Message::ProfileWrite => {
         let mut buffers = self.buffers.clone();
         let profile = self.profile.clone();
@@ -345,7 +419,9 @@ impl State {
           |_| Message::ProfileWrited,
         )
       }
+      // Завершение записи профиля
       Message::ProfileWrited => Task::none(),
+      // Запрос профиля с устройства
       Message::ProfileReceive => {
         if !self.keypad.is_open {
           return Task::none();
@@ -365,11 +441,15 @@ impl State {
           },
         )
       }
+      // Сохранение полученного профиля в структуру профиля
       Message::ProfileReceived(profile) => {
         self.profile = profile;
         Task::none()
       }
-      Message::ProfileFileSave => {
+      // Открыть диалог импорта профиля
+      Message::ProfileImport => Profile::open_load_file_dialog(),
+      // Экспорт профиля в файл
+      Message::ProfileExport => {
         let profile = self.profile.clone();
         Task::perform(
           async move {
@@ -382,6 +462,7 @@ impl State {
           |_| Message::ProfileSaved,
         )
       }
+      // Запись выбранного из файла профиля в устройство
       Message::ProfileFileWrite(profile) => {
         let mut buffers = self.buffers.clone();
         Task::perform(
@@ -391,6 +472,7 @@ impl State {
           |_| Message::ProfileReceive,
         )
       }
+      // Сохранение активного профиля во Flash
       Message::ProfileFlashSave => {
         let buf = self.buffers.clone();
         Task::perform(
@@ -406,6 +488,7 @@ impl State {
           |_| Message::ProfileSaved,
         )
       }
+      // Активировать профиль в RAM
       Message::ProfileActiveWriteToRam(num) => {
         let mut buf = self.buffers.clone();
         let profile = self.profile.clone();
@@ -423,6 +506,7 @@ impl State {
           |_| Message::None,
         )
       }
+      // Активировать профиль в ROM/Flash и синхронизировать RAM
       Message::ProfileActiveWriteToRom(num) => {
         let mut buf = self.buffers.clone();
         let profile = self.profile.clone();
@@ -441,6 +525,7 @@ impl State {
           |_| Message::None,
         )
       }
+      // Запрос номера активного профиля
       Message::ProfileRequestActiveNum => {
         let mut buf = self.buffers.clone();
         Task::perform(
@@ -454,10 +539,12 @@ impl State {
           },
         )
       }
+      // Сохраняем номер активного профиля в состояние
       Message::ProfileRequestActiveNumState(num) => {
         self.active_profile_num = Some(num);
         Task::none()
       }
+      // Загрузить профиль из RAM ячейки в активный
       Message::ProfileLoadRamToActive(num) => {
         let buf = self.buffers.clone();
         self.active_profile_num = Some(num);
@@ -473,12 +560,14 @@ impl State {
           |_| Message::ProfileReceive,
         )
       }
+      // Обновление имени профиля из поля ввода
       Message::ProfileUpdateName(string) => {
         self.profile.name = string;
         Task::none()
       }
+      // Маркер завершения операций с профилем
       Message::ProfileSaved => Task::none(),
-      Message::OpenFileDialog => Profile::open_load_file_dialog(),
+      // Переключение режима записи (ROM<->RAM) и подгрузка данных из Flash при необходимости
       Message::WriteButtonIsRom => {
         self.is_rom = !self.is_rom;
 
@@ -498,16 +587,19 @@ impl State {
           false => Task::none(),
         }
       }
+      // Разрешаем набор комбинации, запускаем таймер автоотмены
       Message::AllowWriteButtonCombination => {
         self.allow_write = true;
         self.time_write = Some(std::time::Instant::now());
         Task::none()
       }
+      // Запрещаем набор комбинации, сбрасываем таймер
       Message::DisallowWriteButtonCombination => {
         self.allow_write = false;
         self.time_write = None;
         Task::none()
       }
+      // Очистка комбинации у кнопки или стика
       Message::ClearButtonCombination(id, is_stick) => {
         match is_stick {
           true => self.profile.stick.word[id - 1] = 0,
@@ -516,6 +608,7 @@ impl State {
 
         Task::done(Message::DisallowWriteButtonCombination)
       }
+      // Добавляем код в текущую комбинацию с ограничениями (1 для стика, до 6 для кнопки)
       Message::WriteButtonCombination(code) => {
         self.time_write = Some(std::time::Instant::now());
 
@@ -548,6 +641,7 @@ impl State {
 
         Task::done(Message::SaveButtonCombination(self.button.id))
       }
+      // Сохраняем набранную комбинацию в профиле
       Message::SaveButtonCombination(id) => {
         debug!("{:?}", self.profile.buttons);
 
@@ -570,10 +664,12 @@ impl State {
         // Task::done(Message::ClearButtonCombination)
         Task::none()
       }
+      // Сохраняем мёртвую зону стика
       Message::WriteDeadZone(deadzone) => {
         self.profile.stick.deadzone = deadzone;
         Task::none()
       }
+      // Запрашиваем информацию об устройстве
       Message::GetDeviceInfo => {
         let mut buffers = self.buffers.clone();
         Task::perform(
@@ -586,14 +682,17 @@ impl State {
           },
         )
       }
+      // Асинхронный парсинг ответа устройства
       Message::DeviceInfoParse(res) => Task::perform(
         async move { Device::parse(&res).await },
         Message::DeviceInfoSave,
       ),
+      // Сохраняем информацию об устройстве в структуру устройства
       Message::DeviceInfoSave(device) => {
         self.device_info = device;
         Task::none()
       }
+      // Периодическая проверка таймаута набора комбинации (2 секунды)
       Message::TimerWriteCheck => {
         if let Some(start_time) = self.time_write
           && start_time.elapsed() >= Duration::from_secs(2)
@@ -644,6 +743,8 @@ impl State {
 
   /// Возвращает подписки на события приложения
   pub fn subscription(&self) -> Subscription<Message> {
+    // Таймеры обмена с портом: при открытом порте — частый опрос чтения/записи,
+    // при закрытом — редкий опрос на подключение устройства
     let port_sub = match self.keypad.is_open {
       true => iced::Subscription::batch(vec![
         iced::time::every(Duration::from_millis(1)).map(|_| Message::PortSend),
@@ -652,6 +753,8 @@ impl State {
       false => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
     };
 
+    // Подписка на события окна: перемещение, изменение размера,
+    // а также сохранение параметров при фокусе/расфокусе/закрытии
     let window = event::listen_with(|event, _status, _id| match event {
       Event::Window(event) => match event {
         #[cfg(windows)]
@@ -672,6 +775,8 @@ impl State {
       _ => None,
     });
 
+    // Захват нажатий клавиатуры для набора комбинации
+    // Активен только когда разрешён режим записи комбинации
     let keyboard = match self.allow_write {
       true => event::listen_with(|event, _status, _id| match event {
         Event::Keyboard(event) => {
@@ -699,6 +804,7 @@ impl State {
       false => Subscription::none(),
     };
 
+    // Периодический запрос номера активного профиля при открытой странице "Профили"
     let profile_active = match (&self.pages, &self.keypad.is_open) {
       (Pages::Profiles, true) => {
         iced::time::every(Duration::from_millis(500)).map(|_| Message::ProfileRequestActiveNum)
@@ -706,6 +812,7 @@ impl State {
       _ => Subscription::none(),
     };
 
+    // Таймер проверки таймаута режима записи комбинации
     let timer_check = match self.allow_write {
       true => iced::time::every(Duration::from_millis(100)).map(|_| Message::TimerWriteCheck),
       false => Subscription::none(),
@@ -733,13 +840,12 @@ impl State {
 }
 
 /**
-Создает кнопку с SVG-иконкой и текстовой подсказкой
+Создает кнопку с SVG-иконкой
 # Аргументы
-* `button_text` - Текст подсказки
 * `icon` - Иконка из перечисления `Icon`
 * `on_press` - Сообщение при нажатии
 # Возвращает
-Элемент интерфейса с кнопкой и подсказкой
+Кнопка с иконкой
 */
 fn create_button_with_svg_and_text<'a>(icon: Icon, on_press: Message) -> Button<'a, Message> {
   Button::new(container(

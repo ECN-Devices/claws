@@ -1,9 +1,12 @@
+//! Набор команд протокола взаимодействия с устройством.
+
 pub mod device;
 pub mod empty;
 pub mod profile;
 pub mod stick;
 pub mod switch;
 
+/// Корневое перечисление всех команд протокола
 #[derive(Debug, Clone)]
 pub enum KeypadCommands {
   Device(device::Command),
@@ -13,7 +16,9 @@ pub enum KeypadCommands {
   Switch(switch::Command),
 }
 
+/// Унифицированный интерфейс получения байтовой последовательности команды
 pub trait Value {
+  /// Возвращает полезную нагрузку команды (без обрамляющих байтов протокола)
   fn get(&self) -> Vec<u8>;
 }
 

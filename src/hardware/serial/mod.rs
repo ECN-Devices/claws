@@ -1,3 +1,5 @@
+//! Работа с последовательным портом и протоколом обмена с кейпадом.
+
 use super::buffers::Buffers;
 use crate::{
   errors::serial::KeypadError,
@@ -20,6 +22,7 @@ pub mod buttons;
 pub mod profile;
 pub mod stick;
 
+/// Тип-обёртка для потокобезопасного доступа к `SerialPort`
 type SerialIO = Arc<Mutex<Box<dyn SerialPort>>>;
 
 /**
@@ -28,7 +31,10 @@ type SerialIO = Arc<Mutex<Box<dyn SerialPort>>>;
 */
 #[derive(Debug, Clone, Default)]
 pub struct Keypad {
+  /// Флаг открытого подключения
   pub is_open: bool,
+
+  /// Дескриптор порта, если подключение установлено
   pub port: Option<SerialIO>,
 }
 
@@ -38,21 +44,18 @@ pub trait DeviceIO {
   fn get_port() -> Result<String>;
 
   /**
-  Читает данные из последовательного порта
+  Читает данные из последовательного порта и складывает их в буферы
   # Аргументы
   * `port` - Ссылка на последовательный порт
-  # Возвращает
-  Прочитанные данные или ошибку последовательного порта
+  * `buffers` - Буферы обмена
   */
   fn receive(port: &mut SerialIO, buffers: &mut Buffers) -> Result<()>;
 
   /**
-  Записывает команду в последовательный порт
+  Записывает команду из буфера отправки в последовательный порт
   # Аргументы
   * `port` - Ссылка на последовательный порт
-  * `command` - Команда для отправки
-  # Возвращает
-  Результат операции или структуру Keypad с состоянием ошибки
+  * `buffers` - Буферы обмена
   */
   fn send(port: &mut SerialIO, buffers: &mut Buffers) -> Result<()>;
 }
@@ -90,7 +93,6 @@ impl DeviceIO for Keypad {
 
             loop {
               if time.elapsed()? >= Duration::from_secs(5) {
-                // return Ok("".to_string());
                 return Err(KeypadError::NoPortsFound.into());
               }
 

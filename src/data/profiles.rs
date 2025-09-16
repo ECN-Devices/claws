@@ -3,7 +3,10 @@ use crate::{assets::APPLICATION_NAME, hardware::serial::stick::Stick};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
+/// Количество кнопок на устройстве
 pub const KEYPAD_BUTTONS: u8 = 16;
+
+/// Разделитель для отображения комбинаций
 pub const SEPARATOR: &str = " ";
 
 /**
@@ -13,6 +16,7 @@ pub const SEPARATOR: &str = " ";
 */
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Profile {
+  /// Имя профиля (до 15 символов для записи на устройство)
   pub name: String,
 
   /**
@@ -64,7 +68,7 @@ impl Profile {
     confy::load_path(path).expect("Не удалось загрузить конфигурацию профиля из файла")
   }
 
-  /// Преобразует код клавиши в читаемый символ
+  /// Преобразует код клавиши в читаемый символ/название
   pub fn code_to_title(code: u8) -> String {
     match code {
       16 | 212 => "Del".to_string(),
@@ -124,6 +128,7 @@ impl Profile {
     }
   }
 
+  /// Возвращает подпись для кнопки с номером `button_id`
   pub fn get_button_label(&self, button_id: usize) -> String {
     self.buttons[button_id]
       .into_iter()
@@ -133,6 +138,7 @@ impl Profile {
       .join(SEPARATOR)
   }
 
+  /// Возвращает подпись для направления стика с номером `stick_id`
   pub fn get_stick_label(&self, stick_id: usize) -> String {
     let code = self.stick.word[stick_id];
 

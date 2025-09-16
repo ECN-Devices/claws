@@ -1,15 +1,20 @@
+//! Двунаправленные буферы обмена с устройством.
+
 use super::commands::{KeypadCommands, Value};
 use std::sync::{Arc, Mutex, MutexGuard};
 
+/// Очередь исходящих пакетов к устройству
 #[derive(Debug, Clone, Default)]
 pub struct Send {
   buffer: Vec<Vec<u8>>,
 }
+/// Очередь входящих пакетов от устройства
 #[derive(Debug, Clone, Default)]
 pub struct Receive {
   buffer: Vec<Vec<u8>>,
 }
 
+/// Объединяет очереди отправки и приёма и делает их потокобезопасными
 #[derive(Debug, Clone, Default)]
 pub struct Buffers {
   send: Arc<Mutex<Send>>,
@@ -17,16 +22,19 @@ pub struct Buffers {
 }
 
 impl Buffers {
+  /// Возвращает MutexGuard на очередь отправки
   pub fn send(&self) -> MutexGuard<'_, Send> {
     self.send.lock().unwrap()
   }
 
+  /// Возвращает MutexGuard на очередь приёма
   pub fn receive(&self) -> MutexGuard<'_, Receive> {
     self.receive.lock().unwrap()
   }
 }
 
 impl Send {
+  /// Извлекает первый пакет из очереди отправки
   pub fn pull(&mut self) -> Option<Vec<u8>> {
     match self.buffer.is_empty() {
       true => None,
@@ -35,6 +43,7 @@ impl Send {
   }
 }
 impl Receive {
+  /// Извлекает первый пакет, соответствующий команде `command`
   pub fn pull(&mut self, command: &KeypadCommands) -> Option<Vec<u8>> {
     self
       .buffer
@@ -44,8 +53,10 @@ impl Receive {
   }
 }
 
+/// Унифицированный интерфейс добавления пакетов в очереди
 pub trait BuffersIO {
   // fn len(&self) -> usize;
+  /// Добавляет пакет в очередь
   fn push(&mut self, data: Vec<u8>);
 }
 impl BuffersIO for Send {
