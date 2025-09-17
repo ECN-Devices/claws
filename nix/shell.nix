@@ -20,8 +20,6 @@ in
 
     packages = with pkgs; [
       self.checks.${system}.git-hooks.enabledPackages
-      pkg-config
-      systemd
       cargo-xwin
       cargo-nextest
     ];

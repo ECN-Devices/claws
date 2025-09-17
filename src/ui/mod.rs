@@ -235,24 +235,22 @@ impl State {
     "Claws".to_string()
   }
 
-  /**
-  Обрабатывает входящие сообщения и обновляет состояние приложения.
-  Это "сердце" приложения: реакция на события UI, таймеры и обмен с устройством.
-
-  Группы действий:
-  - Порт: чтение/запись/поиск (`PortReceive`, `PortSend`, `PortSearch`, `PortAvalaible`, `PortSended`, `PortReceived`)
-  - Навигация: смена страниц (`ChangePage`)
-  - Окно: размеры/позиция/сохранение (`WindowResized`, `WindowMoved`, `WindowSettingsSave`)
-  - Профили: запрос/получение/запись/экспорт/импорт/активация (`Profile*`)
-  - Редактирование комбинаций: разрешение, ввод, очистка, сохранение (`Allow*/Disallow*`, `WriteButtonCombination`, `Clear*`, `SaveButtonCombination`)
-  - Устройство: информация (`GetDeviceInfo`, `DeviceInfoParse`, `DeviceInfoSave`) и перезагрузка в загрузчик (`RebootToBootloader`)
-  - Таймеры: автоотключение режима записи (`TimerWriteCheck`)
-
-  # Аргументы
-  * `message` - Сообщение для обработки
-  # Возвращает
-  Задачу для выполнения после обработки сообщения
-  */
+  /// Обрабатывает входящие сообщения и обновляет состояние приложения.
+  /// Это "сердце" приложения: реакция на события UI, таймеры и обмен с устройством.
+  ///
+  /// Группы действий:
+  /// - Порт: чтение/запись/поиск (`PortReceive`, `PortSend`, `PortSearch`, `PortAvalaible`, `PortSended`, `PortReceived`)
+  /// - Навигация: смена страниц (`ChangePage`)
+  /// - Окно: размеры/позиция/сохранение (`WindowResized`, `WindowMoved`, `WindowSettingsSave`)
+  /// - Профили: запрос/получение/запись/экспорт/импорт/активация (`Profile*`)
+  /// - Редактирование комбинаций: разрешение, ввод, очистка, сохранение (`Allow*/Disallow*`, `WriteButtonCombination`, `Clear*`, `SaveButtonCombination`)
+  /// - Устройство: информация (`GetDeviceInfo`, `DeviceInfoParse`, `DeviceInfoSave`) и перезагрузка в загрузчик (`RebootToBootloader`)
+  /// - Таймеры: автоотключение режима записи (`TimerWriteCheck`)
+  ///
+  /// # Аргументы
+  /// * `message` - Сообщение для обработки
+  /// # Возвращает
+  /// Задачу для выполнения после обработки сообщения
   pub fn update(&mut self, message: Message) -> Task<Message> {
     match message {
       // Ничего не делаем
@@ -367,7 +365,6 @@ impl State {
         }
 
         self.button.is_stick = stick;
-
 
         // Разрешаем запись комбинации
         Task::done(Message::AllowWriteButtonCombination)

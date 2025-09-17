@@ -20,10 +20,10 @@ in
 
     nativeBuildInputs = with pkgs; [
       pkg-config
-      systemd
     ];
 
     buildInputs = with pkgs; [
+      systemd
       libGL
       libxkbcommon
       udev
