@@ -154,7 +154,7 @@
         };
 
         packages = {
-          default = craneLib.buildPackage (commonArgs {debug = true;}
+          default = craneLib.buildPackage (commonArgs {debug = false;}
             // {
               cargoArtifacts = cargoArtifactsDebug;
 
@@ -163,7 +163,7 @@
                   --prefix LD_LIBRARY_PATH : ${libPath}
               '';
             });
-          release = craneLib.buildPackage (commonArgs {debug = false;}
+          debug = craneLib.buildPackage (commonArgs {debug = true;}
             // {
               cargoArtifacts = cargoArtifactsRelease;
 
@@ -172,11 +172,11 @@
                   --prefix LD_LIBRARY_PATH : ${libPath}
               '';
             });
-          windows = craneLibCross.buildPackage (windowsArgs {debug = true;}
+          windows = craneLibCross.buildPackage (windowsArgs {debug = false;}
             // {
               cargoArtifacts = cargoArtifactsWindowsDebug;
             });
-          windowsRelease = craneLibCross.buildPackage (windowsArgs {debug = false;}
+          windowsDebug = craneLibCross.buildPackage (windowsArgs {debug = true;}
             // {
               cargoArtifacts = cargoArtifactsWindowsRelease;
             });
