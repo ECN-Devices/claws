@@ -25,24 +25,94 @@
     inputs.flake-utils.lib.eachDefaultSystem (
       system: let
         overlays = [(import inputs.rust-overlay)];
+
         pkgs = import nixpkgs {
           inherit system overlays;
         };
 
+        pkgsCross = import nixpkgs {
+          inherit system overlays;
+          crossSystem = {
+            config = "x86_64-w64-mingw32";
+            libc = "msvcrt";
+          };
+        };
+
         craneLib = (inputs.crane.mkLib pkgs).overrideToolchain (
-          pkgs.rust-bin.stable.latest.default.override {
-            extensions = [
-              "rust-analyzer"
-              "cargo"
-              "rustc"
-              "rust-src"
-            ];
-            targets = [
-              "x86_64-unknown-linux-gnu"
-              "x86_64-pc-windows-msvc"
-            ];
-          }
+          p:
+            p.rust-bin.stable.latest.default.override {
+              extensions = [
+                "rust-analyzer"
+                "cargo"
+                "rustc"
+                "rust-src"
+              ];
+              targets = [
+                "x86_64-unknown-linux-gnu"
+              ];
+            }
         );
+
+        craneLibCross = (inputs.crane.mkLib pkgsCross).overrideToolchain (
+          p:
+            p.rust-bin.stable.latest.default.override {
+              targets = [
+                "x86_64-pc-windows-gnu"
+              ];
+            }
+        );
+
+        libPath = with pkgs;
+          lib.makeLibraryPath [
+            libGL
+            libxkbcommon
+            wayland
+          ];
+
+        commonArgs = {debug ? false}: {
+          src = craneLib.path ./.;
+          strictDeps = true;
+
+          CARGO_PROFILE =
+            if debug
+            then "dev"
+            else "release";
+
+          doCheck =
+            if debug
+            then false
+            else true;
+
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+            makeWrapper
+          ];
+
+          buildInputs = with pkgs; [
+            systemd
+          ];
+        };
+
+        windowsArgs = {debug ? false}: {
+          src = craneLibCross.path ./.;
+          strictDeps = true;
+
+          CARGO_PROFILE =
+            if debug
+            then "dev"
+            else "release";
+
+          doCheck =
+            if debug
+            then false
+            else true;
+        };
+
+        cargoArtifactsDebug = craneLib.buildDepsOnly (commonArgs {debug = true;});
+        cargoArtifactsRelease = craneLib.buildDepsOnly (commonArgs {debug = false;});
+
+        cargoArtifactsWindowsDebug = craneLibCross.buildDepsOnly (windowsArgs {debug = true;});
+        cargoArtifactsWindowsRelease = craneLibCross.buildDepsOnly (windowsArgs {debug = false;});
       in {
         checks = {
           build = self.packages.${system}.default;
@@ -84,7 +154,32 @@
         };
 
         packages = {
-          default = pkgs.callPackage ./nix/default.nix {inherit inputs craneLib;};
+          default = craneLib.buildPackage (commonArgs {debug = true;}
+            // {
+              cargoArtifacts = cargoArtifactsDebug;
+
+              postInstall = ''
+                wrapProgram $out/bin/claws \
+                  --prefix LD_LIBRARY_PATH : ${libPath}
+              '';
+            });
+          release = craneLib.buildPackage (commonArgs {debug = false;}
+            // {
+              cargoArtifacts = cargoArtifactsRelease;
+
+              postInstall = ''
+                wrapProgram $out/bin/claws \
+                  --prefix LD_LIBRARY_PATH : ${libPath}
+              '';
+            });
+          windows = craneLibCross.buildPackage (windowsArgs {debug = true;}
+            // {
+              cargoArtifacts = cargoArtifactsWindowsDebug;
+            });
+          windowsRelease = craneLibCross.buildPackage (windowsArgs {debug = false;}
+            // {
+              cargoArtifacts = cargoArtifactsWindowsRelease;
+            });
         };
 
         formatter = pkgs.alejandra;
