@@ -116,29 +116,20 @@ impl Pages {
           ]
           .spacing(SPACING)
           .align_x(Alignment::Center),
+          mk_button_stick(state, 1, profile),
           row![
             mk_button_stick(state, 4, profile),
-            column![
-              mk_button_stick(state, 1, profile),
-              button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH).style(
-                move |theme: &Theme, status| {
-                  styles::button::stick::active_write(
-                    theme,
-                    status,
-                    state,
-                    0,
-                    state.button.is_stick,
-                  )
-                }
-              ),
-              mk_button_stick(state, 3, profile),
-            ]
-            .spacing(SPACING),
+            button("").height(BUTTON_HEIGH).width(BUTTON_WIDTH).style(
+              move |theme: &Theme, status| {
+                styles::button::stick::active_write(theme, status, state, 0, state.button.is_stick)
+              }
+            ),
             mk_button_stick(state, 2, profile),
           ]
-          .spacing(SPACING)
-          .align_y(Alignment::Center)
+          .spacing(SPACING),
+          mk_button_stick(state, 3, profile),
         ]
+        .align_x(Alignment::Center)
         .spacing(SPACING)
         .width(317.);
 
