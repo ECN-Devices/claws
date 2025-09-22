@@ -397,10 +397,9 @@ impl State {
           Err(_) => return Task::none(),
         };
         // Открытие порта на 1200 бод для входа в бутлоадер
-        serialport::new(&port, 1200)
+        let _ = serialport::new(&port, 1200)
           .timeout(Duration::from_millis(10))
-          .open()
-          .unwrap();
+          .open();
 
         info!("Кейпад перезагружен в режим прошивки");
         Task::none()
