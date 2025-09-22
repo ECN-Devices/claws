@@ -526,12 +526,11 @@ impl State {
         let mut buf = self.buffers.clone();
         Task::perform(
           async move {
-            tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf).unwrap())
-              .await
+            tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf)).await
           },
           |res| match res {
-            Ok(num) => Message::ProfileRequestActiveNumState(num),
-            Err(_) => Message::None,
+            Ok(Ok(num)) => Message::ProfileRequestActiveNumState(num),
+            _ => Message::None,
           },
         )
       }
