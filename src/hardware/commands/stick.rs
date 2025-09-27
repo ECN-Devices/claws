@@ -109,9 +109,9 @@ pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
       .receive()
       .pull(&super::KeypadCommands::Stick(Command::RequestPositionASCII))
     {
-      Some(s) => {
-        debug!("request_position_ascii: {s:?}");
-        stick_code.copy_from_slice(&s[1..]);
+      Some(vec) => {
+        debug!("request_position_ascii: {vec:?}");
+        stick_code.copy_from_slice(&vec[1..]);
         break Ok(stick_code);
       }
       None => continue,
@@ -119,7 +119,7 @@ pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
   }
 }
 
-pub fn calibration_request(buffers: &mut Buffers) -> Result<u8> {
+pub fn calibration_request(buffers: &mut Buffers) -> Result<Vec<u8>> {
   let time = SystemTime::now();
   let duration = Duration::from_secs(5);
 
@@ -139,9 +139,9 @@ pub fn calibration_request(buffers: &mut Buffers) -> Result<u8> {
       .pull(&super::KeypadCommands::Stick(Command::Calibration(
         OptionsCalibration::Request,
       ))) {
-      Some(s) => {
-        debug!("calibration_request: {s:?}");
-        break Ok(*s.last().unwrap());
+      Some(vec) => {
+        debug!("calibration_request: {vec:?}");
+        break Ok(vec);
       }
       None => continue,
     };

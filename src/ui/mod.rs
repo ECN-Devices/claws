@@ -2,10 +2,12 @@
 
 use crate::{
   State,
-  data::{Config, code::CodeAscii, device::Device, profiles::Profile, window::Window},
+  data::{
+    Config, code::CodeAscii, device::Device, profiles::Profile, stick::Stick, window::Window,
+  },
   hardware::{
     buffers::{Buffers, BuffersIO},
-    commands::{Value, device, empty, profile, switch},
+    commands::{Value, device, empty, profile, stick, switch},
     serial::{DeviceIO, Keypad, buttons::KeypadButton},
   },
 };
@@ -134,6 +136,14 @@ pub enum Message {
   /// Установить мёртвую зону стика
   WriteDeadZone(u8),
 
+  StickInitCalibration,
+  StickStartCalibration,
+  StickCalibrated,
+  StickGetCalibrateParameters,
+  StickParseCalibrateParameters(Vec<u8>),
+  StickInfoSave(Stick),
+  StickEndCalibration,
+
   // --- Информация об устройстве ---
   /// Запросить информацию об устройстве
   GetDeviceInfo,
@@ -223,6 +233,10 @@ impl State {
         keypad,
         pages,
         profile: Profile::default(),
+        stick_callibrate: false,
+        stick_callibrate_time: None,
+        stick_info: Stick::default(),
+        stick_show_calibrate_parameters: false,
         time_write: None,
         window_settings: Window::load(),
       },
@@ -664,6 +678,53 @@ impl State {
         self.profile.stick.deadzone = deadzone;
         Task::none()
       }
+      Message::StickInitCalibration => {
+        self.stick_callibrate = true;
+        Task::none()
+      }
+      Message::StickStartCalibration => {
+        self.stick_callibrate_time = Some(std::time::Instant::now());
+
+        self
+          .buffers
+          .send()
+          .push(stick::Command::Calibration(stick::OptionsCalibration::Calibrate).get());
+
+        Task::none()
+      }
+      Message::StickCalibrated => {
+        if let Some(time) = self.stick_callibrate_time
+          && time.elapsed() >= Duration::from_millis(6500)
+        {
+          self.stick_callibrate_time = None;
+          self.stick_show_calibrate_parameters = true;
+          return Task::done(Message::StickGetCalibrateParameters);
+        }
+        Task::none()
+      }
+      Message::StickGetCalibrateParameters => {
+        let mut buf = self.buffers.clone();
+        Task::perform(
+          async move { tokio::task::spawn_blocking(move || stick::calibration_request(&mut buf)).await },
+          |res| match res {
+            Ok(Ok(res)) => Message::StickParseCalibrateParameters(res),
+            _ => Message::StickGetCalibrateParameters,
+          },
+        )
+      }
+      Message::StickParseCalibrateParameters(res) => Task::perform(
+        async move { Stick::parse(&res).await },
+        Message::StickInfoSave,
+      ),
+      Message::StickInfoSave(stick) => {
+        self.stick_info = stick;
+        Task::none()
+      }
+      Message::StickEndCalibration => {
+        self.stick_callibrate = false;
+        self.stick_show_calibrate_parameters = false;
+        Task::none()
+      }
       // Запрашиваем информацию об устройстве
       Message::GetDeviceInfo => {
         let mut buffers = self.buffers.clone();
@@ -724,7 +785,10 @@ impl State {
     .height(Length::Fill);
 
     let content = match self.keypad.is_open {
-      true => row![sidebar, vertical_rule(2), page],
+      true => match self.stick_callibrate {
+        true => row![page],
+        false => row![sidebar, vertical_rule(2), page],
+      },
       false => {
         if cfg!(debug_assertions) {
           return row![sidebar, vertical_rule(2), page].into();
@@ -813,12 +877,18 @@ impl State {
       false => Subscription::none(),
     };
 
+    let stick_calibrate_timer = match self.stick_callibrate_time {
+      Some(_) => iced::time::every(Duration::from_millis(100)).map(|_| Message::StickCalibrated),
+      None => Subscription::none(),
+    };
+
     Subscription::batch(vec![
       port_sub,
       window,
       keyboard,
       profile_active,
       timer_check,
+      stick_calibrate_timer,
     ])
   }
 

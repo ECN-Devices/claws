@@ -1,7 +1,10 @@
 //Убираем консоль при старте приложения на windows
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use crate::{data::device::Device, hardware::serial::buttons::KeypadButton};
+use crate::{
+  data::{device::Device, stick::Stick},
+  hardware::serial::buttons::KeypadButton,
+};
 use assets::{APPLICATION_NAME, INTER_FONT, INTER_FONT_BYTES, WINDOW_ICON};
 use data::{profiles::Profile, window::Window};
 use hardware::{buffers::Buffers, serial::Keypad};
@@ -50,9 +53,13 @@ pub struct State {
   /// Активный профиль
   pub profile: Profile,
 
+  pub stick_callibrate: bool,
+  pub stick_callibrate_time: Option<std::time::Instant>,
+  pub stick_info: Stick,
+  pub stick_show_calibrate_parameters: bool,
+
   /// Таймер для автоотмены режима записи
   pub time_write: Option<std::time::Instant>,
-
   /// Параметры окна
   pub window_settings: Window,
 }

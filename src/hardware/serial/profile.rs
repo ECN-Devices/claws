@@ -36,7 +36,7 @@ impl Keypad {
     keypad_profile.stick.word = stick_s;
 
     let stick_d = stick::calibration_request(buffers)?;
-    keypad_profile.stick.deadzone = stick_d;
+    keypad_profile.stick.deadzone = *stick_d.last().unwrap();
 
     Ok(keypad_profile)
   }

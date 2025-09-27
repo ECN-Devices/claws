@@ -188,7 +188,65 @@ impl Pages {
           .on_press(Message::RebootToBootloader)
           .style(styles::button::rounding);
 
-        column![screen_name, center(reboot_to_bootloader)]
+        let stick_calibration = mk_button!(
+          container("Калибровать стик").center_x(Length::Fill),
+          Message::StickInitCalibration
+        )
+        .width(Length::Fill);
+
+        let settings_layout = match state.stick_callibrate {
+          true => match state.stick_callibrate_time {
+            Some(time) => {
+              column![
+                container(text("Калибровка стика").size(HEADING_SIZE))
+                  .style(styles::container::round_bordered_box_header)
+                  .width(Length::Fill)
+                  .padding(PADDING),
+                container(text!("Вращайте стик {}", 6 - time.elapsed().as_secs()).size(20))
+                  .align_x(Alignment::Center)
+                  .style(styles::container::round_bordered_box)
+                  .width(Length::Fill)
+                  .padding(PADDING),
+              ]
+              .width(600)
+            }
+            None => match state.stick_show_calibrate_parameters {
+              true => {
+                column![
+                  container(text("Параметры калибровки стика").size(HEADING_SIZE))
+                    .style(styles::container::round_bordered_box_header)
+                    .width(Length::Fill)
+                    .padding(PADDING),
+                  container(column![
+                    text!("Центр по оси X: {}\nЦентр по оси Y: {}\nВнешняя мертвая зона: {}\nВнутренняя мертвая зона: {}",
+                     state.stick_info.center_x,
+                     state.stick_info.center_y,
+                     state.stick_info.external_deadzone,
+                     state.stick_info.internal_deadzone
+                   ).size(20),
+                   container(mk_button!("Готово", Message::StickEndCalibration)).align_right(Length::Fill)
+                 ]).style(styles::container::round_bordered_box).padding(PADDING),
+                ]
+                .width(600)
+              }
+              false => {
+                column![
+                  container(text("Калибровка стика").size(HEADING_SIZE)).style(styles::container::round_bordered_box_header).width(Length::Fill).padding(PADDING),
+                  container(column![
+                    "После нажатия на кнопку 'Далее' начнется процесс калибровки стика, вам необходимо вращать стик в крайнем положении пока не закончиться обратный отсчет.",
+                    container(mk_button!("Далее",Message::StickStartCalibration)).align_right(Length::Fill)
+                  ]).style(styles::container::round_bordered_box).width(Length::Fill).padding(PADDING),
+                ].width(600)
+              }
+            },
+          },
+          false => column![reboot_to_bootloader, stick_calibration].width(270)
+            .align_x(Alignment::Center)
+            .spacing(SPACING),
+        };
+
+        column![screen_name, center(settings_layout)]
+          .spacing(SPACING)
           .padding(PADDING)
           .into()
       }

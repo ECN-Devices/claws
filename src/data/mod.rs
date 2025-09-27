@@ -2,6 +2,7 @@ pub mod code;
 pub mod device;
 pub mod file_dialog;
 pub mod profiles;
+pub mod stick;
 pub mod window;
 
 /// Трейт конфигурации для сущностей, которые могут сохранять своё состояние.
