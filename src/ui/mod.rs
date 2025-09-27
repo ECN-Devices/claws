@@ -872,7 +872,7 @@ impl State {
     };
 
     // Таймер проверки таймаута режима записи комбинации
-    let timer_check = match self.allow_write {
+    let write_timer_check = match self.allow_write {
       true => iced::time::every(Duration::from_millis(100)).map(|_| Message::TimerWriteCheck),
       false => Subscription::none(),
     };
@@ -887,7 +887,7 @@ impl State {
       window,
       keyboard,
       profile_active,
-      timer_check,
+      write_timer_check,
       stick_calibrate_timer,
     ])
   }
