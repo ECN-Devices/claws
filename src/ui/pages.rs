@@ -212,7 +212,7 @@ impl Pages {
                      state.stick_info.internal_deadzone
                    ).size(20),
                    container(mk_button!("Готово", Message::StickEndCalibration)).align_right(Length::Fill)
-                 ]).style(styles::container::round_bordered_box).padding(PADDING),
+                 ].spacing(SPACING)).style(styles::container::round_bordered_box).padding(PADDING),
                 ]
                 .width(600)
               }
@@ -222,7 +222,7 @@ impl Pages {
                   container(column![
                     "После нажатия на кнопку 'Далее' начнется процесс калибровки стика, вам необходимо вращать стик в крайнем положении пока не закончиться обратный отсчет.",
                     container(mk_button!("Далее",Message::StickStartCalibration)).align_right(Length::Fill)
-                  ]).style(styles::container::round_bordered_box).width(Length::Fill).padding(PADDING),
+                  ].spacing(SPACING)).style(styles::container::round_bordered_box).width(Length::Fill).padding(PADDING),
                 ].width(600)
               }
             },
