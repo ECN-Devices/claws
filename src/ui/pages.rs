@@ -251,9 +251,17 @@ impl Pages {
         ];
 
         let about = center(
-          column![app_version, firmware_version]
-            .spacing(SPACING)
-            .width(Length::Fixed(300.)),
+          column![
+            container(text("Версия").size(HEADING_SIZE))
+              .style(styles::container::round_bordered_box_header)
+              .padding(PADDING)
+              .width(Length::Fill),
+            container(column![app_version, firmware_version].spacing(SPACING))
+              .style(styles::container::round_bordered_box)
+              .padding(PADDING)
+              .width(Length::Fill),
+          ]
+          .width(Length::Fixed(300.)),
         );
 
         container(column![screen_name, about])
