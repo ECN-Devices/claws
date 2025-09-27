@@ -18,6 +18,14 @@ const HEADING_SIZE: u16 = 30;
 const BUTTON_HEIGH: u16 = 100;
 const BUTTON_WIDTH: u16 = 90;
 
+macro_rules! mk_button {
+  ($text:expr, $on_press:expr) => {
+    button($text)
+      .on_press($on_press)
+      .style(styles::button::rounding)
+  };
+}
+
 /// Перечисление экранов приложения
 #[derive(Clone, Debug, Default)]
 pub enum Pages {
@@ -133,14 +141,16 @@ impl Pages {
         .spacing(SPACING)
         .width(317.);
 
-        let import_profile = button(text("Импорт профиля").center())
-          .on_press(Message::ProfileImport)
-          .width(180)
-          .style(styles::button::rounding);
-        let export_profile = button(text("Экспорт профиля").center())
-          .on_press(Message::ProfileExport)
-          .width(180)
-          .style(styles::button::rounding);
+        let import_profile = mk_button!(
+          container("Импорт профиля").center_x(Length::Fill),
+          Message::ProfileImport
+        )
+        .width(180);
+        let export_profile = mk_button!(
+          container("Экспорт профиля").center_x(Length::Fill),
+          Message::ProfileExport
+        )
+        .width(180);
 
         let all_profiles = column![
           screen_name,
@@ -184,9 +194,11 @@ impl Pages {
         row!(all_profiles, vertical_rule(2), active_profile,).into()
       }
       Self::Settings => {
-        let reboot_to_bootloader = button("Reboot to Bootloader")
-          .on_press(Message::RebootToBootloader)
-          .style(styles::button::rounding);
+        let reboot_to_bootloader = mk_button!(
+          container("Перезагрузить в bootloder").center_x(Length::Fill),
+          Message::RebootToBootloader
+        )
+        .width(Length::Fill);
 
         let stick_calibration = mk_button!(
           container("Калибровать стик").center_x(Length::Fill),
@@ -311,7 +323,7 @@ impl Icon {
 # Возвращает
 Готовый элемент кнопки с заданными параметрами
 */
-fn mk_button<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseArea<'a, Message> {
+fn mk_keypad_button<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseArea<'a, Message> {
   let _id = id - 1;
   let _text = profile.get_button_label(_id);
 
