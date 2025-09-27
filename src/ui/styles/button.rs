@@ -1,10 +1,10 @@
-use crate::State;
+use crate::{State, ui::styles::BORDER_RADIUS};
 use iced::{Border, Color, Theme, widget::button};
 
 pub fn rounding(theme: &Theme, status: button::Status) -> button::Style {
   button::Style {
     border: Border {
-      radius: 5.into(),
+      radius: BORDER_RADIUS.into(),
       ..Default::default()
     },
     ..button::primary(theme, status)
@@ -22,14 +22,14 @@ pub fn active_profile(
       true => button::Style {
         background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
         border: Border {
-          radius: 5.into(),
+          radius: BORDER_RADIUS.into(),
           ..Default::default()
         },
         ..button::primary(theme, status)
       },
       false => button::Style {
         border: Border {
-          radius: 5.into(),
+          radius: BORDER_RADIUS.into(),
           ..Default::default()
         },
         ..button::primary(theme, status)
@@ -50,14 +50,14 @@ pub fn active_write(
     (true, true, false) => button::Style {
       background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
       border: Border {
-        radius: 10.into(),
+        radius: (BORDER_RADIUS * 2.).into(),
         ..Default::default()
       },
       ..button::primary(theme, status)
     },
     _ => button::Style {
       border: Border {
-        radius: 10.into(),
+        radius: (BORDER_RADIUS * 2.).into(),
         ..Default::default()
       },
       ..button::primary(theme, status)
@@ -66,7 +66,7 @@ pub fn active_write(
 }
 
 pub mod stick {
-  use crate::State;
+  use crate::{State, ui::styles::BORDER_RADIUS};
   use iced::{Border, Color, Theme, widget::button};
 
   pub fn active_write(
@@ -80,14 +80,14 @@ pub mod stick {
       (true, true, true) => button::Style {
         background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
         border: Border {
-          radius: 10.into(),
+          radius: (BORDER_RADIUS * 2.).into(),
           ..Default::default()
         },
         ..button::primary(theme, status)
       },
       _ => button::Style {
         border: Border {
-          radius: 10.into(),
+          radius: (BORDER_RADIUS * 2.).into(),
           ..Default::default()
         },
         ..button::primary(theme, status)
