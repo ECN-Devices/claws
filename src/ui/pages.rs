@@ -74,45 +74,20 @@ impl Pages {
       Self::Profiles => {
         let toggler = toggler(state.is_rom).on_toggle(|_| Message::WriteButtonIsRom);
 
-        let ram_rom_button = column![
-          mk_button_profile_row(state, &1),
-          mk_button_profile_row(state, &2),
-          mk_button_profile_row(state, &3),
-          mk_button_profile_row(state, &4),
-        ]
-        .spacing(SPACING);
+        let ram_rom_button =
+          column((1..=4).map(|id| mk_button_profile_row(state, id).into())).spacing(SPACING);
 
-        let col_1 = column![
-          mk_button(state, 1, profile),
-          mk_button(state, 2, profile),
-          mk_button(state, 3, profile),
-          mk_button(state, 4, profile),
-        ]
-        .spacing(SPACING);
+        let col_1 =
+          column((1..=4).map(|id| mk_keypad_button(state, id, profile).into())).spacing(SPACING);
 
-        let col_2 = column![
-          mk_button(state, 5, profile),
-          mk_button(state, 6, profile),
-          mk_button(state, 7, profile),
-          mk_button(state, 8, profile),
-        ]
-        .spacing(SPACING);
+        let col_2 =
+          column((5..=8).map(|id| mk_keypad_button(state, id, profile).into())).spacing(SPACING);
 
-        let col_3 = column![
-          mk_button(state, 9, profile),
-          mk_button(state, 10, profile),
-          mk_button(state, 11, profile),
-          mk_button(state, 12, profile),
-        ]
-        .spacing(SPACING);
+        let col_3 =
+          column((9..=12).map(|id| mk_keypad_button(state, id, profile).into())).spacing(SPACING);
 
-        let col_4 = column![
-          mk_button(state, 13, profile),
-          mk_button(state, 14, profile),
-          mk_button(state, 15, profile),
-          mk_button(state, 16, profile),
-        ]
-        .spacing(SPACING);
+        let col_4 =
+          column((13..=16).map(|id| mk_keypad_button(state, id, profile).into())).spacing(SPACING);
 
         let stick_pad = column![
           column![
