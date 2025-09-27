@@ -350,24 +350,26 @@ fn mk_button_stick<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseA
   .on_right_press(Message::ClearButtonCombination(id, true))
 }
 
-fn mk_button_profile_row<'a>(state: &'a State, num: &'a u8) -> Row<'a, Message> {
+fn mk_button_profile_row<'a>(state: &'a State, num: u8) -> Row<'a, Message> {
   let (profile_assignment, write_profile) = (
     match state.is_rom {
       true => "ПЗУ",
       false => "ОЗУ",
     },
     match state.is_rom {
-      true => Message::ProfileActiveWriteToRom(*num),
-      false => Message::ProfileActiveWriteToRam(*num),
+      true => Message::ProfileActiveWriteToRom(num),
+      false => Message::ProfileActiveWriteToRam(num),
     },
   );
 
   row![
     button(text!("{} {}", profile_assignment, num).center())
-      .on_press(Message::ProfileLoadRamToActive(*num))
+      .on_press(Message::ProfileLoadRamToActive(num))
       .width(80)
       .height(35)
-      .style(|theme: &Theme, status| styles::button::active_profile(theme, status, state, *num)),
+      .style(move |theme: &Theme, status| styles::button::active_profile(
+        theme, status, state, num
+      )),
     button(
       svg(svg::Handle::from_memory(Icon::Download.icon()))
         .height(Length::Fill)
