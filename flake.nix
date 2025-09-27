@@ -17,6 +17,15 @@
     };
   };
 
+  nixConfig = {
+    extra-substituters = [
+      "https://claws.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "claws.cachix.org-1:3gHGIPQan8LLHHuv71PFhdm438BZVIUfMjqvQZ22AIs="
+    ];
+  };
+
   outputs = {
     self,
     nixpkgs,
