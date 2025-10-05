@@ -165,7 +165,7 @@
         packages = {
           default = craneLib.buildPackage (commonArgs {debug = false;}
             // {
-              cargoArtifacts = cargoArtifactsDebug;
+              cargoArtifacts = cargoArtifactsRelease;
 
               postInstall = ''
                 wrapProgram $out/bin/claws \
@@ -174,7 +174,7 @@
             });
           debug = craneLib.buildPackage (commonArgs {debug = true;}
             // {
-              cargoArtifacts = cargoArtifactsRelease;
+              cargoArtifacts = cargoArtifactsDebug;
 
               postInstall = ''
                 wrapProgram $out/bin/claws \
@@ -183,11 +183,11 @@
             });
           windows = craneLibCross.buildPackage (windowsArgs {debug = false;}
             // {
-              cargoArtifacts = cargoArtifactsWindowsDebug;
+              cargoArtifacts = cargoArtifactsWindowsRelease;
             });
           windowsDebug = craneLibCross.buildPackage (windowsArgs {debug = true;}
             // {
-              cargoArtifacts = cargoArtifactsWindowsRelease;
+              cargoArtifacts = cargoArtifactsWindowsDebug;
             });
         };
 
