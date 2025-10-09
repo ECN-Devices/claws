@@ -7,7 +7,7 @@ pub const APPLICATION_NAME: &str = "Claws";
 pub const APPLICATION_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Иконка окна приложения (ICO)
-pub static WINDOW_ICON: &[u8] = include_bytes!("../assets/icons/claws.ico");
+pub static WINDOW_ICON: &[u8] = include_bytes!("../assets/icons/claws.png");
 
 /// Шрифт по умолчанию (Inter Medium)
 pub const INTER_FONT: Font = Font {
