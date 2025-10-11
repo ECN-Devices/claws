@@ -124,7 +124,7 @@ impl Profile {
       215 => "→".to_string(),
       217 => "↓".to_string(),
       216 => "←".to_string(),
-      _ => char::from_u32(code as u32).unwrap_or('?').to_string(),
+      _ => char::from_u32(code.into()).unwrap_or('?').to_string(),
     }
   }
 
