@@ -1,9 +1,6 @@
 use super::Keypad;
 use crate::{
-  data::{
-    Config,
-    profiles::{KEYPAD_BUTTONS, Profile},
-  },
+  data::profiles::{KEYPAD_BUTTONS, Profile},
   hardware::{
     buffers::{Buffers, BuffersIO},
     commands::{Value, profile, stick, switch},
@@ -15,10 +12,18 @@ use log::{debug, info};
 impl Keypad {
   /**
   Читает текущий профиль с устройства через последовательный порт
+
+  Выполняет последовательность запросов для получения всех компонентов профиля:
+  - Имя профиля
+  - Конфигурацию всех 16 кнопок
+  - Конфигурацию 4 направлений стика
+  - Параметры мертвой зоны стика
+
   # Аргументы
-  * `buffers` - Буферы для обмена данными
+  * `buffers` - Буферы для обмена данными с устройством
+
   # Возвращает
-  Прочитанный профиль или ошибку
+  Прочитанный профиль или ошибку при неудачном чтении
   */
   pub fn profile_receive(buffers: &mut Buffers) -> Result<Profile> {
     let mut keypad_profile = Profile::default();
@@ -43,9 +48,19 @@ impl Keypad {
 
   /**
   Записывает профиль на устройство через последовательный порт
+
+  Выполняет последовательность команд для записи всех компонентов профиля:
+  - Имя профиля (обрезается до 15 символов)
+  - Конфигурацию всех 16 кнопок
+  - Конфигурацию 4 направлений стика
+  - Параметры мертвой зоны стика
+
   # Аргументы
-  * `buffers` - Буферы для обмена данными
-  * `profile` - Профиль для записи
+  * `buffers` - Буферы для обмена данными с устройством
+  * `profile` - Профиль для записи на устройство
+
+  # Возвращает
+  `Ok(())` при успешной записи или ошибку при неудаче
   */
   pub fn profile_send(buffers: &mut Buffers, profile: Profile) -> Result<()> {
     let mut profile_name = [0u8; 15];
@@ -90,12 +105,5 @@ impl Keypad {
     info!("profile_send: записываю мертвую зону");
 
     Ok(())
-  }
-
-  /**
-  Сохраняет профиль в хранилище
-  */
-  pub fn save_profile_file(profile: Profile) {
-    profile.save()
   }
 }

@@ -52,6 +52,8 @@ pub struct State {
 
   /// Активный профиль
   pub profile: Profile,
+  pub profile_vec: Vec<(usize, Profile)>,
+  profile_id: usize,
 
   pub stick_callibrate: bool,
   pub stick_callibrate_time: Option<std::time::Instant>,
@@ -60,6 +62,7 @@ pub struct State {
 
   /// Таймер для автоотмены режима записи
   pub time_write: Option<std::time::Instant>,
+
   /// Параметры окна
   pub window_settings: Window,
 }

@@ -10,6 +10,7 @@ use crate::{
     commands::{Value, device, empty, profile, stick, switch},
     serial::{DeviceIO, Keypad, buttons::KeypadButton},
   },
+  ui::styles::{PADDING, SPACING},
 };
 use iced::{
   Alignment, Color, Element, Event,
@@ -19,7 +20,7 @@ use iced::{
   window,
 };
 use log::{debug, error, info, trace};
-use pages::{Icon, PADDING, Pages, SPACING};
+use pages::{Icon, Pages};
 use std::{
   sync::{Arc, Mutex},
   time::Duration,
@@ -91,10 +92,22 @@ pub enum Message {
   /// Сохранить полученный профиль в состоянии
   ProfileReceived(Profile),
 
+  ProfileNew,
+  ProfileRemove(usize),
+  ProfileSave((usize, Profile)),
+
+  ProfileLoad(usize),
+
   /// Импорт профиля из файла
   ProfileImport,
+
   /// Экспорт текущего профиля в файл
-  ProfileExport,
+  ProfilesExport,
+
+  /// Показать список сохранённых профилей
+  ProfilesListLoad,
+  ProfilesListSave(Vec<(usize, Profile)>),
+
   /// Записать в устройство профиль, загруженный из файла
   ProfileFileWrite(Profile),
 
@@ -200,7 +213,7 @@ impl State {
       },
     };
 
-    let profile = Task::done(Message::ProfileReceive);
+    let profile = Task::done(Message::ProfileReceive).chain(Task::done(Message::ProfilesListLoad));
     // let profile = match keypad.is_open {
     //   true => Keypad::receive_profile(),
     //   false => Profile::default(),
@@ -233,6 +246,8 @@ impl State {
         keypad,
         pages,
         profile: Profile::default(),
+        profile_vec: Vec::new(),
+        profile_id: usize::default(),
         stick_callibrate: false,
         stick_callibrate_time: None,
         stick_info: Stick::default(),
@@ -249,22 +264,24 @@ impl State {
     "Claws".to_string()
   }
 
-  /// Обрабатывает входящие сообщения и обновляет состояние приложения.
-  /// Это "сердце" приложения: реакция на события UI, таймеры и обмен с устройством.
-  ///
-  /// Группы действий:
-  /// - Порт: чтение/запись/поиск (`PortReceive`, `PortSend`, `PortSearch`, `PortAvalaible`, `PortSended`, `PortReceived`)
-  /// - Навигация: смена страниц (`ChangePage`)
-  /// - Окно: размеры/позиция/сохранение (`WindowResized`, `WindowMoved`, `WindowSettingsSave`)
-  /// - Профили: запрос/получение/запись/экспорт/импорт/активация (`Profile*`)
-  /// - Редактирование комбинаций: разрешение, ввод, очистка, сохранение (`Allow*/Disallow*`, `WriteButtonCombination`, `Clear*`, `SaveButtonCombination`)
-  /// - Устройство: информация (`GetDeviceInfo`, `DeviceInfoParse`, `DeviceInfoSave`) и перезагрузка в загрузчик (`RebootToBootloader`)
-  /// - Таймеры: автоотключение режима записи (`TimerWriteCheck`)
-  ///
-  /// # Аргументы
-  /// * `message` - Сообщение для обработки
-  /// # Возвращает
-  /// Задачу для выполнения после обработки сообщения
+  /**
+  Обрабатывает входящие сообщения и обновляет состояние приложения.
+  Это "сердце" приложения: реакция на события UI, таймеры и обмен с устройством.
+
+  Группы действий:
+  - Порт: чтение/запись/поиск (PortReceive, PortSend, PortSearch, PortAvalaible, PortSended, PortReceived)
+  - Навигация: смена страниц (ChangePage)
+  - Окно: размеры/позиция/сохранение (WindowResized, WindowMoved, WindowSettingsSave)
+  - Профили: запрос/получение/запись/экспорт/импорт/активация (Profile)
+  - Редактирование комбинаций: разрешение, ввод, очистка, сохранение (Allow/Disallow, WriteButtonCombination, Clear, SaveButtonCombination)
+  - Устройство: информация (GetDeviceInfo, DeviceInfoParse, DeviceInfoSave) и перезагрузка в загрузчик (RebootToBootloader)
+  - Таймеры: автоотключение режима записи (TimerWriteCheck)
+
+  # Аргументы
+  * `message` - Сообщение для обработки
+  # Возвращает
+  Задачу для выполнения после обработки сообщения
+  */
   pub fn update(&mut self, message: Message) -> Task<Message> {
     match message {
       // Ничего не делаем
@@ -456,21 +473,67 @@ impl State {
         self.profile = profile;
         Task::none()
       }
+      Message::ProfileNew => {
+        self
+          .profile_vec
+          .push((self.profile_vec.len(), self.profile.clone()));
+
+        Task::done(Message::ProfilesExport)
+        // Task::none()
+      }
+      Message::ProfileRemove(idx) => {
+        self.profile_vec.retain(|(idy, _)| *idy != idx);
+        Task::done(Message::ProfilesExport)
+      }
+      Message::ProfileSave(profile) => {
+        let (idx, _) = profile;
+        self.profile_vec[idx] = profile;
+        Task::done(Message::ProfilesExport)
+      }
+      Message::ProfileLoad(idx) => {
+        // self.profile = profile;
+        if let Some((_, profile)) = self.profile_vec.get(idx).cloned() {
+          self.profile_id = idx;
+          self.profile = profile;
+        }
+        Task::none()
+      }
       // Открыть диалог импорта профиля
       Message::ProfileImport => Profile::open_load_file_dialog(),
       // Экспорт профиля в файл
-      Message::ProfileExport => {
-        let profile = self.profile.clone();
+      Message::ProfilesExport => {
+        let profiles = self
+          .profile_vec
+          .clone()
+          .into_iter()
+          .map(|(_, profile)| profile)
+          .collect::<Vec<_>>();
+
         Task::perform(
           async move {
             tokio::task::spawn_blocking(move || {
-              trace!("message: ProfileFileSave : сохранение профиля в файл");
-              Keypad::save_profile_file(profile)
+              trace!("message: ProfilesExport: сохранение профилей в файл");
+              debug!("{:?}", profiles);
+              Profile::save(profiles)
             })
             .await
           },
           |_| Message::ProfileSaved,
         )
+      }
+      Message::ProfilesListLoad => Task::perform(async move { Profile::load().await }, |res| {
+        let res: Vec<(usize, Profile)> = res.into_iter().enumerate().collect();
+        Message::ProfilesListSave(res)
+      }),
+      Message::ProfilesListSave(vec) => {
+        if self.profile_vec == vec {
+          return Task::none();
+        }
+
+        trace!("{:?}\n\n{:?}", self.profile_vec, vec);
+
+        self.profile_vec = vec;
+        Task::done(Message::ProfilesExport)
       }
       // Запись выбранного из файла профиля в устройство
       Message::ProfileFileWrite(profile) => {
@@ -571,8 +634,16 @@ impl State {
       }
       // Обновление имени профиля из поля ввода
       Message::ProfileUpdateName(string) => {
+        if string.len() >= 16 {
+          return Task::none();
+        }
+
         self.profile.name = string;
-        Task::none()
+
+        Task::done(Message::ProfileSave((
+          self.profile_id,
+          self.profile.clone(),
+        )))
       }
       // Маркер завершения операций с профилем
       Message::ProfileSaved => Task::none(),
@@ -606,7 +677,7 @@ impl State {
       Message::DisallowWriteButtonCombination => {
         self.allow_write = false;
         self.time_write = None;
-        Task::none()
+        Task::done(Message::ProfilesExport)
       }
       // Очистка комбинации у кнопки или стика
       Message::ClearButtonCombination(id, is_stick) => {
@@ -755,6 +826,7 @@ impl State {
         {
           self.allow_write = false;
           self.time_write = None;
+          return Task::done(Message::ProfilesExport);
         }
         Task::none()
       }

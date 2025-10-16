@@ -1,4 +1,3 @@
-use super::Config;
 use crate::{assets::APPLICATION_NAME, hardware::serial::stick::Stick};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -14,7 +13,7 @@ pub const SEPARATOR: &str = " ";
 
 Содержит настройки кнопок и стиков для конкретного профиля.
 */
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Profile {
   /// Имя профиля (до 15 символов для записи на устройство)
   pub name: String,
@@ -54,9 +53,22 @@ impl Profile {
   # Аргументы
   * `name` - Имя профиля для загрузки
   */
-  pub fn load(name: &str) -> Self {
-    confy::load(APPLICATION_NAME, format!("profile_{name}").as_str())
-      .expect("Не удалось загрузить конфигурацию профиля")
+  pub async fn load() -> Vec<Self> {
+    confy::load(APPLICATION_NAME, "profiles")
+      .expect("Не удалось загрузить конфигурацию профиля из файла")
+  }
+
+  /**
+  Сохраняет список профилей в файл конфигурации
+
+  # Аргументы
+  * `vec` - Вектор профилей для сохранения
+
+  # Паникует
+  Если не удается записать профили в файл
+  */
+  pub fn save(vec: Vec<Self>) {
+    confy::store(APPLICATION_NAME, "profiles", vec).expect("Не удалось сохранить профиля.")
   }
 
   /**
@@ -148,20 +160,5 @@ impl Profile {
       .map(Self::code_to_title)
       .collect::<Vec<_>>()
       .join(SEPARATOR)
-  }
-}
-
-impl Config for Profile {
-  /**
-  Сохраняет текущий профиль в хранилище
-  Имя файла будет сформировано как "profile_{имя_профиля}"
-  */
-  fn save(&self) {
-    confy::store(
-      APPLICATION_NAME,
-      format!("profile_{}", self.name).as_str(),
-      self,
-    )
-    .expect("Не удалось записать конфигурацию профиля")
   }
 }
