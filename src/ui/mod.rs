@@ -181,9 +181,9 @@ impl State {
   pub fn new() -> (Self, Task<Message>) {
     let port = match Keypad::get_port() {
       Ok(s) => s,
-      Err(e) => {
-        error!("{e}");
-        "".to_string()
+      Err(err) => {
+        error!("{err}");
+        String::new()
       }
     };
 
