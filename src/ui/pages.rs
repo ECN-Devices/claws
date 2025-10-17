@@ -16,8 +16,8 @@ use crate::{
 use iced::{
   Alignment, Element, Length, Theme,
   widget::{
-    MouseArea, Row, Scrollable, button, center, column, container, horizontal_space, mouse_area,
-    row,
+    MouseArea, Row, Scrollable, button, center, column, container, horizontal_rule,
+    horizontal_space, mouse_area, row,
     scrollable::{Direction, Scrollbar},
     slider, svg, text, text_input, toggler, vertical_rule,
   },
@@ -204,20 +204,10 @@ impl Pages {
     let ram_rom_buttons =
       column((1..=4).map(|id| mk_button_profile_row(state, id).into())).spacing(SPACING);
 
-    let profile_management = column![
-      mk_button!(
-        container("Импорт профиля").center_x(Length::Fill),
-        Message::ProfileImport
-      ),
-      mk_button!(
-        container("Экспорт профиля").center_x(Length::Fill),
-        Message::ProfilesExport
-      ),
-      mk_button!(
-        container("Создать профиль").center_x(Length::Fill),
-        Message::ProfileNew
-      )
-    ]
+    let profile_management = column![mk_button!(
+      container("Создать профиль").center_x(Length::Fill),
+      Message::ProfileNew
+    )]
     .height(Length::Shrink)
     .spacing(SPACING);
 
@@ -227,6 +217,7 @@ impl Pages {
       text("Профили").size(HEADING_SIZE),
       mode_toggle,
       ram_rom_buttons,
+      horizontal_rule(2),
       profile_management,
       container(profile_list).max_width(500),
     ]
@@ -252,7 +243,10 @@ impl Pages {
         mk_button!(
           container(text(&profile.name)).center_x(Length::Fill),
           Message::ProfileLoad(*idx)
-        ),
+        )
+        .style(move |theme: &Theme, status| {
+          styles::button::active_profile_id(theme, status, state, *idx)
+        }),
         mk_button!(
           container(svg(svg::Handle::from_memory(include_bytes!(
             "../../assets/icons/trash.svg"
@@ -293,15 +287,25 @@ impl Pages {
     state: &'a State,
     profile: &'a Profile,
   ) -> Element<'a, Message> {
-    let profile_name_input = container(
-      text_input(&profile.name, &profile.name)
-        .align_x(Alignment::Center)
-        .size(25)
-        .width(300)
-        .on_input(Message::ProfileUpdateName)
-        .style(styles::text_input::rounding),
-    )
-    .center_x(Length::Fill);
+    let profile_name_input = match state.profile_on_keypad {
+      true => container(
+        text_input(&profile.name, &profile.name)
+          .align_x(Alignment::Center)
+          .size(25)
+          .width(300)
+          .style(styles::text_input::rounding),
+      )
+      .center_x(Length::Fill),
+      false => container(
+        text_input(&profile.name, &profile.name)
+          .align_x(Alignment::Center)
+          .size(25)
+          .width(300)
+          .on_input(Message::ProfileUpdateName)
+          .style(styles::text_input::rounding),
+      )
+      .center_x(Length::Fill),
+    };
 
     let keypad_grid = Self::build_keypad_grid(state, profile);
     let stick_controls = Self::build_stick_controls(state, profile);
@@ -370,16 +374,23 @@ impl Pages {
   Вертикальную колонку с элементами управления стиком
   */
   fn build_stick_controls<'a>(state: &'a State, profile: &'a Profile) -> Element<'a, Message> {
-    let deadzone_controls = column![
-      text!("Мёртвая зона: {}%", state.profile.stick.deadzone).size(25),
-      slider(
-        1..=100,
-        state.profile.stick.deadzone,
-        Message::WriteDeadZone
-      )
-      .step(1),
-    ]
-    .align_x(Alignment::Center);
+    let deadzone_controls = match state.profile_on_keypad {
+      true => column![
+        text!("Мёртвая зона: {}%", state.profile.stick.deadzone).size(25),
+        slider(1..=100, state.profile.stick.deadzone, |_| Message::None),
+      ]
+      .align_x(Alignment::Center),
+      false => column![
+        text!("Мёртвая зона: {}%", state.profile.stick.deadzone).size(25),
+        slider(
+          1..=100,
+          state.profile.stick.deadzone,
+          Message::WriteDeadZone
+        )
+        .step(1),
+      ]
+      .align_x(Alignment::Center),
+    };
 
     let stick_buttons = column![
       deadzone_controls,
@@ -470,11 +481,28 @@ impl Pages {
     )
     .width(Length::Fill);
 
-    column![reboot_button, calibration_button]
-      .width(270)
-      .align_x(Alignment::Center)
-      .spacing(SPACING)
-      .into()
+    let profile_import = mk_button!(
+      container("Импорт профиля").center_x(Length::Fill),
+      Message::ProfileImport
+    )
+    .width(Length::Fill);
+
+    let profile_export = mk_button!(
+      container("Экспорт профилей").center_x(Length::Fill),
+      Message::ProfilesExport
+    )
+    .width(Length::Fill);
+
+    column![
+      reboot_button,
+      calibration_button,
+      profile_import,
+      profile_export
+    ]
+    .width(270)
+    .align_x(Alignment::Center)
+    .spacing(SPACING)
+    .into()
   }
 
   /**

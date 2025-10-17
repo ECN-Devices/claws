@@ -247,7 +247,8 @@ impl State {
         pages,
         profile: Profile::default(),
         profile_vec: Vec::new(),
-        profile_id: usize::default(),
+        profile_id: None,
+        profile_on_keypad: true,
         stick_callibrate: false,
         stick_callibrate_time: None,
         stick_info: Stick::default(),
@@ -398,7 +399,10 @@ impl State {
         self.button.is_stick = stick;
 
         // Разрешаем запись комбинации
-        Task::done(Message::AllowWriteButtonCombination)
+        if !self.profile_on_keypad {
+          return Task::done(Message::AllowWriteButtonCombination);
+        }
+        Task::none()
       }
       // Обновление размеров окна
       Message::WindowResized(width, height) => {
@@ -486,14 +490,19 @@ impl State {
         Task::done(Message::ProfilesExport)
       }
       Message::ProfileSave(profile) => {
+        if self.profile_on_keypad {
+          return Task::none();
+        }
+
         let (idx, _) = profile;
         self.profile_vec[idx] = profile;
         Task::done(Message::ProfilesExport)
       }
       Message::ProfileLoad(idx) => {
-        // self.profile = profile;
+        self.profile_on_keypad = false;
+
         if let Some((_, profile)) = self.profile_vec.get(idx).cloned() {
-          self.profile_id = idx;
+          self.profile_id = Some(idx);
           self.profile = profile;
         }
         Task::none()
@@ -620,6 +629,7 @@ impl State {
       Message::ProfileLoadRamToActive(num) => {
         let buf = self.buffers.clone();
         self.active_profile_num = Some(num);
+        self.profile_on_keypad = true;
         Task::perform(
           async move {
             tokio::task::spawn_blocking(move || {
@@ -641,7 +651,7 @@ impl State {
         self.profile.name = string;
 
         Task::done(Message::ProfileSave((
-          self.profile_id,
+          self.profile_id.unwrap_or(0),
           self.profile.clone(),
         )))
       }
@@ -742,7 +752,11 @@ impl State {
         debug!("{:?}", self.profile.stick.word);
 
         // Task::done(Message::ClearButtonCombination)
-        Task::none()
+        Task::done(Message::ProfileSave((
+          self.profile_id.unwrap_or(0),
+          self.profile.clone(),
+        )))
+        // Task::none()
       }
       // Сохраняем мёртвую зону стика
       Message::WriteDeadZone(deadzone) => {

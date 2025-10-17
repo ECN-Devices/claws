@@ -27,44 +27,45 @@ mod utils;
 #[derive(Debug, Clone, Default)]
 pub struct State {
   /// Номер активного профиля на устройстве, если известен
-  pub active_profile_num: Option<u8>,
+  active_profile_num: Option<u8>,
 
   /// Разрешение на запись комбинации клавиш/стика из UI
-  pub allow_write: bool,
+  allow_write: bool,
 
   /// Двунаправленные буферы обмена с устройством
-  pub buffers: Buffers,
+  buffers: Buffers,
 
   /// Текущее редактируемое состояние кнопки/стика
-  pub button: KeypadButton,
+  button: KeypadButton,
 
   /// Информация об устройстве
-  pub device_info: Device,
+  device_info: Device,
 
   /// Флаг записи в ПЗУ (true) или ОЗУ (false)
-  pub is_rom: bool,
+  is_rom: bool,
 
   /// Дескриптор последовательного порта и его состояние
   pub keypad: Keypad,
 
   /// Текущая страница
-  pub pages: Pages,
+  pages: Pages,
 
   /// Активный профиль
-  pub profile: Profile,
-  pub profile_vec: Vec<(usize, Profile)>,
-  profile_id: usize,
+  profile: Profile,
+  profile_vec: Vec<(usize, Profile)>,
+  profile_id: Option<usize>,
+  profile_on_keypad: bool,
 
-  pub stick_callibrate: bool,
-  pub stick_callibrate_time: Option<std::time::Instant>,
-  pub stick_info: Stick,
-  pub stick_show_calibrate_parameters: bool,
+  stick_callibrate: bool,
+  stick_callibrate_time: Option<std::time::Instant>,
+  stick_info: Stick,
+  stick_show_calibrate_parameters: bool,
 
   /// Таймер для автоотмены режима записи
-  pub time_write: Option<std::time::Instant>,
+  time_write: Option<std::time::Instant>,
 
   /// Параметры окна
-  pub window_settings: Window,
+  window_settings: Window,
 }
 
 /**

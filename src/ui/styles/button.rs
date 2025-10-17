@@ -67,6 +67,49 @@ pub fn active_profile(
 }
 
 /**
+Создает стиль кнопки активного профиля с подсветкой
+
+Выделяет активный профиль синим цветом, остальные профили
+отображаются в стандартном стиле.
+
+# Аргументы
+* `theme` - Текущая тема приложения
+* `status` - Состояние кнопки (нажата, наведена и т.д.)
+* `state` - Состояние приложения для определения активного профиля
+* `number` - Номер профиля (1-4)
+
+# Возвращает
+Стиль кнопки с подсветкой для активного профиля
+*/
+pub fn active_profile_id(
+  theme: &Theme,
+  status: button::Status,
+  state: &State,
+  number: usize,
+) -> button::Style {
+  match state.profile_id {
+    Some(id) => match id == number {
+      true => button::Style {
+        background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
+        border: Border {
+          radius: BORDER_RADIUS.into(),
+          ..Default::default()
+        },
+        ..button::primary(theme, status)
+      },
+      false => button::Style {
+        border: Border {
+          radius: BORDER_RADIUS.into(),
+          ..Default::default()
+        },
+        ..button::primary(theme, status)
+      },
+    },
+    None => button::primary(theme, status),
+  }
+}
+
+/**
 Создает стиль кнопки в режиме записи комбинации
 
 Выделяет кнопку синим цветом с увеличенными закруглениями,
