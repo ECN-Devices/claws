@@ -22,7 +22,9 @@ pub const PADDING: u16 = 10;
 pub const HEADING_SIZE: u16 = 30;
 
 /// Стандартная высота кнопок
-pub const BUTTON_HEIGH: u16 = 100;
+pub const BUTTON_HEIGH_PROFILE: u16 = 100;
 
 /// Стандартная ширина кнопок
-pub const BUTTON_WIDTH: u16 = 90;
+pub const BUTTON_WIDTH_PROFILE: u16 = 90;
+
+pub const BUTTON_HEIGH: u16 = 35;
