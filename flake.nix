@@ -116,8 +116,26 @@
         cargoArtifactsDebug = craneLib.buildDepsOnly (commonArgs {debug = true;});
         cargoArtifactsRelease = craneLib.buildDepsOnly (commonArgs {debug = false;});
 
+        cargoClippyDebug = craneLib.buildDepsOnly (commonArgs {debug = true;}
+          // {
+            cargoArtifacts = cargoArtifactsDebug;
+          });
+        cargoClippyRelease = craneLib.buildDepsOnly (commonArgs {debug = false;}
+          // {
+            cargoArtifacts = cargoArtifactsRelease;
+          });
+
         cargoArtifactsWindowsDebug = craneLibCross.buildDepsOnly (windowsArgs {debug = true;});
         cargoArtifactsWindowsRelease = craneLibCross.buildDepsOnly (windowsArgs {debug = false;});
+
+        cargoClippyWindowsDebug = craneLibCross.cargoClippy (commonArgs {debug = true;}
+          // {
+            cargoArtifacts = cargoArtifactsWindowsDebug;
+          });
+        cargoClippyWindowsRelease = craneLibCross.cargoClippy (commonArgs {debug = false;}
+          // {
+            cargoArtifacts = cargoArtifactsWindowsRelease;
+          });
       in {
         checks = {
           build = self.packages.${system}.default;
@@ -161,7 +179,7 @@
         packages = {
           default = craneLib.buildPackage (commonArgs {debug = false;}
             // {
-              cargoArtifacts = cargoArtifactsRelease;
+              cargoArtifacts = cargoClippyRelease;
 
               postInstall = ''
                 wrapProgram $out/bin/claws \
@@ -179,11 +197,11 @@
             });
           windows = craneLibCross.buildPackage (windowsArgs {debug = false;}
             // {
-              cargoArtifacts = cargoArtifactsWindowsRelease;
+              cargoArtifacts = cargoClippyWindowsRelease;
             });
           windowsDebug = craneLibCross.buildPackage (windowsArgs {debug = true;}
             // {
-              cargoArtifacts = cargoArtifactsWindowsDebug;
+              cargoArtifacts = cargoClippyWindowsDebug;
             });
         };
 
