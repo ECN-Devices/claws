@@ -1,5 +1,5 @@
 use crate::{State, ui::styles::BORDER_RADIUS};
-use iced::{Border, Color, Theme, widget::button};
+use iced::{Border, Color, Shadow, Theme, widget::button};
 
 /**
 Создает стиль кнопки с закругленными углами
@@ -20,6 +20,21 @@ pub fn rounding(theme: &Theme, status: button::Status) -> button::Style {
       ..Default::default()
     },
     ..button::primary(theme, status)
+  }
+}
+
+pub fn transparent(_theme: &Theme, _status: button::Status) -> button::Style {
+  button::Style {
+    background: None,
+    text_color: Color::TRANSPARENT,
+    border: Border {
+      color: Color::TRANSPARENT,
+      ..Default::default()
+    },
+    shadow: Shadow {
+      color: Color::TRANSPARENT,
+      ..Default::default()
+    },
   }
 }
 
