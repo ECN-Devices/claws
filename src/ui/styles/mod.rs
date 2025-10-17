@@ -10,7 +10,7 @@ pub mod container;
 pub mod text_input;
 
 /// Радиус закругления углов элементов интерфейса
-const BORDER_RADIUS: f32 = 5.;
+pub const BORDER_RADIUS: f32 = 5.;
 
 /// Стандартный отступ между элементами интерфейса
 pub const SPACING: u16 = 10;
