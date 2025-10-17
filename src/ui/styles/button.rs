@@ -60,7 +60,7 @@ pub fn active_profile(
   number: u8,
 ) -> button::Style {
   match state.active_profile_num {
-    Some(i) => match i == number {
+    Some(i) => match i == number && state.profile_on_keypad {
       true => button::Style {
         background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
         border: Border {
@@ -103,7 +103,7 @@ pub fn active_profile_id(
   number: usize,
 ) -> button::Style {
   match state.profile_id {
-    Some(id) => match id == number {
+    Some(id) => match id == number && !state.profile_on_keypad {
       true => button::Style {
         background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
         border: Border {
@@ -120,7 +120,13 @@ pub fn active_profile_id(
         ..button::primary(theme, status)
       },
     },
-    None => button::primary(theme, status),
+    None => button::Style {
+      border: Border {
+        radius: BORDER_RADIUS.into(),
+        ..Default::default()
+      },
+      ..button::primary(theme, status)
+    },
   }
 }
 

@@ -11,7 +11,9 @@ use crate::{
   State,
   assets::APPLICATION_VERSION,
   data::profiles::Profile,
-  ui::styles::{self, BUTTON_HEIGH, BUTTON_WIDTH, HEADING_SIZE, PADDING, SPACING},
+  ui::styles::{
+    self, BUTTON_HEIGH, BUTTON_HEIGH_PROFILE, BUTTON_WIDTH_PROFILE, HEADING_SIZE, PADDING, SPACING,
+  },
 };
 use iced::{
   Alignment, Element, Length, Theme,
@@ -38,6 +40,7 @@ mk_button!("Текст кнопки", Message::SomeAction)
 macro_rules! mk_button {
   ($text:expr, $on_press:expr) => {
     button($text)
+      .height(BUTTON_HEIGH)
       .on_press($on_press)
       .style(styles::button::rounding)
   };
@@ -219,7 +222,7 @@ impl Pages {
       ram_rom_buttons,
       horizontal_rule(2),
       profile_management,
-      container(profile_list).max_width(500),
+      container(profile_list),
     ]
     .align_x(Alignment::Center)
     .spacing(SPACING)
@@ -244,6 +247,7 @@ impl Pages {
           container(text(&profile.name)).center_x(Length::Fill),
           Message::ProfileLoad(*idx)
         )
+        .height(BUTTON_HEIGH)
         .style(move |theme: &Theme, status| {
           styles::button::active_profile_id(theme, status, state, *idx)
         }),
@@ -254,8 +258,8 @@ impl Pages {
           .center(Length::Fill),
           Message::ProfileRemove(*idx)
         )
-        .width(33)
-        .height(33)
+        .width(BUTTON_HEIGH)
+        .height(BUTTON_HEIGH)
       ]
       .spacing(SPACING)
       .into()
@@ -314,16 +318,25 @@ impl Pages {
       .spacing(SPACING)
       .align_y(Alignment::End);
 
-    mouse_area(
-      column![
+    match state.profile_on_keypad {
+      true => column![
         profile_name_input,
         container(controls_layout).center(Length::Fill)
       ]
       .padding(PADDING)
-      .spacing(SPACING),
-    )
-    .on_press(Message::DisallowWriteButtonCombination)
-    .into()
+      .spacing(SPACING)
+      .into(),
+      false => mouse_area(
+        column![
+          profile_name_input,
+          container(controls_layout).center(Length::Fill)
+        ]
+        .padding(PADDING)
+        .spacing(SPACING),
+      )
+      .on_press(Message::DisallowWriteButtonCombination)
+      .into(),
+    }
   }
 
   /**
@@ -422,8 +435,8 @@ impl Pages {
   */
   fn create_center_stick_button(state: &State) -> Element<'_, Message> {
     button("")
-      .height(BUTTON_HEIGH)
-      .width(BUTTON_WIDTH)
+      .height(BUTTON_HEIGH_PROFILE)
+      .width(BUTTON_WIDTH_PROFILE)
       .style(move |theme: &Theme, status| {
         styles::button::stick::active_write(theme, status, state, 0, state.button.is_stick)
       })
@@ -596,16 +609,16 @@ impl Pages {
       container(mk_button!("Далее", Message::StickStartCalibration)).align_right(Length::Fill);
 
     column![
-            Self::create_calibration_header("Калибровка стика"),
-            Self::create_calibration_box(
-                column![
-                    text("После нажатия на кнопку 'Далее' начнется процесс калибровки стика, вам необходимо вращать стик в крайнем положении пока не закончиться обратный отсчет."),
-                    next_button
-                ].spacing(SPACING)
-            ),
-        ]
-        .width(600)
-        .into()
+      Self::create_calibration_header("Калибровка стика"),
+      Self::create_calibration_box(
+        column![
+          text("После нажатия на кнопку 'Далее' начнется процесс калибровки стика, вам необходимо вращать стик в крайнем положении пока не закончиться обратный отсчет."),
+          next_button
+        ].spacing(SPACING)
+       ),
+    ]
+    .width(600)
+    .into()
   }
 
   /**
@@ -744,8 +757,8 @@ fn mk_keypad_button<'a>(state: &'a State, id: usize, profile: &Profile) -> Mouse
       .height(Length::Fill),
     )
     .on_press(Message::GetButtonSettings(id, false))
-    .height(BUTTON_HEIGH)
-    .width(BUTTON_WIDTH)
+    .height(BUTTON_HEIGH_PROFILE)
+    .width(BUTTON_WIDTH_PROFILE)
     .style(move |theme: &Theme, status| {
       styles::button::active_write(theme, status, state, id, state.button.is_stick)
     }),
@@ -783,8 +796,8 @@ fn mk_button_stick<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseA
       .height(Length::Fill),
     )
     .on_press(Message::GetButtonSettings(id, true))
-    .height(BUTTON_HEIGH)
-    .width(BUTTON_WIDTH)
+    .height(BUTTON_HEIGH_PROFILE)
+    .width(BUTTON_WIDTH_PROFILE)
     .style(move |theme: &Theme, status| {
       styles::button::stick::active_write(theme, status, state, id, state.button.is_stick)
     }),
@@ -813,7 +826,16 @@ fn mk_button_profile_row<'a>(state: &'a State, num: u8) -> Row<'a, Message> {
     ("ОЗУ", Message::ProfileActiveWriteToRam(num))
   };
 
+  let block = if let Some(pr_num) = state.active_profile_num
+    && pr_num == num
+  {
+    column![button("").width(10).style(styles::button::rounding)]
+  } else {
+    column![button("").width(10).style(styles::button::transparent)]
+  };
+
   row![
+    block,
     button(text!("{} {}", profile_type, num).center())
       .on_press(Message::ProfileLoadRamToActive(num))
       .width(80)
@@ -827,7 +849,7 @@ fn mk_button_profile_row<'a>(state: &'a State, num: u8) -> Row<'a, Message> {
         .width(Length::Fill),
     )
     .width(50)
-    .height(35)
+    .height(BUTTON_HEIGH)
     .on_press(write_message)
     .style(styles::button::rounding)
   ]
