@@ -981,7 +981,7 @@ impl State {
   /// Возвращает текущую тему приложения
   pub fn theme(&self) -> Theme {
     match dark_light::detect() {
-      Ok(t) => match t {
+      Ok(theme) => match theme {
         dark_light::Mode::Dark => Theme::Dark,
         dark_light::Mode::Light | dark_light::Mode::Unspecified => Theme::Light,
       },
