@@ -952,7 +952,7 @@ impl State {
     // Периодический запрос номера активного профиля при открытой странице "Профили"
     let profile_active = match (&self.pages, &self.keypad.is_open) {
       (Pages::Profiles, true) => {
-        iced::time::every(Duration::from_millis(500)).map(|_| Message::ProfileRequestActiveNum)
+        iced::time::every(Duration::from_millis(250)).map(|_| Message::ProfileRequestActiveNum)
       }
       _ => Subscription::none(),
     };
