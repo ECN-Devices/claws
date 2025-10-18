@@ -111,9 +111,6 @@ pub enum Message {
   /// Записать в устройство профиль, загруженный из файла
   ProfileFileWrite(Profile),
 
-  /// Сохранить активный профиль устройства во Flash
-  ProfileFlashSave,
-
   /// Сделать профиль активным в RAM (1..=4)
   ProfileActiveWriteToRam(u8),
   /// Сделать профиль активным в ROM/Flash (1..=4)
@@ -552,22 +549,6 @@ impl State {
             tokio::task::spawn_blocking(move || Keypad::profile_send(&mut buffers, profile)).await
           },
           |_| Message::ProfileReceive,
-        )
-      }
-      // Сохранение активного профиля во Flash
-      Message::ProfileFlashSave => {
-        let buf = self.buffers.clone();
-        Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || {
-              trace!("message: ProfileFlashSave: сохранение профиля в flash память");
-              buf
-                .send()
-                .push(profile::Command::WriteActiveToFlash(1).get())
-            })
-            .await
-          },
-          |_| Message::ProfileSaved,
         )
       }
       // Активировать профиль в RAM
