@@ -188,7 +188,7 @@
             });
           debug = craneLib.buildPackage (commonArgs {debug = true;}
             // {
-              cargoArtifacts = cargoArtifactsDebug;
+              cargoArtifacts = cargoClippyDebug;
 
               postInstall = ''
                 wrapProgram $out/bin/claws \
