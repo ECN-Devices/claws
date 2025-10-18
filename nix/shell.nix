@@ -21,7 +21,6 @@ in
     packages = with pkgs; [
       self.checks.${system}.git-hooks.enabledPackages
       cachix
-      cargo-xwin
       cargo-nextest
     ];
 
