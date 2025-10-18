@@ -247,7 +247,6 @@ impl Pages {
           container(text(&profile.name)).center_x(Length::Fill),
           Message::ProfileLoad(*idx)
         )
-        .height(BUTTON_HEIGH)
         .style(move |theme: &Theme, status| {
           styles::button::active_profile_id(theme, status, state, *idx)
         }),
