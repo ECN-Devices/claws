@@ -129,24 +129,32 @@
             else true;
         };
 
-        cargoArtifactsDebug = craneLib.buildDepsOnly (commonArgs {debug = true;});
+        cargoArtifactsDebug = craneLib.buildDepsOnly (commonArgs {debug = true;}
+          // {
+            doCheck = false;
+          });
         cargoArtifactsRelease = craneLib.buildDepsOnly (commonArgs {debug = false;});
 
         cargoClippyDebug = craneLib.buildDepsOnly (commonArgs {debug = true;}
           // {
             cargoArtifacts = cargoArtifactsDebug;
+            doCheck = false;
           });
         cargoClippyRelease = craneLib.buildDepsOnly (commonArgs {debug = false;}
           // {
             cargoArtifacts = cargoArtifactsRelease;
           });
 
-        cargoArtifactsWindowsDebug = craneLibCross.buildDepsOnly (windowsArgs {debug = true;});
+        cargoArtifactsWindowsDebug = craneLibCross.buildDepsOnly (windowsArgs {debug = true;}
+          // {
+            doCheck = false;
+          });
         cargoArtifactsWindowsRelease = craneLibCross.buildDepsOnly (windowsArgs {debug = false;});
 
         cargoClippyWindowsDebug = craneLibCross.cargoClippy (commonArgs {debug = true;}
           // {
             cargoArtifacts = cargoArtifactsWindowsDebug;
+            doCheck = false;
           });
         cargoClippyWindowsRelease = craneLibCross.cargoClippy (commonArgs {debug = false;}
           // {
