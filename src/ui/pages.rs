@@ -146,6 +146,7 @@ impl Pages {
       .size(HEADING_SIZE)
       .width(match state.pages {
         Pages::Profiles => Length::Shrink,
+        Pages::ConnectedDeviceNotFound => Length::Shrink,
         _ => Length::Fill,
       })
       .into()
