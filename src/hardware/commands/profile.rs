@@ -63,7 +63,7 @@ pub enum Command {
 
   Кейпад имеет 4 профиля
   */
-  LoadRamToActive(u8),
+  LoadRamToActive(usize),
 
   /**
   Запрос: 0x73, 0x1, 0x16, 0x65
@@ -81,7 +81,7 @@ impl Value for Command {
       Self::SetName(profile_name) => [12].iter().chain(profile_name.iter()).copied().collect(),
       Self::WriteActiveToRam(num) => vec![13, *num],
       Self::WriteActiveToFlash(num) => vec![14, *num],
-      Self::LoadRamToActive(num) => vec![15, *num],
+      Self::LoadRamToActive(num) => vec![15, *num as u8],
       Self::LoadFlashToRam => vec![16],
     }
   }

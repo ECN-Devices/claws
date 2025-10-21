@@ -26,9 +26,6 @@ mod utils;
 /// Глобальное состояние приложения Iced.
 #[derive(Debug, Clone, Default)]
 pub struct State {
-  /// Номер активного профиля на устройстве, если известен
-  active_profile_num: Option<u8>,
-
   /// Разрешение на запись комбинации клавиш/стика из UI
   allow_write: bool,
 
@@ -52,9 +49,11 @@ pub struct State {
 
   /// Активный профиль
   profile: Profile,
-  profile_vec: Vec<(usize, Profile)>,
+  profiles_vec: Vec<(usize, Profile)>,
   profile_id: Option<usize>,
-  profile_on_keypad: bool,
+
+  /// Номер активного профиля на устройстве, если известен
+  active_profile_num: Option<usize>,
 
   stick_callibrate: bool,
   stick_callibrate_time: Option<std::time::Instant>,

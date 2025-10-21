@@ -57,7 +57,7 @@ pub fn active_profile(
   theme: &Theme,
   status: button::Status,
   state: &State,
-  number: u8,
+  number: usize,
 ) -> button::Style {
   match state.active_profile_num {
     Some(i) => match i == number && state.profile_on_keypad {
