@@ -50,6 +50,8 @@ pub struct State {
   /// Активный профиль
   profile: Profile,
   profiles_vec: Vec<(usize, Profile)>,
+  profile_on_keypad: bool,
+
   profile_id: Option<usize>,
 
   /// Номер активного профиля на устройстве, если известен
