@@ -241,7 +241,7 @@ impl Pages {
   Прокручиваемый контейнер с кнопками выбора профилей
   */
   fn build_profile_list(state: &State) -> Element<'_, Message> {
-    let profile_buttons = column(state.profile_vec.iter().map(|(idx, profile)| {
+    let profile_buttons = column(state.profiles_vec.iter().map(|(idx, profile)| {
       row![
         mk_button!(
           container(text(&profile.name)).center_x(Length::Fill),
@@ -355,17 +355,13 @@ impl Pages {
   Горизонтальную строку с 4 колонками кнопок
   */
   fn build_keypad_grid<'a>(state: &'a State, profile: &'a Profile) -> Element<'a, Message> {
-    let col_1 =
-      column((1..=4).map(|id| mk_keypad_button(state, id, profile).into())).spacing(SPACING);
+    let col_1 = column((1..=4).map(|id| mk_keypad_button(state, id, profile))).spacing(SPACING);
 
-    let col_2 =
-      column((5..=8).map(|id| mk_keypad_button(state, id, profile).into())).spacing(SPACING);
+    let col_2 = column((5..=8).map(|id| mk_keypad_button(state, id, profile))).spacing(SPACING);
 
-    let col_3 =
-      column((9..=12).map(|id| mk_keypad_button(state, id, profile).into())).spacing(SPACING);
+    let col_3 = column((9..=12).map(|id| mk_keypad_button(state, id, profile))).spacing(SPACING);
 
-    let col_4 =
-      column((13..=16).map(|id| mk_keypad_button(state, id, profile).into())).spacing(SPACING);
+    let col_4 = column((13..=16).map(|id| mk_keypad_button(state, id, profile))).spacing(SPACING);
 
     row![col_1, col_2, col_3, col_4].spacing(SPACING).into()
   }
@@ -739,12 +735,12 @@ impl Pages {
 # Возвращает
 Интерактивную кнопку клавиатуры
 */
-fn mk_keypad_button<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseArea<'a, Message> {
+fn mk_keypad_button<'a>(state: &'a State, id: usize, profile: &Profile) -> Element<'a, Message> {
   let button_index = id - 1;
   let label = profile.get_button_label(button_index);
 
-  mouse_area(
-    button(
+  match state.profile_on_keypad {
+    true => button(
       column![
         container(text(label).size(15)).center(Length::Fill),
         text!("#{}", id)
@@ -760,9 +756,51 @@ fn mk_keypad_button<'a>(state: &'a State, id: usize, profile: &Profile) -> Mouse
     .width(BUTTON_WIDTH_PROFILE)
     .style(move |theme: &Theme, status| {
       styles::button::active_write(theme, status, state, id, state.button.is_stick)
-    }),
-  )
-  .on_right_press(Message::ClearButtonCombination(id, false))
+    })
+    .into(),
+    false => mouse_area(
+      button(
+        column![
+          container(text(label).size(15)).center(Length::Fill),
+          text!("#{}", id)
+            .size(10)
+            .align_x(Alignment::End)
+            .align_y(Alignment::End),
+        ]
+        .width(Length::Fill)
+        .height(Length::Fill),
+      )
+      .on_press(Message::GetButtonSettings(id, false))
+      .height(BUTTON_HEIGH_PROFILE)
+      .width(BUTTON_WIDTH_PROFILE)
+      .style(move |theme: &Theme, status| {
+        styles::button::active_write(theme, status, state, id, state.button.is_stick)
+      }),
+    )
+    .on_right_press(Message::ClearButtonCombination(id, false))
+    .into(),
+  }
+
+  // mouse_area(
+  //   button(
+  //     column![
+  //       container(text(label).size(15)).center(Length::Fill),
+  //       text!("#{}", id)
+  //         .size(10)
+  //         .align_x(Alignment::End)
+  //         .align_y(Alignment::End),
+  //     ]
+  //     .width(Length::Fill)
+  //     .height(Length::Fill),
+  //   )
+  //   .on_press(Message::GetButtonSettings(id, false))
+  //   .height(BUTTON_HEIGH_PROFILE)
+  //   .width(BUTTON_WIDTH_PROFILE)
+  //   .style(move |theme: &Theme, status| {
+  //     styles::button::active_write(theme, status, state, id, state.button.is_stick)
+  //   }),
+  // )
+  // .on_right_press(Message::ClearButtonCombination(id, false))
 }
 
 /**
@@ -818,11 +856,11 @@ fn mk_button_stick<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseA
 # Возвращает
 Горизонтальную строку с двумя кнопками управления профилем
 */
-fn mk_button_profile_row<'a>(state: &'a State, num: u8) -> Row<'a, Message> {
+fn mk_button_profile_row<'a>(state: &'a State, num: usize) -> Row<'a, Message> {
   let (profile_type, write_message) = if state.is_rom {
-    ("ПЗУ", Message::ProfileActiveWriteToRom(num))
+    ("ПЗУ", Message::ProfileActiveWriteToRom(num as u8))
   } else {
-    ("ОЗУ", Message::ProfileActiveWriteToRam(num))
+    ("ОЗУ", Message::ProfileActiveWriteToRam(num as u8))
   };
 
   let block = if let Some(pr_num) = state.active_profile_num

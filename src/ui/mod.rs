@@ -119,9 +119,9 @@ pub enum Message {
   /// Запрос номера активного профиля
   ProfileRequestActiveNum,
   /// Сохранить номер активного профиля в состоянии
-  ProfileRequestActiveNumState(u8),
+  ProfileRequestActiveNumState(usize),
   /// Загрузить профиль из RAM в активный
-  ProfileLoadRamToActive(u8),
+  ProfileLoadRamToActive(usize),
   /// Обновить имя профиля из поля ввода
   ProfileUpdateName(String),
 
@@ -234,7 +234,6 @@ impl State {
 
     (
       Self {
-        active_profile_num: None,
         allow_write: false,
         buffers: Buffers::default(),
         button: KeypadButton::default(),
@@ -243,9 +242,10 @@ impl State {
         keypad,
         pages,
         profile: Profile::default(),
-        profile_vec: Vec::new(),
-        profile_id: None,
+        profiles_vec: Vec::new(),
         profile_on_keypad: true,
+        profile_id: None,
+        active_profile_num: None,
         stick_callibrate: false,
         stick_callibrate_time: None,
         stick_info: Stick::default(),
@@ -476,14 +476,14 @@ impl State {
       }
       Message::ProfileNew => {
         self
-          .profile_vec
-          .push((self.profile_vec.len(), self.profile.clone()));
+          .profiles_vec
+          .push((self.profiles_vec.len(), self.profile.clone()));
 
         Task::done(Message::ProfilesExport)
         // Task::none()
       }
       Message::ProfileRemove(idx) => {
-        self.profile_vec.retain(|(idy, _)| *idy != idx);
+        self.profiles_vec.retain(|(idy, _)| *idy != idx);
         Task::done(Message::ProfilesExport)
       }
       Message::ProfileSave(profile) => {
@@ -492,13 +492,13 @@ impl State {
         }
 
         let (idx, _) = profile;
-        self.profile_vec[idx] = profile;
+        self.profiles_vec[idx] = profile;
         Task::done(Message::ProfilesExport)
       }
       Message::ProfileLoad(idx) => {
         self.profile_on_keypad = false;
 
-        if let Some((_, profile)) = self.profile_vec.get(idx).cloned() {
+        if let Some((_, profile)) = self.profiles_vec.get(idx).cloned() {
           self.profile_id = Some(idx);
           self.profile = profile;
         }
@@ -509,7 +509,7 @@ impl State {
       // Экспорт профиля в файл
       Message::ProfilesExport => {
         let profiles = self
-          .profile_vec
+          .profiles_vec
           .clone()
           .into_iter()
           .map(|(_, profile)| profile)
@@ -532,13 +532,11 @@ impl State {
         Message::ProfilesListSave(res)
       }),
       Message::ProfilesListSave(vec) => {
-        if self.profile_vec == vec {
+        if self.profiles_vec == vec {
           return Task::none();
         }
 
-        trace!("{:?}\n\n{:?}", self.profile_vec, vec);
-
-        self.profile_vec = vec;
+        self.profiles_vec = vec;
         Task::done(Message::ProfilesExport)
       }
       // Запись выбранного из файла профиля в устройство
@@ -596,7 +594,7 @@ impl State {
             tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf)).await
           },
           |res| match res {
-            Ok(Ok(num)) => Message::ProfileRequestActiveNumState(num),
+            Ok(Ok(num)) => Message::ProfileRequestActiveNumState(num as usize),
             _ => Message::None,
           },
         )
