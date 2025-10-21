@@ -43,6 +43,8 @@
           };
         };
 
+        inherit (pkgs) lib;
+
         craneLib = (inputs.crane.mkLib pkgs).overrideToolchain (
           p:
             p.rust-bin.stable.latest.default.override {
@@ -74,8 +76,18 @@
             wayland
           ];
 
+        unfilteredRoot = ./.;
+        src = lib.fileset.toSource {
+          root = unfilteredRoot;
+          fileset = lib.fileset.unions [
+            (craneLib.fileset.commonCargoSources unfilteredRoot)
+            (lib.fileset.maybeMissing ./assets)
+          ];
+        };
+
         commonArgs = {debug ? false}: {
-          src = craneLib.path ./.;
+          inherit src;
+
           strictDeps = true;
 
           CARGO_PROFILE =
@@ -99,7 +111,11 @@
         };
 
         windowsArgs = {debug ? false}: {
-          src = craneLibCross.path ./.;
+          inherit src;
+
+          pname = "claws";
+          version = "1.1.0";
+
           strictDeps = true;
 
           CARGO_PROFILE =
