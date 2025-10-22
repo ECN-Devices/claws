@@ -1,5 +1,6 @@
-use crate::ui::styles::BORDER_RADIUS;
 use iced::{Background, Border, Color, Theme, border::Radius, widget::container::Style};
+
+use crate::ui::styles::BORDER_RADIUS;
 
 /**
 Создает стиль контейнера для заголовка с закругленными верхними углами

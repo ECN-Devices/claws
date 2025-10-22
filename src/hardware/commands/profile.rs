@@ -1,11 +1,15 @@
-use super::Value;
-use crate::{
-  errors::serial::KeypadError,
-  hardware::buffers::{Buffers, BuffersIO},
-};
+use std::time::{Duration, Instant};
+
 use anyhow::Result;
 use log::debug;
-use std::time::{Duration, SystemTime};
+
+use crate::{
+  errors::serial::KeypadError,
+  hardware::{
+    buffers::{Buffers, BuffersIO},
+    commands::Value,
+  },
+};
 
 /**
 Команды для управления профилями устройства
@@ -103,13 +107,13 @@ impl Value for Command {
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
 pub fn request_active_num(buffers: &mut Buffers) -> Result<u8> {
-  let time = SystemTime::now();
+  let time = Instant::now();
   let duration = Duration::from_secs(5);
 
   buffers.send().push(Command::RequestActiveNum.get());
 
   loop {
-    if time.elapsed()? >= duration {
+    if time.elapsed() >= duration {
       break Err(KeypadError::NoResponse(Command::RequestActiveNum.get()).into());
     }
 
@@ -142,13 +146,13 @@ pub fn request_active_num(buffers: &mut Buffers) -> Result<u8> {
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
 pub fn request_name(buffers: &mut Buffers) -> Result<Vec<u8>> {
-  let time = SystemTime::now();
+  let time = Instant::now();
   let duration = Duration::from_secs(5);
 
   buffers.send().push(Command::RequestName.get());
 
   loop {
-    if time.elapsed()? >= duration {
+    if time.elapsed() >= duration {
       break Err(KeypadError::NoResponse(Command::RequestName.get()).into());
     }
 

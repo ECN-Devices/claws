@@ -1,5 +1,6 @@
-use crate::{State, ui::styles::BORDER_RADIUS};
 use iced::{Border, Color, Shadow, Theme, widget::button};
+
+use crate::{State, ui::styles::BORDER_RADIUS};
 
 /**
 Создает стиль кнопки с закругленными углами

@@ -1,9 +1,10 @@
-use super::Config;
+use serde::{Deserialize, Serialize};
+
 use crate::{
   assets::APPLICATION_NAME,
+  data::Config,
   ui::{WINDOW_HEIGH, WINDOW_WIDTH},
 };
-use serde::{Deserialize, Serialize};
 
 /**
 Конфигурация окна приложения

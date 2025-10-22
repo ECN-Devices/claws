@@ -1,7 +1,8 @@
 //! Двунаправленные буферы обмена с устройством.
 
-use super::commands::{KeypadCommands, Value};
 use std::sync::{Arc, Mutex, MutexGuard};
+
+use crate::hardware::commands::{KeypadCommands, Value};
 
 /// Очередь исходящих пакетов к устройству
 #[derive(Debug, Clone, Default)]

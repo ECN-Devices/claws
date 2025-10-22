@@ -1,5 +1,17 @@
 //! Пользовательский интерфейс на базе Iced: состояние, сообщения и представления.
 
+use std::{
+  sync::{Arc, Mutex},
+  time::Duration,
+};
+
+use iced::{
+  Alignment, Color, Element, Event, Length, Point, Subscription, Task, Theme, event,
+  widget::{Button, column, container, row, svg, vertical_rule},
+  window,
+};
+use log::{debug, error, info, trace};
+
 use crate::{
   State,
   data::{
@@ -10,20 +22,10 @@ use crate::{
     commands::{Value, device, empty, profile, stick, switch},
     serial::{DeviceIO, Keypad, buttons::KeypadButton},
   },
-  ui::styles::{PADDING, SPACING},
-};
-use iced::{
-  Alignment, Color, Element, Event,
-  Length::{self, Fill},
-  Point, Subscription, Task, Theme, event,
-  widget::{Button, column, container, row, svg, vertical_rule},
-  window,
-};
-use log::{debug, error, info, trace};
-use pages::{Icon, Pages};
-use std::{
-  sync::{Arc, Mutex},
-  time::Duration,
+  ui::{
+    pages::{Icon, Pages},
+    styles::{PADDING, SPACING},
+  },
 };
 
 pub mod pages;
@@ -980,8 +982,8 @@ impl State {
 fn create_button_with_svg_and_text<'a>(icon: Icon, on_press: Message) -> Button<'a, Message> {
   Button::new(container(
     svg(svg::Handle::from_memory(icon.icon()))
-      .height(Fill)
-      .width(Fill),
+      .height(Length::Fill)
+      .width(Length::Fill),
   ))
   .width(Length::Fixed(50.))
   .height(Length::Fixed(50.))

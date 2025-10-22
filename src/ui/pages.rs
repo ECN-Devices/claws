@@ -6,15 +6,6 @@
 обновления прошивки и обработки ошибок подключения.
 */
 
-use super::Message;
-use crate::{
-  State,
-  assets::APPLICATION_VERSION,
-  data::profiles::Profile,
-  ui::styles::{
-    self, BUTTON_HEIGH, BUTTON_HEIGH_PROFILE, BUTTON_WIDTH_PROFILE, HEADING_SIZE, PADDING, SPACING,
-  },
-};
 use iced::{
   Alignment, Element, Length, Theme,
   widget::{
@@ -22,6 +13,19 @@ use iced::{
     horizontal_space, mouse_area, row,
     scrollable::{Direction, Scrollbar},
     slider, svg, text, text_input, toggler, vertical_rule,
+  },
+};
+
+use crate::{
+  State,
+  assets::APPLICATION_VERSION,
+  data::profiles::Profile,
+  ui::{
+    Message,
+    styles::{
+      self, BUTTON_HEIGH, BUTTON_HEIGH_PROFILE, BUTTON_WIDTH_PROFILE, HEADING_SIZE, PADDING,
+      SPACING,
+    },
   },
 };
 

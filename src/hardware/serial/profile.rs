@@ -1,13 +1,14 @@
-use super::Keypad;
+use anyhow::Result;
+use log::{debug, info};
+
 use crate::{
   data::profiles::{KEYPAD_BUTTONS, Profile},
   hardware::{
     buffers::{Buffers, BuffersIO},
     commands::{Value, profile, stick, switch},
+    serial::Keypad,
   },
 };
-use anyhow::Result;
-use log::{debug, info};
 
 impl Keypad {
   /**
