@@ -1,11 +1,15 @@
-use super::Value;
-use crate::{
-  errors::serial::KeypadError,
-  hardware::buffers::{Buffers, BuffersIO},
-};
+use std::time::{Duration, Instant};
+
 use anyhow::Result;
 use log::debug;
-use std::time::{Duration, SystemTime};
+
+use crate::{
+  errors::serial::KeypadError,
+  hardware::{
+    buffers::{Buffers, BuffersIO},
+    commands::Value,
+  },
+};
 
 /**
 Команды для управления переключателями (кнопками) устройства
@@ -80,7 +84,7 @@ impl Value for Command {
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
 pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
-  let time = SystemTime::now();
+  let time = Instant::now();
   let duration = Duration::from_secs(5);
 
   let switch_col = 16;
@@ -89,7 +93,7 @@ pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
   });
 
   loop {
-    if time.elapsed()? >= duration {
+    if time.elapsed() >= duration {
       break Err(KeypadError::NoResponse(Command::RequestCondition(1).get()).into());
     }
 
@@ -120,7 +124,7 @@ pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
 pub fn request_code_ascii(buffers: &mut Buffers) -> Result<[[u8; 6]; 16]> {
-  let time = SystemTime::now();
+  let time = Instant::now();
   let duration = Duration::from_secs(5);
 
   let switch_col = 16;
@@ -133,7 +137,7 @@ pub fn request_code_ascii(buffers: &mut Buffers) -> Result<[[u8; 6]; 16]> {
   });
 
   loop {
-    if time.elapsed()? >= duration {
+    if time.elapsed() >= duration {
       return Err(KeypadError::NoResponse(Command::RequestCodeASCII(1).get()).into());
     }
 

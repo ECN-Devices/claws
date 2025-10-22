@@ -1,11 +1,15 @@
-use super::Value;
-use crate::{
-  errors::serial::KeypadError,
-  hardware::buffers::{Buffers, BuffersIO},
-};
+use std::time::{Duration, Instant};
+
 use anyhow::Result;
 use log::debug;
-use std::time::{Duration, SystemTime};
+
+use crate::{
+  errors::serial::KeypadError,
+  hardware::{
+    buffers::{Buffers, BuffersIO},
+    commands::Value,
+  },
+};
 
 /**
 Команды для управления аналоговым стиком
@@ -114,7 +118,7 @@ impl OptionsCalibration {
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
 pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
-  let time = SystemTime::now();
+  let time = Instant::now();
   let duration = Duration::from_secs(5);
 
   let mut stick_code = [0u8; 4];
@@ -122,7 +126,7 @@ pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
   buffers.send().push(Command::RequestPositionASCII.get());
 
   loop {
-    if time.elapsed()? >= duration {
+    if time.elapsed() >= duration {
       break Err(KeypadError::NoResponse(Command::RequestPositionASCII.get()).into());
     }
 
@@ -156,7 +160,7 @@ pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
 pub fn calibration_request(buffers: &mut Buffers) -> Result<Vec<u8>> {
-  let time = SystemTime::now();
+  let time = Instant::now();
   let duration = Duration::from_secs(5);
 
   buffers
@@ -164,7 +168,7 @@ pub fn calibration_request(buffers: &mut Buffers) -> Result<Vec<u8>> {
     .push(Command::Calibration(OptionsCalibration::Request).get());
 
   loop {
-    if time.elapsed()? >= duration {
+    if time.elapsed() >= duration {
       break Err(
         KeypadError::NoResponse(Command::Calibration(OptionsCalibration::Request).get()).into(),
       );

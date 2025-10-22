@@ -1,21 +1,21 @@
 //! Работа с последовательным портом и протоколом обмена с кейпадом.
 
-use super::buffers::Buffers;
-use crate::{
-  errors::serial::KeypadError,
-  hardware::{
-    buffers::BuffersIO,
-    commands::{KeypadCommands, Value, empty},
-  },
-  utils::{BYTE_END, BYTE_START},
+use std::{
+  sync::{Arc, Mutex},
+  time::{Duration, Instant},
 };
+
 use anyhow::{Result, bail};
 use log::{debug, error};
 use serialport::SerialPort;
-use std::{
-  sync::{Arc, Mutex},
-  time::{Duration, SystemTime},
-  vec,
+
+use crate::{
+  errors::serial::KeypadError,
+  hardware::{
+    buffers::{Buffers, BuffersIO},
+    commands::{KeypadCommands, Value, empty},
+  },
+  utils::{BYTE_END, BYTE_START},
 };
 
 pub mod buttons;
@@ -62,7 +62,7 @@ pub trait DeviceIO {
 
 impl DeviceIO for Keypad {
   fn get_port() -> Result<String> {
-    let time = SystemTime::now();
+    let time = Instant::now();
     let mut buffers = Buffers::default();
     let ports = serialport::available_ports().map_err(|_| KeypadError::NoPortsFound)?;
     for port in ports {
@@ -92,7 +92,7 @@ impl DeviceIO for Keypad {
             Self::send(&mut serial_port, &mut buffers)?;
 
             loop {
-              if time.elapsed()? >= Duration::from_secs(5) {
+              if time.elapsed() >= Duration::from_secs(5) {
                 return Err(KeypadError::NoPortsFound.into());
               }
 

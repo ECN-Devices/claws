@@ -1,5 +1,6 @@
-use crate::assets::APPLICATION_NAME;
 use log::LevelFilter;
+
+use crate::assets::APPLICATION_NAME;
 
 /** Инициализирует pretty_env_logger с максимальным уровнем для модуля приложения.
  *

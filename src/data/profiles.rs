@@ -1,6 +1,8 @@
-use crate::{assets::APPLICATION_NAME, hardware::serial::stick::Stick};
-use serde::{Deserialize, Serialize};
 use std::path::Path;
+
+use serde::{Deserialize, Serialize};
+
+use crate::{assets::APPLICATION_NAME, hardware::serial::stick::Stick};
 
 /// Количество кнопок на устройстве
 pub const KEYPAD_BUTTONS: u8 = 16;

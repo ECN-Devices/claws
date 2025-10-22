@@ -1,20 +1,23 @@
 //Убираем консоль при старте приложения на windows
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use crate::{
-  data::{device::Device, stick::Stick},
-  hardware::serial::buttons::KeypadButton,
-};
-use assets::{APPLICATION_NAME, INTER_FONT, INTER_FONT_BYTES, WINDOW_ICON};
-use data::{profiles::Profile, window::Window};
-use hardware::{buffers::Buffers, serial::Keypad};
+use std::borrow::Cow;
+
 use iced::{
   Pixels, Point, Size,
   window::{Position, icon},
 };
-use std::borrow::Cow;
-use ui::pages::Pages;
-use utils::logger::init_logger;
+
+use crate::{
+  assets::{APPLICATION_NAME, INTER_FONT, INTER_FONT_BYTES, WINDOW_ICON},
+  data::{device::Device, profiles::Profile, stick::Stick, window::Window},
+  hardware::{
+    buffers::Buffers,
+    serial::{Keypad, buttons::KeypadButton},
+  },
+  ui::pages::Pages,
+  utils::logger::init_logger,
+};
 
 mod assets;
 mod data;

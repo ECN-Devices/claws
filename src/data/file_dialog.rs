@@ -5,11 +5,11 @@
 позволяя пользователю выбирать и загружать профили из TOML-файлов.
 */
 
-use crate::{assets::APPLICATION_NAME, ui::Message};
-use iced::Task;
 use std::path::Path;
 
-use super::profiles::Profile;
+use iced::Task;
+
+use crate::{assets::APPLICATION_NAME, data::profiles::Profile, ui::Message};
 
 impl Profile {
   /**

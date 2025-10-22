@@ -1,11 +1,15 @@
-use super::Value;
-use crate::{
-  errors::serial::KeypadError,
-  hardware::buffers::{Buffers, BuffersIO},
-};
+use std::time::{Duration, Instant};
+
 use anyhow::Result;
 use log::debug;
-use std::time::{Duration, SystemTime};
+
+use crate::{
+  errors::serial::KeypadError,
+  hardware::{
+    buffers::{Buffers, BuffersIO},
+    commands::Value,
+  },
+};
 
 /**
 Пустые команды для проверки связи с устройством
@@ -47,13 +51,13 @@ impl Value for Command {
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
 pub fn empty(buffers: &mut Buffers) -> Result<()> {
-  let time = SystemTime::now();
+  let time = Instant::now();
   let duration = Duration::from_secs(5);
 
   buffers.send().push(Command::VoidRequest.get());
 
   loop {
-    if time.elapsed()? >= duration {
+    if time.elapsed() >= duration {
       break Err(KeypadError::NoResponse(Command::VoidRequest.get()).into());
     }
 
