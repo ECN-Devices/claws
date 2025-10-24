@@ -1,4 +1,4 @@
-use iced::{Background, Border, Color, Theme, border::Radius, widget::container::Style};
+use iced::{Background, Border, Theme, border::Radius, color, widget::container::Style};
 
 use crate::ui::styles::BORDER_RADIUS;
 
@@ -17,7 +17,7 @@ use crate::ui::styles::BORDER_RADIUS;
 pub fn round_bordered_box_header(theme: &Theme) -> Style {
   match theme {
     Theme::Light => Style {
-      background: Some(Background::Color(Color::parse("#d0d0d0").unwrap())),
+      background: Some(Background::Color(color!(0xd0d0d0))),
       border: Border {
         radius: Radius {
           top_left: BORDER_RADIUS,
@@ -29,7 +29,7 @@ pub fn round_bordered_box_header(theme: &Theme) -> Style {
       ..Default::default()
     },
     Theme::Dark => Style {
-      background: Some(Background::Color(Color::parse("#292929").unwrap())),
+      background: Some(Background::Color(color!(0x292929))),
       border: Border {
         radius: Radius {
           top_left: BORDER_RADIUS,
@@ -59,7 +59,7 @@ pub fn round_bordered_box_header(theme: &Theme) -> Style {
 pub fn round_bordered_box(theme: &Theme) -> Style {
   match theme {
     Theme::Light => Style {
-      background: Some(Background::Color(Color::parse("#ededed").unwrap())),
+      background: Some(Background::Color(color!(0xededed))),
       border: Border {
         radius: Radius {
           bottom_right: BORDER_RADIUS,
@@ -71,7 +71,7 @@ pub fn round_bordered_box(theme: &Theme) -> Style {
       ..Default::default()
     },
     Theme::Dark => Style {
-      background: Some(Background::Color(Color::parse("#333333").unwrap())),
+      background: Some(Background::Color(color!(0x333333))),
       border: Border {
         radius: Radius {
           bottom_right: BORDER_RADIUS,

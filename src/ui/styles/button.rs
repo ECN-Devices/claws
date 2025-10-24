@@ -1,4 +1,4 @@
-use iced::{Border, Color, Shadow, Theme, widget::button};
+use iced::{Border, Color, Shadow, Theme, color, widget::button};
 
 use crate::{State, ui::styles::BORDER_RADIUS};
 
@@ -63,7 +63,7 @@ pub fn active_profile(
   match state.active_profile_num {
     Some(i) => match i == number && state.profile_on_keypad {
       true => button::Style {
-        background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
+        background: Some(iced::Background::Color(color!(0x778fe6))),
         border: Border {
           radius: BORDER_RADIUS.into(),
           ..Default::default()
@@ -106,7 +106,7 @@ pub fn active_profile_id(
   match state.profile_id {
     Some(id) => match id == number && !state.profile_on_keypad {
       true => button::Style {
-        background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
+        background: Some(iced::Background::Color(color!(0x778fe6))),
         border: Border {
           radius: BORDER_RADIUS.into(),
           ..Default::default()
@@ -156,7 +156,7 @@ pub fn active_write(
 ) -> button::Style {
   match (state.button.id == id, state.allow_write, is_stick) {
     (true, true, false) => button::Style {
-      background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
+      background: Some(iced::Background::Color(color!(0x778fe6))),
       border: Border {
         radius: (BORDER_RADIUS * 2.).into(),
         ..Default::default()
@@ -176,7 +176,7 @@ pub fn active_write(
 /// Модуль стилей для кнопок стика
 pub mod stick {
   use crate::{State, ui::styles::BORDER_RADIUS};
-  use iced::{Border, Color, Theme, widget::button};
+  use iced::{Border, Theme, color, widget::button};
 
   /**
   Создает стиль кнопки направления стика в режиме записи
@@ -203,7 +203,7 @@ pub mod stick {
   ) -> button::Style {
     match (state.button.id == id, state.allow_write, is_stick) {
       (true, true, true) => button::Style {
-        background: Some(iced::Background::Color(Color::parse("#778fe6").unwrap())),
+        background: Some(iced::Background::Color(color!(0x778fe6))),
         border: Border {
           radius: (BORDER_RADIUS * 2.).into(),
           ..Default::default()
