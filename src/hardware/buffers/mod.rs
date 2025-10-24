@@ -1,5 +1,6 @@
 //! Двунаправленные буферы обмена с устройством.
 
+use std::collections::VecDeque;
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use crate::hardware::commands::{KeypadCommands, Value};
@@ -7,12 +8,12 @@ use crate::hardware::commands::{KeypadCommands, Value};
 /// Очередь исходящих пакетов к устройству
 #[derive(Debug, Clone, Default)]
 pub struct Send {
-  buffer: Vec<Vec<u8>>,
+  buffer: VecDeque<Vec<u8>>,
 }
 /// Очередь входящих пакетов от устройства
 #[derive(Debug, Clone, Default)]
 pub struct Receive {
-  buffer: Vec<Vec<u8>>,
+  buffer: VecDeque<Vec<u8>>,
 }
 
 /// Объединяет очереди отправки и приёма и делает их потокобезопасными
@@ -39,7 +40,7 @@ impl Send {
   pub fn pull(&mut self) -> Option<Vec<u8>> {
     match self.buffer.is_empty() {
       true => None,
-      false => Some(self.buffer.remove(0)),
+      false => self.buffer.pop_front(),
     }
   }
 }
@@ -50,7 +51,7 @@ impl Receive {
       .buffer
       .iter()
       .position(|data| data[0] == command.get()[0])
-      .map(|i| self.buffer.remove(i))
+      .and_then(|i| self.buffer.remove(i))
   }
 }
 
@@ -66,7 +67,7 @@ impl BuffersIO for Send {
   // }
 
   fn push(&mut self, data: Vec<u8>) {
-    self.buffer.push(data);
+    self.buffer.push_back(data);
   }
 }
 impl BuffersIO for Receive {
@@ -75,6 +76,6 @@ impl BuffersIO for Receive {
   // }
 
   fn push(&mut self, data: Vec<u8>) {
-    self.buffer.push(data)
+    self.buffer.push_back(data)
   }
 }
