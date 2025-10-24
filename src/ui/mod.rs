@@ -917,10 +917,13 @@ impl State {
     // Таймеры обмена с портом: при открытом порте — частый опрос чтения/записи,
     // при закрытом — редкий опрос на подключение устройства
     let port_sub = match self.keypad.is_open {
-      true => iced::Subscription::batch(vec![
-        iced::time::every(Duration::from_millis(1)).map(|_| Message::PortSend),
-        iced::time::every(Duration::from_millis(1)).map(|_| Message::PortReceive),
-      ]),
+      true => match !self.buffers.send().is_empty() {
+        true => iced::Subscription::batch(vec![
+          iced::time::every(Duration::from_millis(1)).map(|_| Message::PortSend),
+          iced::time::every(Duration::from_millis(1)).map(|_| Message::PortReceive),
+        ]),
+        false => iced::time::every(Duration::from_millis(1)).map(|_| Message::PortReceive),
+      },
       false => iced::time::every(Duration::from_secs(1)).map(|_| Message::PortSearch),
     };
 

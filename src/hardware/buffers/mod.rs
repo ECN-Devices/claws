@@ -60,6 +60,8 @@ pub trait BuffersIO {
   // fn len(&self) -> usize;
   /// Добавляет пакет в очередь
   fn push(&mut self, data: Vec<u8>);
+
+  fn is_empty(&self) -> bool;
 }
 impl BuffersIO for Send {
   // fn len(&self) -> usize {
@@ -69,6 +71,10 @@ impl BuffersIO for Send {
   fn push(&mut self, data: Vec<u8>) {
     self.buffer.push_back(data);
   }
+
+  fn is_empty(&self) -> bool {
+    self.buffer.is_empty()
+  }
 }
 impl BuffersIO for Receive {
   // fn len(&self) -> usize {
@@ -77,5 +83,9 @@ impl BuffersIO for Receive {
 
   fn push(&mut self, data: Vec<u8>) {
     self.buffer.push_back(data)
+  }
+
+  fn is_empty(&self) -> bool {
+    self.buffer.is_empty()
   }
 }
