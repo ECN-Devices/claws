@@ -1,15 +1,4 @@
-use std::time::{Duration, Instant};
-
-use anyhow::Result;
-use log::debug;
-
-use crate::{
-  errors::serial::KeypadError,
-  hardware::{
-    buffers::{Buffers, BuffersIO},
-    commands::Value,
-  },
-};
+use crate::hardware::commands::Value;
 
 /**
 Пустые команды для проверки связи с устройством
@@ -50,6 +39,7 @@ impl Value for Command {
 # Ошибки
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
+#[cfg(false)]
 pub fn empty(buffers: &mut Buffers) -> Result<()> {
   let time = Instant::now();
   let duration = Duration::from_secs(5);

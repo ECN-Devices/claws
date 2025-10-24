@@ -19,7 +19,7 @@ use crate::{
   },
   hardware::{
     buffers::{Buffers, BuffersIO},
-    commands::{Value, device, empty, profile, stick, switch},
+    commands::{Value, device, profile, stick},
     serial::{DeviceIO, Keypad, buttons::KeypadButton, profile::profile_all_request},
   },
   ui::{
@@ -59,12 +59,6 @@ pub enum Message {
   /// Поиск доступного порта устройства
   PortSearch,
 
-  /// Проверка доступности порта (ping пустой командой)
-  PortAvalaible,
-
-  /// Запрос состояния всех переключателей на устройстве
-  RequestCondition,
-
   // --- Навигация/страницы ---
   /// Изменение текущей страницы приложения
   ChangePage(Pages),
@@ -85,10 +79,6 @@ pub enum Message {
   RebootToBootloader,
 
   // --- Профили ---
-  /// Отправить текущий профиль в устройство
-  ProfileWrite,
-  /// Завершение отправки профиля
-  ProfileWrited,
   /// Запросить профиль с устройства
   ProfileReceive(usize),
   /// Сохранить полученный профиль в состоянии
@@ -365,24 +355,6 @@ impl State {
         // Task::done(Message::ProfileReceive)
         Task::none()
       }
-      // Проверка доступности порта пустой командой
-      Message::PortAvalaible => {
-        let mut buf = self.buffers.clone();
-
-        Task::perform(
-          async move { tokio::task::spawn_blocking(move || empty::empty(&mut buf)).await },
-          |_| Message::PortSended,
-        )
-      }
-      // Запрос состояния переключателей
-      Message::RequestCondition => {
-        let mut buf = self.buffers.clone();
-
-        Task::perform(
-          async move { tokio::task::spawn_blocking(move || switch::request_condition(&mut buf)).await },
-          |_| Message::PortSended,
-        )
-      }
       // Переключение страницы
       Message::ChangePage(page) => {
         self.pages = page;
@@ -442,19 +414,6 @@ impl State {
         info!("Кейпад перезагружен в режим прошивки");
         Task::none()
       }
-      // Отправка текущего профиля в устройство
-      Message::ProfileWrite => {
-        let mut buffers = self.buffers.clone();
-        let profile = self.profile.clone();
-        Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || Keypad::profile_send(&mut buffers, profile)).await
-          },
-          |_| Message::ProfileWrited,
-        )
-      }
-      // Завершение записи профиля
-      Message::ProfileWrited => Task::none(),
       // Запрос профиля с устройства
       Message::ProfileReceive(id) => {
         if !self.keypad.is_open {

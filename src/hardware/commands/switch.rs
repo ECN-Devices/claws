@@ -69,46 +69,6 @@ impl Value for Command {
 }
 
 /**
-Запрашивает состояние всех 16 переключателей устройства
-
-Отправляет команды запроса состояния для каждой кнопки и ожидает
-ответы в течение 5 секунд.
-
-# Аргументы
-* `buffers` - Буферы для обмена данными с устройством
-
-# Возвращает
-`Ok(())` при успешном получении всех ответов или ошибку при таймауте
-
-# Ошибки
-* `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
-*/
-pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
-  let time = Instant::now();
-  let duration = Duration::from_secs(5);
-
-  let switch_col = 16;
-  (1..=switch_col).for_each(|i: u8| {
-    buffers.send().push(Command::RequestCondition(i).get());
-  });
-
-  loop {
-    if time.elapsed() >= duration {
-      break Err(KeypadError::NoResponse(Command::RequestCondition(1).get()).into());
-    }
-
-    (1..=switch_col).for_each(|i| {
-      if let Some(s) = buffers
-        .receive()
-        .pull(&super::KeypadCommands::Switch(Command::RequestCondition(i)))
-      {
-        debug!("request_condition: {s:?}");
-      }
-    });
-  }
-}
-
-/**
 Запрашивает ASCII-коды для всех 16 переключателей устройства
 
 Отправляет команды запроса кодов для каждой кнопки и ожидает
