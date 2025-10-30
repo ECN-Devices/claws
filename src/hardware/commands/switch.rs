@@ -123,7 +123,7 @@ pub fn request_condition(buffers: &mut Buffers) -> Result<()> {
 # Ошибки
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
-pub fn request_code_ascii(buffers: &mut Buffers) -> Result<[[u8; 6]; 16]> {
+pub async fn request_code_ascii(buffers: &mut Buffers) -> Result<[[u8; 6]; 16]> {
   let time = Instant::now();
   let duration = Duration::from_secs(5);
 

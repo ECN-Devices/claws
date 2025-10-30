@@ -20,7 +20,7 @@ use crate::{
   hardware::{
     buffers::{Buffers, BuffersIO},
     commands::{Value, device, empty, profile, stick, switch},
-    serial::{DeviceIO, Keypad, buttons::KeypadButton},
+    serial::{DeviceIO, Keypad, buttons::KeypadButton, profile::profile_all_request},
   },
   ui::{
     pages::{Icon, Pages},
@@ -94,11 +94,15 @@ pub enum Message {
   /// Сохранить полученный профиль в состоянии
   ProfileReceived(Profile),
 
+  ProfileReceiveKeypadVec,
+  ProfileReceivedKeypadVec((Vec<Profile>, usize)),
+
   ProfileNew,
   ProfileRemove(usize),
   ProfileSave((usize, Profile)),
 
-  ProfileLoad(usize),
+  ProfileLoadKeypad(usize),
+  ProfileLoadLocal(usize),
 
   /// Импорт профиля из файла
   ProfileImport,
@@ -212,11 +216,8 @@ impl State {
       },
     };
 
-    let profile = Task::done(Message::ProfileReceive).chain(Task::done(Message::ProfilesListLoad));
-    // let profile = match keypad.is_open {
-    //   true => Keypad::receive_profile(),
-    //   false => Profile::default(),
-    // };
+    let profile =
+      Task::done(Message::ProfileReceiveKeypadVec).chain(Task::done(Message::ProfilesListLoad));
 
     let device_info_task = match keypad.is_open {
       true => Task::done(Message::GetDeviceInfo),
@@ -244,10 +245,11 @@ impl State {
         keypad,
         pages,
         profile: Profile::default(),
-        profiles_vec: Vec::new(),
+        profiles_keypad_vec: Vec::new(),
+        profiles_local_vec: Vec::new(),
         profile_on_keypad: true,
-        profile_id: None,
-        active_profile_num: None,
+        local_profile_id: None,
+        active_keypad_profile_id: None,
         stick_callibrate: false,
         stick_callibrate_time: None,
         stick_info: Stick::default(),
@@ -459,12 +461,7 @@ impl State {
 
         let mut buffers = self.buffers.clone();
         Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || {
-              Keypad::profile_receive(&mut buffers).unwrap_or_default()
-            })
-            .await
-          },
+          async move { Keypad::profile_receive(&mut buffers).await },
           |profile| match profile {
             Ok(profile) => Message::ProfileReceived(profile),
             Err(_) => Message::ProfileReceive,
@@ -476,16 +473,33 @@ impl State {
         self.profile = profile;
         Task::none()
       }
+      Message::ProfileReceiveKeypadVec => {
+        let mut buffers = self.buffers.clone();
+        Task::perform(
+          async move { profile_all_request(&mut buffers).await },
+          |res| match res {
+            Ok(res) => Message::ProfileReceivedKeypadVec(res),
+            Err(_) => Message::ProfileReceiveKeypadVec,
+          },
+        )
+      }
+      Message::ProfileReceivedKeypadVec(res) => {
+        self.active_keypad_profile_id = Some(res.1);
+        self.profiles_keypad_vec = res.0.clone();
+        self.profile = res.0.get(res.1 - 1).unwrap().clone();
+        self.profile_on_keypad = true;
+        Task::none()
+      }
       Message::ProfileNew => {
         self
-          .profiles_vec
-          .push((self.profiles_vec.len(), self.profile.clone()));
+          .profiles_local_vec
+          .push((self.profiles_local_vec.len(), self.profile.clone()));
 
         Task::done(Message::ProfilesExport)
         // Task::none()
       }
       Message::ProfileRemove(idx) => {
-        self.profiles_vec.retain(|(idy, _)| *idy != idx);
+        self.profiles_local_vec.retain(|(idy, _)| *idy != idx);
         Task::done(Message::ProfilesExport)
       }
       Message::ProfileSave(profile) => {
@@ -494,14 +508,29 @@ impl State {
         }
 
         let (idx, _) = profile;
-        self.profiles_vec[idx] = profile;
+        self.profiles_local_vec[idx] = profile;
         Task::done(Message::ProfilesExport)
       }
-      Message::ProfileLoad(idx) => {
+      Message::ProfileLoadKeypad(idx) => {
+        self.profile_on_keypad = true;
+
+        if let Some(profile) = self.profiles_keypad_vec.get(idx - 1).cloned() {
+          self.active_keypad_profile_id = Some(idx);
+          self.profile = profile;
+        }
+
+        debug!(
+          "{:?}, {}, {:#?}",
+          self.active_keypad_profile_id, idx, self.profile
+        );
+
+        Task::none()
+      }
+      Message::ProfileLoadLocal(idx) => {
         self.profile_on_keypad = false;
 
-        if let Some((_, profile)) = self.profiles_vec.get(idx).cloned() {
-          self.profile_id = Some(idx);
+        if let Some((_, profile)) = self.profiles_local_vec.get(idx).cloned() {
+          self.local_profile_id = Some(idx);
           self.profile = profile;
         }
         Task::none()
@@ -511,7 +540,7 @@ impl State {
       // Экспорт профиля в файл
       Message::ProfilesExport => {
         let profiles = self
-          .profiles_vec
+          .profiles_local_vec
           .clone()
           .into_iter()
           .map(|(_, profile)| profile)
@@ -534,11 +563,11 @@ impl State {
         Message::ProfilesListSave(res)
       }),
       Message::ProfilesListSave(vec) => {
-        if self.profiles_vec == vec {
+        if self.profiles_local_vec == vec {
           return Task::none();
         }
 
-        self.profiles_vec = vec;
+        self.profiles_local_vec = vec;
         Task::done(Message::ProfilesExport)
       }
       // Запись выбранного из файла профиля в устройство
@@ -592,24 +621,22 @@ impl State {
       Message::ProfileRequestActiveNum => {
         let mut buf = self.buffers.clone();
         Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || profile::request_active_num(&mut buf)).await
-          },
+          async move { profile::request_active_num(&mut buf).await },
           |res| match res {
-            Ok(Ok(num)) => Message::ProfileRequestActiveNumState(num as usize),
+            Ok(num) => Message::ProfileRequestActiveNumState(num as usize),
             _ => Message::None,
           },
         )
       }
       // Сохраняем номер активного профиля в состояние
       Message::ProfileRequestActiveNumState(num) => {
-        self.active_profile_num = Some(num);
+        self.active_keypad_profile_id = Some(num);
         Task::none()
       }
       // Загрузить профиль из RAM ячейки в активный
       Message::ProfileLoadRamToActive(num) => {
         let buf = self.buffers.clone();
-        self.active_profile_num = Some(num);
+        self.active_keypad_profile_id = Some(num);
         self.profile_on_keypad = true;
         Task::perform(
           async move {
@@ -632,7 +659,7 @@ impl State {
         self.profile.name = string;
 
         Task::done(Message::ProfileSave((
-          self.profile_id.unwrap_or(0),
+          self.local_profile_id.unwrap_or(0),
           self.profile.clone(),
         )))
       }
@@ -734,7 +761,7 @@ impl State {
 
         // Task::done(Message::ClearButtonCombination)
         Task::done(Message::ProfileSave((
-          self.profile_id.unwrap_or(0),
+          self.local_profile_id.unwrap_or(0),
           self.profile.clone(),
         )))
         // Task::none()
@@ -771,9 +798,9 @@ impl State {
       Message::StickGetCalibrateParameters => {
         let mut buf = self.buffers.clone();
         Task::perform(
-          async move { tokio::task::spawn_blocking(move || stick::calibration_request(&mut buf)).await },
+          async move { stick::calibration_request(&mut buf).await },
           |res| match res {
-            Ok(Ok(res)) => Message::StickParseCalibrateParameters(res),
+            Ok(res) => Message::StickParseCalibrateParameters(res),
             _ => Message::StickGetCalibrateParameters,
           },
         )
@@ -953,7 +980,7 @@ impl State {
       port_sub,
       window,
       keyboard,
-      profile_active,
+      // profile_active,
       write_timer_check,
       stick_calibrate_timer,
     ])

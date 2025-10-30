@@ -60,7 +60,7 @@ pub fn active_profile(
   state: &State,
   number: usize,
 ) -> button::Style {
-  match state.active_profile_num {
+  match state.active_keypad_profile_id {
     Some(i) => match i == number && state.profile_on_keypad {
       true => button::Style {
         background: Some(iced::Background::Color(color!(0x778fe6))),
@@ -103,7 +103,7 @@ pub fn active_profile_id(
   state: &State,
   number: usize,
 ) -> button::Style {
-  match state.profile_id {
+  match state.local_profile_id {
     Some(id) => match id == number && !state.profile_on_keypad {
       true => button::Style {
         background: Some(iced::Background::Color(color!(0x778fe6))),
