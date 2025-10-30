@@ -29,6 +29,8 @@ mod utils;
 /// Глобальное состояние приложения Iced.
 #[derive(Debug, Clone, Default)]
 pub struct State {
+  is_first_start: bool,
+
   /// Разрешение на запись комбинации клавиш/стика из UI
   allow_write: bool,
 
@@ -59,7 +61,7 @@ pub struct State {
   local_profile_id: Option<usize>,
 
   /// Номер активного профиля на устройстве, если известен
-  active_keypad_profile_id: Option<usize>,
+  active_profile_id: Option<usize>,
 
   stick_callibrate: bool,
   stick_callibrate_time: Option<std::time::Instant>,

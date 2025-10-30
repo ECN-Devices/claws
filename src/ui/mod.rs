@@ -90,9 +90,9 @@ pub enum Message {
   /// Завершение отправки профиля
   ProfileWrited,
   /// Запросить профиль с устройства
-  ProfileReceive,
+  ProfileReceive(usize),
   /// Сохранить полученный профиль в состоянии
-  ProfileReceived(Profile),
+  ProfileReceived((Profile, usize)),
 
   ProfileReceiveKeypadVec,
   ProfileReceivedKeypadVec((Vec<Profile>, usize)),
@@ -126,8 +126,6 @@ pub enum Message {
   ProfileRequestActiveNum,
   /// Сохранить номер активного профиля в состоянии
   ProfileRequestActiveNumState(usize),
-  /// Загрузить профиль из RAM в активный
-  ProfileLoadRamToActive(usize),
   /// Обновить имя профиля из поля ввода
   ProfileUpdateName(String),
 
@@ -242,6 +240,7 @@ impl State {
 
     (
       Self {
+        is_first_start: true,
         allow_write: false,
         buffers: Buffers::default(),
         button: KeypadButton::default(),
@@ -250,11 +249,11 @@ impl State {
         keypad,
         pages,
         profile: Profile::default(),
-        profiles_keypad_vec: Vec::new(),
+        profiles_keypad_vec: Vec::with_capacity(4),
         profiles_local_vec: Vec::new(),
         profile_on_keypad: true,
         local_profile_id: None,
-        active_keypad_profile_id: None,
+        active_profile_id: None,
         stick_callibrate: false,
         stick_callibrate_time: None,
         stick_info: Stick::default(),
@@ -366,7 +365,8 @@ impl State {
         self.pages = Pages::Profiles;
 
         // После подключения — запросить профиль
-        Task::done(Message::ProfileReceive)
+        // Task::done(Message::ProfileReceive)
+        Task::none()
       }
       // Проверка доступности порта пустой командой
       Message::PortAvalaible => {
@@ -459,23 +459,37 @@ impl State {
       // Завершение записи профиля
       Message::ProfileWrited => Task::none(),
       // Запрос профиля с устройства
-      Message::ProfileReceive => {
+      Message::ProfileReceive(id) => {
         if !self.keypad.is_open {
           return Task::none();
         };
 
+        let active_profile_id = self.active_profile_id.unwrap();
         let mut buffers = self.buffers.clone();
         Task::perform(
-          async move { Keypad::profile_receive(&mut buffers).await },
-          |profile| match profile {
-            Ok(profile) => Message::ProfileReceived(profile),
-            Err(_) => Message::ProfileReceive,
+          async move {
+            buffers
+              .send()
+              .push(profile::Command::LoadRamToActive(id).get());
+
+            let profile = Keypad::profile_receive(&mut buffers).await;
+
+            buffers
+              .send()
+              .push(profile::Command::LoadRamToActive(active_profile_id).get());
+
+            profile
+          },
+          move |res| match res {
+            Ok(profile) => Message::ProfileReceived((profile, id)),
+            Err(_) => Message::ProfileReceive(id),
           },
         )
       }
       // Сохранение полученного профиля в структуру профиля
-      Message::ProfileReceived(profile) => {
-        self.profile = profile;
+      Message::ProfileReceived((profile, id)) => {
+        self.profile = profile.clone();
+        self.profiles_keypad_vec[id - 1] = profile;
         Task::none()
       }
       Message::ProfileReceiveKeypadVec => {
@@ -489,10 +503,20 @@ impl State {
         )
       }
       Message::ProfileReceivedKeypadVec(res) => {
-        self.active_keypad_profile_id = Some(res.1);
-        self.profiles_keypad_vec = res.0.clone();
-        self.profile = res.0.get(res.1 - 1).unwrap().clone();
-        self.profile_on_keypad = true;
+        match self.is_first_start {
+          true => {
+            self.active_profile_id = Some(res.1);
+            self.profiles_keypad_vec = res.0.clone();
+            self.profile = res.0.get(res.1 - 1).unwrap().clone();
+            self.profile_on_keypad = true;
+            self.is_first_start = !self.is_first_start;
+          }
+          false => {
+            self.profiles_keypad_vec = res.0.clone();
+            self.profile = res.0.get(res.1 - 1).unwrap().clone();
+          }
+        };
+
         Task::none()
       }
       Message::ProfileNew => {
@@ -520,14 +544,9 @@ impl State {
         self.profile_on_keypad = true;
 
         if let Some(profile) = self.profiles_keypad_vec.get(idx - 1).cloned() {
-          self.active_keypad_profile_id = Some(idx);
+          self.active_profile_id = Some(idx);
           self.profile = profile;
         }
-
-        debug!(
-          "{:?}, {}, {:#?}",
-          self.active_keypad_profile_id, idx, self.profile
-        );
 
         Task::none()
       }
@@ -582,7 +601,8 @@ impl State {
           async move {
             tokio::task::spawn_blocking(move || Keypad::profile_send(&mut buffers, profile)).await
           },
-          |_| Message::ProfileReceive,
+          // |_| Message::ProfileReceive,
+          |_| Message::None,
         )
       }
       // Активировать профиль в RAM
@@ -600,7 +620,7 @@ impl State {
             .await
           },
           // |_| Message::ProfileRequestActiveNum,
-          |_| Message::None,
+          move |_| Message::ProfileReceive(num as usize),
         )
       }
       // Активировать профиль в ROM/Flash и синхронизировать RAM
@@ -635,25 +655,8 @@ impl State {
       }
       // Сохраняем номер активного профиля в состояние
       Message::ProfileRequestActiveNumState(num) => {
-        self.active_keypad_profile_id = Some(num);
+        self.active_profile_id = Some(num);
         Task::none()
-      }
-      // Загрузить профиль из RAM ячейки в активный
-      Message::ProfileLoadRamToActive(num) => {
-        let buf = self.buffers.clone();
-        self.active_keypad_profile_id = Some(num);
-        self.profile_on_keypad = true;
-        Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || {
-              buf
-                .send()
-                .push(profile::Command::LoadRamToActive(num).get())
-            })
-            .await
-          },
-          |_| Message::ProfileReceive,
-        )
       }
       // Обновление имени профиля из поля ввода
       Message::ProfileUpdateName(string) => {
@@ -684,7 +687,7 @@ impl State {
                 })
                 .await
               },
-              |_| Message::None,
+              |_| Message::ProfileReceiveKeypadVec,
             )
           }
           false => Task::none(),

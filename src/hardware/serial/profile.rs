@@ -132,6 +132,4 @@ pub async fn profile_all_request(buffers: &mut Buffers) -> Result<(Vec<Profile>,
     .push(profile::Command::LoadRamToActive(active_keypad_profile_id).get());
 
   Ok((res, active_keypad_profile_id))
-
-  // todo!()
 }
