@@ -106,7 +106,7 @@ impl Value for Command {
 # Ошибки
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
-pub fn request_active_num(buffers: &mut Buffers) -> Result<u8> {
+pub async fn request_active_num(buffers: &mut Buffers) -> Result<u8> {
   let time = Instant::now();
   let duration = Duration::from_secs(5);
 
@@ -145,7 +145,7 @@ pub fn request_active_num(buffers: &mut Buffers) -> Result<u8> {
 # Ошибки
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
-pub fn request_name(buffers: &mut Buffers) -> Result<Vec<u8>> {
+pub async fn request_name(buffers: &mut Buffers) -> Result<Vec<u8>> {
   let time = Instant::now();
   let duration = Duration::from_secs(5);
 

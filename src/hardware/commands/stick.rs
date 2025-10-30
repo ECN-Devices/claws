@@ -117,7 +117,7 @@ impl OptionsCalibration {
 # Ошибки
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
-pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
+pub async fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
   let time = Instant::now();
   let duration = Duration::from_secs(5);
 
@@ -159,7 +159,7 @@ pub fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
 # Ошибки
 * `KeypadError::NoResponse` - если устройство не отвечает в течение 5 секунд
 */
-pub fn calibration_request(buffers: &mut Buffers) -> Result<Vec<u8>> {
+pub async fn calibration_request(buffers: &mut Buffers) -> Result<Vec<u8>> {
   let time = Instant::now();
   let duration = Duration::from_secs(5);
 

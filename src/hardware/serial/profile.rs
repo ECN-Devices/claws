@@ -5,7 +5,11 @@ use crate::{
   data::profiles::{KEYPAD_BUTTONS, Profile},
   hardware::{
     buffers::{Buffers, BuffersIO},
-    commands::{Value, profile, stick, switch},
+    commands::{
+      Value,
+      profile::{self, request_active_num},
+      stick, switch,
+    },
     serial::Keypad,
   },
 };
@@ -26,22 +30,24 @@ impl Keypad {
   # Возвращает
   Прочитанный профиль или ошибку при неудачном чтении
   */
-  pub fn profile_receive(buffers: &mut Buffers) -> Result<Profile> {
+  pub async fn profile_receive(buffers: &mut Buffers) -> Result<Profile> {
     let mut keypad_profile = Profile::default();
 
     // Читаем имя профиля
-    let profile_name = String::from_utf8_lossy(&profile::request_name(buffers)?).into_owned();
+    let profile_name = String::from_utf8_lossy(&profile::request_name(buffers).await?).into_owned();
     keypad_profile.name = profile_name;
 
     // Читаем конфигурацию кнопок (1..16)
-    let buttons_s = switch::request_code_ascii(buffers)?;
+    let buttons_s = switch::request_code_ascii(buffers).await?;
     keypad_profile.buttons = buttons_s;
 
     // Читаем конфигурацию стика (4 направления)
-    let stick_s = stick::request_position_ascii(buffers).unwrap_or([b'?'; 4]);
+    let stick_s = stick::request_position_ascii(buffers)
+      .await
+      .unwrap_or([b'?'; 4]);
     keypad_profile.stick.word = stick_s;
 
-    let stick_d = stick::calibration_request(buffers)?;
+    let stick_d = stick::calibration_request(buffers).await?;
     keypad_profile.stick.deadzone = *stick_d.last().unwrap();
 
     Ok(keypad_profile)
@@ -107,4 +113,25 @@ impl Keypad {
 
     Ok(())
   }
+}
+
+pub async fn profile_all_request(buffers: &mut Buffers) -> Result<(Vec<Profile>, usize)> {
+  let mut res = Vec::with_capacity(4);
+  let active_keypad_profile_id: usize = request_active_num(buffers).await?.into();
+
+  for i in 1..=4 {
+    buffers
+      .send()
+      .push(profile::Command::LoadRamToActive(i).get());
+    let profile = Keypad::profile_receive(buffers).await?;
+    res.push(profile);
+  }
+
+  buffers
+    .send()
+    .push(profile::Command::LoadRamToActive(active_keypad_profile_id).get());
+
+  Ok((res, active_keypad_profile_id))
+
+  // todo!()
 }

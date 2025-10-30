@@ -246,11 +246,11 @@ impl Pages {
   Прокручиваемый контейнер с кнопками выбора профилей
   */
   fn build_profile_list(state: &State) -> Element<'_, Message> {
-    let profile_buttons = column(state.profiles_vec.iter().map(|(idx, profile)| {
+    let profile_buttons = column(state.profiles_local_vec.iter().map(|(idx, profile)| {
       row![
         mk_button!(
           container(text(&profile.name)).center_x(Length::Fill),
-          Message::ProfileLoad(*idx)
+          Message::ProfileLoadLocal(*idx)
         )
         .style(move |theme: &Theme, status| {
           styles::button::active_profile_id(theme, status, state, *idx)
@@ -861,15 +861,15 @@ fn mk_button_stick<'a>(state: &'a State, id: usize, profile: &Profile) -> MouseA
 # Возвращает
 Горизонтальную строку с двумя кнопками управления профилем
 */
-fn mk_button_profile_row<'a>(state: &'a State, num: usize) -> Row<'a, Message> {
+fn mk_button_profile_row<'a>(state: &'a State, id: usize) -> Row<'a, Message> {
   let (profile_type, write_message) = if state.is_rom {
-    ("ПЗУ", Message::ProfileActiveWriteToRom(num as u8))
+    ("ПЗУ", Message::ProfileActiveWriteToRom(id as u8))
   } else {
-    ("ОЗУ", Message::ProfileActiveWriteToRam(num as u8))
+    ("ОЗУ", Message::ProfileActiveWriteToRam(id as u8))
   };
 
-  let block = if let Some(pr_num) = state.active_profile_num
-    && pr_num == num
+  let block = if let Some(pr_num) = state.active_keypad_profile_id
+    && pr_num == id
   {
     column![button("").width(10).style(styles::button::rounding)]
   } else {
@@ -878,12 +878,12 @@ fn mk_button_profile_row<'a>(state: &'a State, num: usize) -> Row<'a, Message> {
 
   row![
     block,
-    button(text!("{} {}", profile_type, num).center())
-      .on_press(Message::ProfileLoadRamToActive(num))
+    button(text!("{} {}", profile_type, id).center())
+      .on_press(Message::ProfileLoadKeypad(id))
       .width(80)
       .height(35)
       .style(move |theme: &Theme, status| {
-        styles::button::active_profile(theme, status, state, num)
+        styles::button::active_profile(theme, status, state, id)
       }),
     button(
       svg(svg::Handle::from_memory(Icon::Download.icon()))

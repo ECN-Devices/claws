@@ -52,13 +52,14 @@ pub struct State {
 
   /// Активный профиль
   profile: Profile,
-  profiles_vec: Vec<(usize, Profile)>,
+  profiles_keypad_vec: Vec<Profile>,
+  profiles_local_vec: Vec<(usize, Profile)>,
   profile_on_keypad: bool,
 
-  profile_id: Option<usize>,
+  local_profile_id: Option<usize>,
 
   /// Номер активного профиля на устройстве, если известен
-  active_profile_num: Option<usize>,
+  active_keypad_profile_id: Option<usize>,
 
   stick_callibrate: bool,
   stick_callibrate_time: Option<std::time::Instant>,
