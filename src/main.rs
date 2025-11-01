@@ -55,7 +55,7 @@ pub struct State {
   /// Активный профиль
   profile: Profile,
   profiles_keypad_vec: Vec<Profile>,
-  profiles_local_vec: Vec<(usize, Profile)>,
+  profiles_local_vec: Vec<Profile>,
   profile_on_keypad: bool,
 
   local_profile_id: Option<usize>,

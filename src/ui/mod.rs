@@ -106,7 +106,7 @@ pub enum Message {
 
   /// Показать список сохранённых профилей
   ProfilesListLoad,
-  ProfilesListSave(Vec<(usize, Profile)>),
+  ProfilesListSave(Vec<Profile>),
 
   /// Сделать профиль активным в RAM (1..=4)
   ProfileActiveWriteToRam(u8),
@@ -480,15 +480,13 @@ impl State {
         Task::none()
       }
       Message::ProfileNew => {
-        self
-          .profiles_local_vec
-          .push((self.profiles_local_vec.len(), self.profile.clone()));
+        self.profiles_local_vec.push(self.profile.clone());
 
         Task::done(Message::ProfilesExport)
         // Task::none()
       }
       Message::ProfileRemove(idx) => {
-        self.profiles_local_vec.retain(|(idy, _)| *idy != idx);
+        self.profiles_local_vec.remove(idx);
         Task::done(Message::ProfilesExport)
       }
       Message::ProfileSave(profile) => {
@@ -496,7 +494,8 @@ impl State {
           return Task::none();
         }
 
-        let (idx, _) = profile;
+        let (idx, profile) = profile;
+
         self.profiles_local_vec[idx] = profile;
         Task::done(Message::ProfilesExport)
       }
@@ -513,7 +512,7 @@ impl State {
       Message::ProfileLoadLocal(idx) => {
         self.profile_on_keypad = false;
 
-        if let Some((_, profile)) = self.profiles_local_vec.get(idx).cloned() {
+        if let Some(profile) = self.profiles_local_vec.get(idx).cloned() {
           self.local_profile_id = Some(idx);
           self.profile = profile;
         }
@@ -522,17 +521,12 @@ impl State {
       // Открыть диалог импорта профиля
       Message::ProfileImport => Profile::open_load_file_dialog(),
       Message::ProfileImported(profiles) => {
-        self.profiles_local_vec = profiles.into_iter().enumerate().collect();
+        self.profiles_local_vec = profiles;
         Task::done(Message::ProfilesExport)
       }
       // Экспорт профиля в файл
       Message::ProfilesExport => {
-        let profiles = self
-          .profiles_local_vec
-          .clone()
-          .into_iter()
-          .map(|(_, profile)| profile)
-          .collect::<Vec<_>>();
+        let profiles = self.profiles_local_vec.clone();
 
         Task::perform(
           async move {
@@ -548,10 +542,10 @@ impl State {
       }
       // Маркер завершения операций с профилем
       Message::ProfileSaved => Task::none(),
-      Message::ProfilesListLoad => Task::perform(async move { Profile::load().await }, |res| {
-        let res: Vec<(usize, Profile)> = res.into_iter().enumerate().collect();
-        Message::ProfilesListSave(res)
-      }),
+      Message::ProfilesListLoad => Task::perform(
+        async move { Profile::load().await },
+        Message::ProfilesListSave,
+      ),
       Message::ProfilesListSave(vec) => {
         if self.profiles_local_vec == vec {
           return Task::none();
