@@ -246,28 +246,30 @@ impl Pages {
   Прокручиваемый контейнер с кнопками выбора профилей
   */
   fn build_profile_list(state: &State) -> Element<'_, Message> {
-    let profile_buttons = column(state.profiles_local_vec.iter().map(|(idx, profile)| {
-      row![
-        mk_button!(
-          container(text(&profile.name)).center_x(Length::Fill),
-          Message::ProfileLoadLocal(*idx)
-        )
-        .style(move |theme: &Theme, status| {
-          styles::button::active_profile_id(theme, status, state, *idx)
-        }),
-        mk_button!(
-          container(svg(svg::Handle::from_memory(include_bytes!(
-            "../../assets/icons/trash.svg"
-          ))))
-          .center(Length::Fill),
-          Message::ProfileRemove(*idx)
-        )
-        .width(BUTTON_HEIGH)
-        .height(BUTTON_HEIGH)
-      ]
-      .spacing(SPACING)
-      .into()
-    }))
+    let profile_buttons = column(state.profiles_local_vec.iter().enumerate().map(
+      |(idx, profile)| {
+        row![
+          mk_button!(
+            container(text(&profile.name)).center_x(Length::Fill),
+            Message::ProfileLoadLocal(idx)
+          )
+          .style(move |theme: &Theme, status| {
+            styles::button::active_profile_id(theme, status, state, idx)
+          }),
+          mk_button!(
+            container(svg(svg::Handle::from_memory(include_bytes!(
+              "../../assets/icons/trash.svg"
+            ))))
+            .center(Length::Fill),
+            Message::ProfileRemove(idx)
+          )
+          .width(BUTTON_HEIGH)
+          .height(BUTTON_HEIGH)
+        ]
+        .spacing(SPACING)
+        .into()
+      },
+    ))
     .spacing(SPACING);
 
     Scrollable::new(profile_buttons)
