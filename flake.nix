@@ -113,9 +113,6 @@
         windowsArgs = {debug ? false}: {
           inherit src;
 
-          pname = "claws";
-          version = "1.1.0";
-
           strictDeps = true;
 
           CARGO_PROFILE =
