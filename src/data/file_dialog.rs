@@ -34,7 +34,7 @@ impl Profile {
     .then(|handle| match handle {
       Some(ref handle) => {
         let profile = Profile::load_file(Self::load_file_handle(handle));
-        Task::done(Message::ProfileFileWrite(profile))
+        Task::done(Message::ProfileImported(profile))
       }
       None => Task::none(),
     })

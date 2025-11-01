@@ -96,16 +96,17 @@ pub enum Message {
 
   /// Импорт профиля из файла
   ProfileImport,
+  ProfileImported(Vec<Profile>),
 
   /// Экспорт текущего профиля в файл
   ProfilesExport,
 
+  /// Завершение операций сохранения профиля (в файл или Flash)
+  ProfileSaved,
+
   /// Показать список сохранённых профилей
   ProfilesListLoad,
   ProfilesListSave(Vec<(usize, Profile)>),
-
-  /// Записать в устройство профиль, загруженный из файла
-  ProfileFileWrite(Profile),
 
   /// Сделать профиль активным в RAM (1..=4)
   ProfileActiveWriteToRam(u8),
@@ -118,9 +119,6 @@ pub enum Message {
   ProfileRequestActiveNumState(usize),
   /// Обновить имя профиля из поля ввода
   ProfileUpdateName(String),
-
-  /// Завершение операций сохранения профиля (в файл или Flash)
-  ProfileSaved,
 
   // --- Редактирование комбинаций ---
   /// Переключить режим записи в ROM/Flash
@@ -528,6 +526,10 @@ impl State {
       }
       // Открыть диалог импорта профиля
       Message::ProfileImport => Profile::open_load_file_dialog(),
+      Message::ProfileImported(profiles) => {
+        self.profiles_local_vec = profiles.into_iter().enumerate().collect();
+        Task::done(Message::ProfilesExport)
+      }
       // Экспорт профиля в файл
       Message::ProfilesExport => {
         let profiles = self
@@ -549,6 +551,8 @@ impl State {
           |_| Message::ProfileSaved,
         )
       }
+      // Маркер завершения операций с профилем
+      Message::ProfileSaved => Task::none(),
       Message::ProfilesListLoad => Task::perform(async move { Profile::load().await }, |res| {
         let res: Vec<(usize, Profile)> = res.into_iter().enumerate().collect();
         Message::ProfilesListSave(res)
@@ -560,17 +564,6 @@ impl State {
 
         self.profiles_local_vec = vec;
         Task::done(Message::ProfilesExport)
-      }
-      // Запись выбранного из файла профиля в устройство
-      Message::ProfileFileWrite(profile) => {
-        let mut buffers = self.buffers.clone();
-        Task::perform(
-          async move {
-            tokio::task::spawn_blocking(move || Keypad::profile_send(&mut buffers, profile)).await
-          },
-          // |_| Message::ProfileReceive,
-          |_| Message::None,
-        )
       }
       // Активировать профиль в RAM
       Message::ProfileActiveWriteToRam(num) => {
@@ -640,8 +633,6 @@ impl State {
           self.profile.clone(),
         )))
       }
-      // Маркер завершения операций с профилем
-      Message::ProfileSaved => Task::none(),
       // Переключение режима записи (ROM<->RAM) и подгрузка данных из Flash при необходимости
       Message::WriteButtonIsRom => {
         self.is_rom = !self.is_rom;

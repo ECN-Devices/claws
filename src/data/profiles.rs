@@ -78,7 +78,7 @@ impl Profile {
   # Аргументы
   * `path` - Путь к файлу профиля
   */
-  pub fn load_file(path: &Path) -> Self {
+  pub fn load_file(path: &Path) -> Vec<Self> {
     confy::load_path(path).expect("Не удалось загрузить конфигурацию профиля из файла")
   }
 
