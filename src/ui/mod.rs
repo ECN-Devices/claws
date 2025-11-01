@@ -250,6 +250,7 @@ impl State {
         local_profile_id: None,
         active_profile_id: None,
         request_active_profile_id: None,
+        profile_write: false,
         stick_callibrate: false,
         stick_callibrate_time: None,
         stick_info: Stick::default(),
@@ -460,7 +461,9 @@ impl State {
           return Task::none();
         };
 
-        let active_profile_id = self.active_profile_id.unwrap();
+        self.profile_write = true;
+
+        let request_active_profile_id = self.request_active_profile_id.unwrap();
         let mut buffers = self.buffers.clone();
         Task::perform(
           async move {
@@ -472,7 +475,7 @@ impl State {
 
             buffers
               .send()
-              .push(profile::Command::LoadRamToActive(active_profile_id).get());
+              .push(profile::Command::LoadRamToActive(request_active_profile_id).get());
 
             profile
           },
@@ -484,11 +487,13 @@ impl State {
       }
       // Сохранение полученного профиля в структуру профиля
       Message::ProfileReceived((profile, id)) => {
+        self.profile_write = false;
         self.profile = profile.clone();
         self.profiles_keypad_vec[id - 1] = profile;
         Task::none()
       }
       Message::ProfileReceiveKeypadVec => {
+        self.profile_write = true;
         let mut buffers = self.buffers.clone();
         Task::perform(
           async move { profile_all_request(&mut buffers).await },
@@ -499,6 +504,8 @@ impl State {
         )
       }
       Message::ProfileReceivedKeypadVec(res) => {
+        self.profile_write = false;
+
         match self.is_first_start {
           true => {
             self.active_profile_id = Some(res.1);
@@ -603,6 +610,8 @@ impl State {
       }
       // Активировать профиль в RAM
       Message::ProfileActiveWriteToRam(num) => {
+        self.profile_write = true;
+
         let mut buf = self.buffers.clone();
         let profile = self.profile.clone();
         Task::perform(
@@ -962,8 +971,8 @@ impl State {
     };
 
     // Периодический запрос номера активного профиля при открытой странице "Профили"
-    let profile_active = match (&self.pages, &self.keypad.is_open) {
-      (Pages::Profiles, true) => {
+    let profile_active = match (&self.pages, &self.keypad.is_open, &self.profile_write) {
+      (Pages::Profiles, true, false) => {
         iced::time::every(Duration::from_millis(250)).map(|_| Message::ProfileRequestActiveNum)
       }
       _ => Subscription::none(),
