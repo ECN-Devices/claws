@@ -249,6 +249,7 @@ impl State {
         profile_on_keypad: true,
         local_profile_id: None,
         active_profile_id: None,
+        request_active_profile_id: None,
         stick_callibrate: false,
         stick_callibrate_time: None,
         stick_info: Stick::default(),
@@ -650,7 +651,7 @@ impl State {
       }
       // Сохраняем номер активного профиля в состояние
       Message::ProfileRequestActiveNumState(num) => {
-        self.active_profile_id = Some(num);
+        self.request_active_profile_id = Some(num);
         Task::none()
       }
       // Обновление имени профиля из поля ввода
@@ -983,7 +984,7 @@ impl State {
       port_sub,
       window,
       keyboard,
-      // profile_active,
+      profile_active,
       write_timer_check,
       stick_calibrate_timer,
     ])

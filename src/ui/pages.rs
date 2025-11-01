@@ -868,7 +868,7 @@ fn mk_button_profile_row<'a>(state: &'a State, id: usize) -> Row<'a, Message> {
     ("ОЗУ", Message::ProfileActiveWriteToRam(id as u8))
   };
 
-  let block = if let Some(pr_num) = state.active_profile_id
+  let block = if let Some(pr_num) = state.request_active_profile_id
     && pr_num == id
   {
     column![button("").width(10).style(styles::button::rounding)]

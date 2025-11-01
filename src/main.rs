@@ -63,6 +63,8 @@ pub struct State {
   /// Номер активного профиля на устройстве, если известен
   active_profile_id: Option<usize>,
 
+  request_active_profile_id: Option<usize>,
+
   stick_callibrate: bool,
   stick_callibrate_time: Option<std::time::Instant>,
   stick_info: Stick,
