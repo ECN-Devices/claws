@@ -50,8 +50,6 @@
             p.rust-bin.stable.latest.default.override {
               extensions = [
                 "rust-analyzer"
-                "cargo"
-                "rustc"
                 "rust-src"
               ];
               targets = [
