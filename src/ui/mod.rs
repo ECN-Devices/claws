@@ -521,7 +521,10 @@ impl State {
       // Открыть диалог импорта профиля
       Message::ProfileImport => Profile::open_load_file_dialog(),
       Message::ProfileImported(profiles) => {
-        self.profiles_local_vec = profiles;
+        profiles
+          .iter()
+          .for_each(|profile| self.profiles_local_vec.push(profile.clone()));
+
         Task::done(Message::ProfilesExport)
       }
       // Экспорт профиля в файл
