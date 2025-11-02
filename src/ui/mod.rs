@@ -57,6 +57,7 @@ pub enum Message {
   PortSended,
 
   /// Поиск доступного порта устройства
+  PrePortSearch,
   PortSearch,
 
   // --- Навигация/страницы ---
@@ -320,6 +321,13 @@ impl State {
         // }
         Task::none()
       }
+      Message::PrePortSearch => {
+        self.pages = Pages::ConnectedDeviceNotFound;
+        self.keypad.is_open = false;
+        self.keypad.port = None;
+
+        Task::done(Message::PortSearch)
+      }
       // Пытаемся найти и открыть последовательный порт устройства
       Message::PortSearch => {
         let port = match Keypad::get_port() {
@@ -351,7 +359,7 @@ impl State {
 
         // После подключения — запросить профиль
         // Task::done(Message::ProfileReceive)
-        Task::none()
+        Task::done(Message::ProfileReceiveKeypadVec)
       }
       // Переключение страницы
       Message::ChangePage(page) => {
@@ -603,7 +611,7 @@ impl State {
           async move { profile::request_active_num(&mut buf).await },
           |res| match res {
             Ok(num) => Message::ProfileRequestActiveNumState(num as usize),
-            _ => Message::None,
+            Err(_) => Message::PrePortSearch,
           },
         )
       }
