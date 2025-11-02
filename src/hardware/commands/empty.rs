@@ -42,7 +42,7 @@ impl Value for Command {
 #[cfg(false)]
 pub fn empty(buffers: &mut Buffers) -> Result<()> {
   let time = Instant::now();
-  let duration = Duration::from_secs(5);
+  let duration = Duration::from_secs_f64(DURATION);
 
   buffers.send().push(Command::VoidRequest.get());
 

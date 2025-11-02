@@ -7,7 +7,7 @@ use crate::{
   errors::serial::KeypadError,
   hardware::{
     buffers::{Buffers, BuffersIO},
-    commands::Value,
+    commands::{DURATION, Value},
   },
 };
 
@@ -119,7 +119,7 @@ impl OptionsCalibration {
 */
 pub async fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
   let time = Instant::now();
-  let duration = Duration::from_secs(5);
+  let duration = Duration::from_secs_f64(DURATION);
 
   let mut stick_code = [0u8; 4];
 
@@ -161,7 +161,7 @@ pub async fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
 */
 pub async fn calibration_request(buffers: &mut Buffers) -> Result<Vec<u8>> {
   let time = Instant::now();
-  let duration = Duration::from_secs(5);
+  let duration = Duration::from_secs_f64(DURATION);
 
   buffers
     .send()

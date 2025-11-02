@@ -6,6 +6,8 @@ pub mod profile;
 pub mod stick;
 pub mod switch;
 
+const DURATION: f64 = 0.2;
+
 /// Корневое перечисление всех команд протокола
 #[derive(Debug, Clone)]
 pub enum KeypadCommands {

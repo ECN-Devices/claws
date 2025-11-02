@@ -7,7 +7,7 @@ use crate::{
   errors::serial::KeypadError,
   hardware::{
     buffers::{Buffers, BuffersIO},
-    commands::Value,
+    commands::{DURATION, Value},
   },
 };
 
@@ -67,7 +67,7 @@ impl Value for Command {
 */
 pub fn request_info(buffers: &mut Buffers) -> Result<Vec<u8>> {
   let time = Instant::now();
-  let duration = Duration::from_secs(5);
+  let duration = Duration::from_secs_f64(DURATION);
 
   buffers.send().push(Command::RequestInfo.get());
 

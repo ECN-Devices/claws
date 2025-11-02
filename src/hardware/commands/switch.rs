@@ -7,7 +7,7 @@ use crate::{
   errors::serial::KeypadError,
   hardware::{
     buffers::{Buffers, BuffersIO},
-    commands::Value,
+    commands::{DURATION, Value},
   },
 };
 
@@ -85,7 +85,7 @@ impl Value for Command {
 */
 pub async fn request_code_ascii(buffers: &mut Buffers) -> Result<[[u8; 6]; 16]> {
   let time = Instant::now();
-  let duration = Duration::from_secs(5);
+  let duration = Duration::from_secs_f64(DURATION);
 
   let switch_col = 16;
 
