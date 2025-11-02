@@ -10,8 +10,15 @@
       libxkbcommon
       wayland
     ];
+
+  moldDevShell = craneLib.devShell.override {
+    # For example, use the mold linker
+    mkShell = pkgs.mkShell.override {
+      stdenv = pkgs.stdenvAdapters.useMoldLinker pkgs.stdenv;
+    };
+  };
 in
-  craneLib.devShell {
+  moldDevShell {
     inherit (self.checks.${pkgs.system}.git-hooks) shellHook;
 
     inputsFrom = with pkgs; [
