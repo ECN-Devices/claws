@@ -1,4 +1,4 @@
-use iced::{Border, Color, Shadow, Theme, color, widget::button};
+use iced::{Border, Color, Shadow, Theme, widget::button};
 
 use crate::{State, ui::styles::BORDER_RADIUS};
 
@@ -39,22 +39,7 @@ pub fn transparent(_theme: &Theme, _status: button::Status) -> button::Style {
   }
 }
 
-/**
-Создает стиль кнопки активного профиля с подсветкой
-
-Выделяет активный профиль синим цветом, остальные профили
-отображаются в стандартном стиле.
-
-# Аргументы
-* `theme` - Текущая тема приложения
-* `status` - Состояние кнопки (нажата, наведена и т.д.)
-* `state` - Состояние приложения для определения активного профиля
-* `number` - Номер профиля (1-4)
-
-# Возвращает
-Стиль кнопки с подсветкой для активного профиля
-*/
-pub fn active_profile(
+pub fn active_profile_id(
   theme: &Theme,
   status: button::Status,
   state: &State,
@@ -63,7 +48,9 @@ pub fn active_profile(
   match state.active_profile_id {
     Some(i) => match i == number && state.profile_on_keypad {
       true => button::Style {
-        background: Some(iced::Background::Color(color!(0x778fe6))),
+        background: Some(iced::Background::Color(
+          theme.extended_palette().primary.base.color,
+        )),
         border: Border {
           radius: BORDER_RADIUS.into(),
           ..Default::default()
@@ -82,22 +69,7 @@ pub fn active_profile(
   }
 }
 
-/**
-Создает стиль кнопки активного профиля с подсветкой
-
-Выделяет активный профиль синим цветом, остальные профили
-отображаются в стандартном стиле.
-
-# Аргументы
-* `theme` - Текущая тема приложения
-* `status` - Состояние кнопки (нажата, наведена и т.д.)
-* `state` - Состояние приложения для определения активного профиля
-* `number` - Номер профиля (1-4)
-
-# Возвращает
-Стиль кнопки с подсветкой для активного профиля
-*/
-pub fn active_profile_id(
+pub fn local_profile_id(
   theme: &Theme,
   status: button::Status,
   state: &State,
@@ -106,7 +78,9 @@ pub fn active_profile_id(
   match state.local_profile_id {
     Some(id) => match id == number && !state.profile_on_keypad {
       true => button::Style {
-        background: Some(iced::Background::Color(color!(0x778fe6))),
+        background: Some(iced::Background::Color(
+          theme.extended_palette().primary.base.color,
+        )),
         border: Border {
           radius: BORDER_RADIUS.into(),
           ..Default::default()
@@ -156,7 +130,9 @@ pub fn active_write(
 ) -> button::Style {
   match (state.button.id == id, state.allow_write, is_stick) {
     (true, true, false) => button::Style {
-      background: Some(iced::Background::Color(color!(0x778fe6))),
+      background: Some(iced::Background::Color(
+        theme.extended_palette().primary.base.color,
+      )),
       border: Border {
         radius: (BORDER_RADIUS * 2.).into(),
         ..Default::default()
@@ -176,7 +152,7 @@ pub fn active_write(
 /// Модуль стилей для кнопок стика
 pub mod stick {
   use crate::{State, ui::styles::BORDER_RADIUS};
-  use iced::{Border, Theme, color, widget::button};
+  use iced::{Border, Theme, widget::button};
 
   /**
   Создает стиль кнопки направления стика в режиме записи
@@ -203,7 +179,10 @@ pub mod stick {
   ) -> button::Style {
     match (state.button.id == id, state.allow_write, is_stick) {
       (true, true, true) => button::Style {
-        background: Some(iced::Background::Color(color!(0x778fe6))),
+        // background: Some(iced::Background::Color(color!(0x778fe6))),
+        background: Some(iced::Background::Color(
+          theme.extended_palette().primary.base.color,
+        )),
         border: Border {
           radius: (BORDER_RADIUS * 2.).into(),
           ..Default::default()

@@ -23,8 +23,8 @@ use crate::{
   ui::{
     Message,
     styles::{
-      self, BUTTON_HEIGH, BUTTON_HEIGH_PROFILE, BUTTON_WIDTH_PROFILE, HEADING_SIZE, PADDING,
-      SPACING,
+      self, BORDER_RADIUS, BUTTON_HEIGH, BUTTON_HEIGH_PROFILE, BUTTON_WIDTH_PROFILE, HEADING_SIZE,
+      PADDING, SPACING,
     },
   },
 };
@@ -254,7 +254,7 @@ impl Pages {
             Message::ProfileLoadLocal(idx)
           )
           .style(move |theme: &Theme, status| {
-            styles::button::active_profile_id(theme, status, state, idx)
+            styles::button::local_profile_id(theme, status, state, idx)
           }),
           mk_button!(
             container(svg(svg::Handle::from_memory(include_bytes!(
@@ -610,15 +610,20 @@ impl Pages {
     let next_button =
       container(mk_button!("Далее", Message::StickStartCalibration)).align_right(Length::Fill);
 
-    column![
-      Self::create_calibration_header("Калибровка стика"),
-      Self::create_calibration_box(
-        column![
-          text("После нажатия на кнопку 'Далее' начнется процесс калибровки стика, вам необходимо вращать стик в крайнем положении пока не закончиться обратный отсчет."),
-          next_button
-        ].spacing(SPACING)
-       ),
-    ]
+    container(
+      column![
+        Self::create_calibration_header("Калибровка стика"),
+        Self::create_calibration_box(
+          column![
+            text("После нажатия на кнопку 'Далее' начнется процесс калибровки стика, вам необходимо вращать стик в крайнем положении пока не закончиться обратный отсчет."),
+            next_button
+          ]
+          .spacing(SPACING)
+        ),
+      ]
+      .padding(PADDING)
+    )
+    .style(|theme| styles::container::rounded(theme, BORDER_RADIUS))
     .width(600)
     .into()
   }
@@ -634,7 +639,6 @@ impl Pages {
   */
   fn create_calibration_header(title: &str) -> Element<'_, Message> {
     container(text(title).size(HEADING_SIZE))
-      .style(styles::container::round_bordered_box_header)
       .width(Length::Fill)
       .padding(PADDING)
       .into()
@@ -652,7 +656,7 @@ impl Pages {
   fn create_calibration_box<'a>(content: impl Into<Element<'a, Message>>) -> Element<'a, Message> {
     container(content)
       .center_x(Length::Fill)
-      .style(styles::container::round_bordered_box)
+      .style(styles::container::rounded_inside)
       .width(Length::Fill)
       .padding(PADDING)
       .into()
@@ -689,17 +693,21 @@ impl Pages {
     .spacing(SPACING);
 
     let version_panel = center(
-      column![
-        container(text("Версия").size(HEADING_SIZE))
-          .style(styles::container::round_bordered_box_header)
-          .padding(PADDING)
-          .width(Length::Fill),
-        container(version_info)
-          .style(styles::container::round_bordered_box)
-          .padding(PADDING)
-          .width(Length::Fill),
-      ]
-      .width(Length::Fixed(300.)),
+      container(
+        column![
+          container(text("Версия").size(HEADING_SIZE))
+            .width(Length::Fill)
+            .padding(PADDING),
+          container(version_info)
+            .style(styles::container::rounded_inside)
+            .padding(PADDING)
+            .width(Length::Fill),
+        ]
+        .width(Length::Fill)
+        .padding(PADDING),
+      )
+      .style(|theme| styles::container::rounded(theme, BORDER_RADIUS))
+      .width(300),
     );
 
     container(column![screen_name, version_panel])
@@ -885,7 +893,7 @@ fn mk_button_profile_row<'a>(state: &'a State, id: usize) -> Row<'a, Message> {
       .width(80)
       .height(35)
       .style(move |theme: &Theme, status| {
-        styles::button::active_profile(theme, status, state, id)
+        styles::button::active_profile_id(theme, status, state, id)
       }),
     button(
       svg(svg::Handle::from_memory(Icon::Download.icon()))

@@ -1,4 +1,4 @@
-use iced::{Border, Color, Theme, widget::text_input};
+use iced::{widget::text_input, Border, Color, Theme};
 
 use crate::ui::styles::BORDER_RADIUS;
 

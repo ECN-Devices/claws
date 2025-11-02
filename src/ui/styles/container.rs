@@ -1,46 +1,38 @@
-use iced::{Background, Border, Theme, border::Radius, color, widget::container::Style};
+use std::hint::unreachable_unchecked;
+
+use iced::{Background, Border, Theme, widget::container::Style};
 
 use crate::ui::styles::BORDER_RADIUS;
 
-/**
-Создает стиль контейнера для заголовка с закругленными верхними углами
+pub fn rounded(theme: &Theme, radius: f32) -> Style {
+  let background = match theme {
+    Theme::Light => Some(Background::Color(
+      theme
+        .extended_palette()
+        .background
+        .strong
+        .color
+        .scale_alpha(0.95),
+    )),
+    Theme::Dark => Some(Background::Color(
+      theme
+        .extended_palette()
+        .background
+        .weak
+        .color
+        .scale_alpha(0.05),
+    )),
+    // SAFETY:  The application's theme cannot be Light or Dark because they are explicitly specified in the theme() function in src/ui/mod.rs
+    _ => unsafe { unreachable_unchecked() },
+  };
 
-Используется для заголовков секций с закругленными верхними углами
-и соответствующим цветом фона для светлой и темной темы.
-
-# Аргументы
-* `theme` - Текущая тема приложения (светлая/темная)
-
-# Возвращает
-Стиль контейнера с закругленными верхними углами
-*/
-pub fn round_bordered_box_header(theme: &Theme) -> Style {
-  match theme {
-    Theme::Light => Style {
-      background: Some(Background::Color(color!(0xd0d0d0))),
-      border: Border {
-        radius: Radius {
-          top_left: BORDER_RADIUS,
-          top_right: BORDER_RADIUS,
-          ..Default::default()
-        },
-        ..Default::default()
-      },
+  Style {
+    background,
+    border: Border {
+      radius: radius.into(),
       ..Default::default()
     },
-    Theme::Dark => Style {
-      background: Some(Background::Color(color!(0x292929))),
-      border: Border {
-        radius: Radius {
-          top_left: BORDER_RADIUS,
-          top_right: BORDER_RADIUS,
-          ..Default::default()
-        },
-        ..Default::default()
-      },
-      ..Default::default()
-    },
-    _ => Style::default(),
+    ..Default::default()
   }
 }
 
@@ -56,32 +48,34 @@ pub fn round_bordered_box_header(theme: &Theme) -> Style {
 # Возвращает
 Стиль контейнера с закругленными нижними углами
 */
-pub fn round_bordered_box(theme: &Theme) -> Style {
-  match theme {
-    Theme::Light => Style {
-      background: Some(Background::Color(color!(0xededed))),
-      border: Border {
-        radius: Radius {
-          bottom_right: BORDER_RADIUS,
-          bottom_left: BORDER_RADIUS,
-          ..Default::default()
-        },
-        ..Default::default()
-      },
+pub fn rounded_inside(theme: &Theme) -> Style {
+  let background = match theme {
+    Theme::Light => Some(Background::Color(
+      theme
+        .extended_palette()
+        .background
+        .weak
+        .color
+        .scale_alpha(0.9),
+    )),
+    Theme::Dark => Some(Background::Color(
+      theme
+        .extended_palette()
+        .background
+        .strong
+        .color
+        .scale_alpha(0.1),
+    )),
+    // SAFETY:  The application's theme cannot be Light or Dark because they are explicitly specified in the theme() function in src/ui/mod.rs
+    _ => unsafe { unreachable_unchecked() },
+  };
+
+  Style {
+    background,
+    border: Border {
+      radius: BORDER_RADIUS.into(),
       ..Default::default()
     },
-    Theme::Dark => Style {
-      background: Some(Background::Color(color!(0x333333))),
-      border: Border {
-        radius: Radius {
-          bottom_right: BORDER_RADIUS,
-          bottom_left: BORDER_RADIUS,
-          ..Default::default()
-        },
-        ..Default::default()
-      },
-      ..Default::default()
-    },
-    _ => Style::default(),
+    ..Default::default()
   }
 }
