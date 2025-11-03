@@ -10,11 +10,6 @@
       url = "github:oxalica/rust-overlay/stable";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    git-hooks = {
-      url = "github:cachix/git-hooks.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   nixConfig = {
@@ -158,41 +153,6 @@
       in {
         checks = {
           build = self.packages.${system}.default;
-
-          git-hooks = inputs.git-hooks.lib.${system}.run {
-            src = ./.;
-            enabledPackages = with pkgs; [
-              pkg-config
-              systemd
-            ];
-            hooks = {
-              alejandra = {
-                enable = true;
-                package = pkgs.alejandra;
-                args = ["-q"];
-              };
-              deadnix = {
-                enable = true;
-                args = ["-e" "-q"];
-              };
-              statix = {
-                enable = true;
-                args = ["fix"];
-              };
-
-              check-json.enable = true;
-              pretty-format-json.enable = true;
-
-              check-toml.enable = true;
-              taplo = {
-                enable = true;
-                package = pkgs.taplo;
-              };
-
-              trim-trailing-whitespace.enable = true;
-              check-merge-conflicts.enable = true;
-            };
-          };
         };
 
         packages = {
