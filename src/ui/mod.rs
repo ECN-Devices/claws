@@ -836,9 +836,9 @@ impl State {
 
     let sidebar = container(
       column![
-        create_button_with_svg_and_text(Icon::Profiles, Message::ChangePage(Pages::Profiles)),
-        create_button_with_svg_and_text(Icon::Settings, Message::ChangePage(Pages::Settings)),
-        create_button_with_svg_and_text(Icon::Update, Message::ChangePage(Pages::Updater)),
+        create_button_with_svg_and_text(&Icon::Profiles, Message::ChangePage(Pages::Profiles)),
+        create_button_with_svg_and_text(&Icon::Settings, Message::ChangePage(Pages::Settings)),
+        create_button_with_svg_and_text(&Icon::Update, Message::ChangePage(Pages::Updater)),
       ]
       .spacing(SPACING),
     )
@@ -977,7 +977,7 @@ impl State {
 # Возвращает
 Кнопка с иконкой
 */
-fn create_button_with_svg_and_text<'a>(icon: Icon, on_press: Message) -> Button<'a, Message> {
+fn create_button_with_svg_and_text<'a>(icon: &Icon, on_press: Message) -> Button<'a, Message> {
   Button::new(container(
     svg(svg::Handle::from_memory(icon.icon()))
       .height(Length::Fill)
