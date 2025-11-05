@@ -40,7 +40,10 @@ pub struct Keypad {
 
 /// Трейт для операций с последовательным портом
 pub trait DeviceIO {
-  /// Находит и возвращает имя порта, к которому подключено устройство
+  /// Создает вектор портов с определенными параметрами
+  fn get_port_vec() -> Result<Vec<String>>;
+
+  /// Возвращает имя порта, к которому подключено устройство
   fn get_port() -> Result<String>;
 
   /**
@@ -61,62 +64,70 @@ pub trait DeviceIO {
 }
 
 impl DeviceIO for Keypad {
+  fn get_port_vec() -> Result<Vec<String>> {
+    let ports = serialport::available_ports().map_err(|_| KeypadError::NoPortsFound)?;
+    let result = ports
+      .into_iter()
+      .filter_map(|port| {
+        if let serialport::SerialPortType::UsbPort(usb_port_info) = port.port_type
+          && (usb_port_info.vid == 11914 || usb_port_info.vid == 9114)
+        {
+          return Some(port.port_name);
+        }
+        None
+      })
+      .collect();
+
+    Ok(result)
+  }
+
   fn get_port() -> Result<String> {
     let time = Instant::now();
     let mut buffers = Buffers::default();
-    let ports = serialport::available_ports().map_err(|_| KeypadError::NoPortsFound)?;
+    let ports = Self::get_port_vec()?;
     for port in ports {
-      match &port.port_type {
-        serialport::SerialPortType::UsbPort(usb_port_info) => {
-          if usb_port_info.vid == 11914 || usb_port_info.vid == 9114 {
-            let port = port.port_name;
-
-            let mut serial_port = match serialport::new(&port, 115_200)
-              .timeout(Duration::from_millis(10))
-              .open()
-            {
-              Ok(port) => Arc::new(Mutex::new(port)),
-              Err(e) => {
-                error!("Ошибка открытия порта {port}: {e}");
-                continue;
-              }
-            };
-
-            if cfg!(windows)
-              && let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true)
-            {
-              error!("Ошибка при установке DTR: {e}");
-            }
-
-            buffers.send().push(empty::Command::VoidRequest.get());
-            Self::send(&mut serial_port, &mut buffers)?;
-
-            loop {
-              if time.elapsed() >= Duration::from_secs(5) {
-                return Err(KeypadError::NoPortsFound.into());
-              }
-
-              match Self::receive(&mut serial_port, &mut buffers) {
-                Ok(_) => (),
-                Err(_) => continue,
-              };
-
-              match buffers
-                .receive()
-                .pull(&KeypadCommands::Empty(empty::Command::VoidRequest))
-              {
-                Some(_) => {
-                  debug!("port name: {}", &port);
-                  return Ok(port);
-                }
-
-                None => continue,
-              };
-            }
-          }
+      let mut serial_port = match serialport::new(&port, 115_200)
+        .timeout(Duration::from_millis(10))
+        .open()
+      {
+        Ok(port) => Arc::new(Mutex::new(port)),
+        Err(e) => {
+          error!("Ошибка открытия порта {port}: {e}");
+          continue;
         }
-        _ => continue,
       };
+
+      if cfg!(windows)
+        && let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true)
+      {
+        error!("Ошибка при установке DTR: {e}");
+      }
+
+      buffers.send().push(empty::Command::VoidRequest.get());
+      Self::send(&mut serial_port, &mut buffers)?;
+
+      loop {
+        if time.elapsed() >= Duration::from_secs(5) {
+          return Err(KeypadError::NoPortsFound.into());
+        }
+
+        match Self::receive(&mut serial_port, &mut buffers) {
+          Ok(_) => (),
+          Err(_) => continue,
+        };
+
+        match buffers
+          .receive()
+          .pull(&KeypadCommands::Empty(empty::Command::VoidRequest))
+        {
+          Some(_) => {
+            debug!("port name: {}", &port);
+            return Ok(port);
+          }
+
+          None => continue,
+        };
+      }
     }
     bail!(KeypadError::NoPortsFound)
   }

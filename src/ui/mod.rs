@@ -169,7 +169,7 @@ impl State {
   - Инициализационная задача
   */
   pub fn new() -> (Self, Task<Message>) {
-    let port = match Keypad::get_port() {
+    let port_name = match Keypad::get_port() {
       Ok(s) => s,
       Err(err) => {
         error!("{err}");
@@ -177,10 +177,10 @@ impl State {
       }
     };
 
-    let keypad = match !port.is_empty() {
+    let keypad = match !port_name.is_empty() {
       true => {
         let serial_port = Arc::new(Mutex::new(
-          serialport::new(&port, 115_200)
+          serialport::new(&port_name, 115_200)
             .timeout(Duration::from_millis(10))
             .open()
             .expect("Ошибка открытия порта"),
@@ -211,7 +211,7 @@ impl State {
       false => Task::none(),
     };
 
-    let pages = match port.is_empty() {
+    let pages = match port_name.is_empty() {
       true => {
         if cfg!(debug_assertions) {
           Pages::default()
@@ -330,13 +330,13 @@ impl State {
       }
       // Пытаемся найти и открыть последовательный порт устройства
       Message::PortSearch => {
-        let port = match Keypad::get_port() {
+        let port_name = match Keypad::get_port() {
           Ok(port) if !port.is_empty() => port,
           _ => return Task::none(),
         };
 
         let serial_port = Arc::new(Mutex::new(
-          serialport::new(&port, 115_200)
+          serialport::new(&port_name, 115_200)
             .timeout(Duration::from_millis(10))
             .open()
             .expect("Ошибка открытия порта"),
