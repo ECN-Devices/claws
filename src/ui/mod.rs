@@ -99,7 +99,7 @@ pub enum Message {
   ProfileImport,
   ProfileImported(Vec<Profile>),
 
-  /// Экспорт текущего профиля в файл
+  /// Экспорт вектора профилей в файл
   ProfilesExport,
 
   /// Завершение операций сохранения профиля (в файл или Flash)
@@ -276,9 +276,7 @@ impl State {
   */
   pub fn update(&mut self, message: Message) -> Task<Message> {
     match message {
-      // Ничего не делаем
       Message::None => Task::none(),
-      // Читает данные из порта
       Message::PortReceive => {
         if !self.keypad.is_open {
           return Task::none();
@@ -294,9 +292,7 @@ impl State {
           |_| Message::PortReceived,
         )
       }
-      // Завершение чтения порта — побочных действий нет
       Message::PortReceived => Task::none(),
-      // Записывает данные в порт
       Message::PortSend => {
         if !self.keypad.is_open {
           return Task::none();
@@ -310,7 +306,6 @@ impl State {
           |_| Message::PortSended,
         )
       }
-      // Завершение записи в порт — побочных действий нет
       Message::PortSended => {
         // match res {
         //   Ok(_) => (),
@@ -328,7 +323,6 @@ impl State {
 
         Task::done(Message::PortSearch)
       }
-      // Пытаемся найти и открыть последовательный порт устройства
       Message::PortSearch => {
         let port_name = match Keypad::get_port() {
           Ok(port) if !port.is_empty() => port,
@@ -361,12 +355,10 @@ impl State {
         // Task::done(Message::ProfileReceive)
         Task::done(Message::ProfileReceiveKeypadVec)
       }
-      // Переключение страницы
       Message::ChangePage(page) => {
         self.pages = page;
         Task::none()
       }
-      // Подготовка к вводу/редактированию комбинации кнопки или стика
       Message::GetButtonSettings(id, stick) => {
         self.button.vec_str.clear();
         self.button.code.clear();
@@ -385,24 +377,20 @@ impl State {
         }
         Task::none()
       }
-      // Обновление размеров окна
       Message::WindowResized(width, height) => {
         self.window_settings.width = width;
         self.window_settings.height = height;
         Task::none()
       }
-      // Обновление позиции окна
       Message::WindowMoved(point) => {
         self.window_settings.x = point.x;
         self.window_settings.y = point.y;
         Task::none()
       }
-      // Сохранение настроек окна
       Message::WindowSettingsSave => {
         self.window_settings.save();
         Task::none()
       }
-      // Перезагрузка устройства в режим загрузчика
       Message::RebootToBootloader => {
         self.keypad.is_open = false;
         self.keypad.port = None;
@@ -420,7 +408,6 @@ impl State {
         info!("Кейпад перезагружен в режим прошивки");
         Task::none()
       }
-      // Запрос профиля с устройства
       Message::ProfileReceive(id) => {
         if !self.keypad.is_open {
           return Task::none();
@@ -534,7 +521,6 @@ impl State {
 
         Task::done(Message::ProfilesExport)
       }
-      // Экспорт профиля в файл
       Message::ProfilesExport => {
         let profiles = self.profiles_local_vec.clone();
 
@@ -550,7 +536,6 @@ impl State {
           |_| Message::ProfileSaved,
         )
       }
-      // Маркер завершения операций с профилем
       Message::ProfileSaved => Task::none(),
       Message::ProfilesListLoad => Task::perform(
         async move { Profile::load().await },
@@ -564,7 +549,6 @@ impl State {
         self.profiles_local_vec = vec;
         Task::done(Message::ProfilesExport)
       }
-      // Активировать профиль в RAM
       Message::ProfileActiveWriteToRam(num) => {
         self.profile_write = true;
 
@@ -584,7 +568,6 @@ impl State {
           move |_| Message::ProfileReceive(num as usize),
         )
       }
-      // Активировать профиль в ROM/Flash и синхронизировать RAM
       Message::ProfileActiveWriteToRom(num) => {
         let mut buf = self.buffers.clone();
         let profile = self.profile.clone();
@@ -603,7 +586,6 @@ impl State {
           |_| Message::None,
         )
       }
-      // Запрос номера активного профиля
       Message::ProfileRequestActiveNum => {
         let mut buf = self.buffers.clone();
         Task::perform(
@@ -614,12 +596,10 @@ impl State {
           },
         )
       }
-      // Сохраняем номер активного профиля в состояние
       Message::ProfileRequestActiveNumState(num) => {
         self.request_active_profile_id = Some(num);
         Task::none()
       }
-      // Обновление имени профиля из поля ввода
       Message::ProfileUpdateName(string) => {
         if string.len() >= 16 {
           return Task::none();
@@ -632,7 +612,6 @@ impl State {
           self.profile.clone(),
         )))
       }
-      // Переключение режима записи (ROM<->RAM) и подгрузка данных из Flash при необходимости
       Message::WriteButtonIsRom => {
         self.is_rom = !self.is_rom;
 
@@ -652,19 +631,16 @@ impl State {
           false => Task::none(),
         }
       }
-      // Разрешаем набор комбинации, запускаем таймер автоотмены
       Message::AllowWriteButtonCombination => {
         self.allow_write = true;
         self.time_write = Some(std::time::Instant::now());
         Task::none()
       }
-      // Запрещаем набор комбинации, сбрасываем таймер
       Message::DisallowWriteButtonCombination => {
         self.allow_write = false;
         self.time_write = None;
         Task::done(Message::ProfilesExport)
       }
-      // Очистка комбинации у кнопки или стика
       Message::ClearButtonCombination(id, is_stick) => {
         match is_stick {
           true => self.profile.stick.word[id - 1] = 0,
@@ -673,7 +649,6 @@ impl State {
 
         Task::done(Message::DisallowWriteButtonCombination)
       }
-      // Добавляем код в текущую комбинацию с ограничениями (1 для стика, до 6 для кнопки)
       Message::WriteButtonCombination(code) => {
         self.time_write = Some(std::time::Instant::now());
 
@@ -706,7 +681,6 @@ impl State {
 
         Task::done(Message::SaveButtonCombination(self.button.id))
       }
-      // Сохраняем набранную комбинацию в профиле
       Message::SaveButtonCombination(id) => {
         debug!("{:?}", self.profile.buttons);
 
@@ -733,7 +707,6 @@ impl State {
         )))
         // Task::none()
       }
-      // Сохраняем мёртвую зону стика
       Message::WriteDeadZone(deadzone) => {
         self.profile.stick.deadzone = deadzone;
         Task::done(Message::ProfileSave((
@@ -788,7 +761,6 @@ impl State {
         self.stick_show_calibrate_parameters = false;
         Task::none()
       }
-      // Запрашиваем информацию об устройстве
       Message::GetDeviceInfo => {
         let mut buffers = self.buffers.clone();
         Task::perform(
@@ -801,17 +773,14 @@ impl State {
           },
         )
       }
-      // Асинхронный парсинг ответа устройства
       Message::DeviceInfoParse(res) => Task::perform(
         async move { Device::parse(&res).await },
         Message::DeviceInfoSave,
       ),
-      // Сохраняем информацию об устройстве в структуру устройства
       Message::DeviceInfoSave(device) => {
         self.device_info = device;
         Task::none()
       }
-      // Периодическая проверка таймаута набора комбинации (2 секунды)
       Message::TimerWriteCheck => {
         if let Some(start_time) = self.time_write
           && start_time.elapsed() >= Duration::from_secs(2)
