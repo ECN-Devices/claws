@@ -481,7 +481,6 @@ impl State {
           }
           false => {
             self.profiles_keypad_vec = res.0.clone();
-            self.profile = res.0.get(res.1 - 1).unwrap().clone();
           }
         };
 
