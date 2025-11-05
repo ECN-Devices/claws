@@ -1,7 +1,6 @@
-use std::time::{Duration, Instant};
-
 use anyhow::Result;
 use log::debug;
+use tokio::time::{Duration, Instant};
 
 use crate::{
   errors::serial::KeypadError,
