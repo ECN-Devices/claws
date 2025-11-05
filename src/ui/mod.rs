@@ -737,7 +737,10 @@ impl State {
       // Сохраняем мёртвую зону стика
       Message::WriteDeadZone(deadzone) => {
         self.profile.stick.deadzone = deadzone;
-        Task::none()
+        Task::done(Message::ProfileSave((
+          self.local_profile_id.unwrap_or(0),
+          self.profile.clone(),
+        )))
       }
       Message::StickInitCalibration => {
         self.stick_callibrate = true;
