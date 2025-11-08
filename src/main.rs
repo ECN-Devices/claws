@@ -29,7 +29,8 @@ mod utils;
 /// Глобальное состояние приложения Iced.
 #[derive(Debug, Clone, Default)]
 pub struct State {
-  is_first_start: bool,
+  /// Номер активного профиля на устройстве, если известен
+  active_profile_id: Option<usize>,
 
   /// Разрешение на запись комбинации клавиш/стика из UI
   allow_write: bool,
@@ -43,29 +44,24 @@ pub struct State {
   /// Информация об устройстве
   device_info: Device,
 
+  is_first_start: bool,
+
   /// Флаг записи в ПЗУ (true) или ОЗУ (false)
   is_rom: bool,
 
   /// Дескриптор последовательного порта и его состояние
   pub keypad: Keypad,
 
+  local_profile_id: Option<usize>,
   /// Текущая страница
   pages: Pages,
-
   /// Активный профиль
   profile: Profile,
+  profile_on_keypad: bool,
+  profile_write: bool,
   profiles_keypad_vec: Vec<Profile>,
   profiles_local_vec: Vec<Profile>,
-  profile_on_keypad: bool,
-
-  local_profile_id: Option<usize>,
-
-  /// Номер активного профиля на устройстве, если известен
-  active_profile_id: Option<usize>,
-
   request_active_profile_id: Option<usize>,
-
-  profile_write: bool,
 
   stick_callibrate: bool,
   stick_callibrate_time: Option<std::time::Instant>,
