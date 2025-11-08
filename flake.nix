@@ -96,6 +96,7 @@
           nativeBuildInputs = with pkgs; [
             pkg-config
             makeWrapper
+            copyDesktopItems
           ];
 
           buildInputs = with pkgs; [
@@ -150,6 +151,18 @@
           // {
             cargoArtifacts = cargoArtifactsWindowsRelease;
           });
+        icon_name = "claws";
+        desktopItems = [
+          (pkgs.makeDesktopItem {
+            name = "claws";
+            desktopName = "Claws";
+            comment = "A utility for managing a programmable keypad.";
+            icon = icon_name;
+            exec = "claws";
+            terminal = false;
+            startupWMClass = "claws";
+          })
+        ];
       in {
         checks = {
           build = self.packages.${system}.default;
@@ -158,20 +171,36 @@
         packages = {
           default = craneLib.buildPackage (commonArgs {debug = false;}
             // {
+              inherit src desktopItems;
+
               cargoArtifacts = cargoClippyRelease;
 
               postInstall = ''
                 wrapProgram $out/bin/claws \
                   --prefix LD_LIBRARY_PATH : ${libPath}
+
+                install -Dm644 assets/icons/claws.svg \
+                  $out/share/icons/hicolor/scalable/apps/${icon_name}.svg
+
+                install -Dm644 assets/icons/64_claws.png \
+                  $out/share/icons/hicolor/64x64/apps/${icon_name}.png
               '';
             });
           debug = craneLib.buildPackage (commonArgs {debug = true;}
             // {
+              inherit src desktopItems;
+
               cargoArtifacts = cargoClippyDebug;
 
               postInstall = ''
                 wrapProgram $out/bin/claws \
                   --prefix LD_LIBRARY_PATH : ${libPath}
+
+                install -Dm644 assets/icons/claws.svg \
+                  $out/share/icons/hicolor/scalable/apps/${icon_name}.svg
+
+                install -Dm644 assets/icons/64_claws.png \
+                  $out/share/icons/hicolor/64x64/apps/${icon_name}.png
               '';
             });
           windows = craneLibCross.buildPackage (windowsArgs {debug = false;}
