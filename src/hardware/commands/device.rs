@@ -6,7 +6,7 @@ use log::debug;
 use crate::{
   errors::serial::KeypadError,
   hardware::{
-    buffers::{Buffers, BuffersIO},
+    buffers::Buffers,
     commands::{DURATION, Value},
   },
 };
@@ -17,6 +17,7 @@ use crate::{
 Содержит команды для запроса и записи информации об устройстве,
 включая версию прошивки, серийный номер и год выпуска.
 */
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Command {
   /**
@@ -69,7 +70,7 @@ pub fn request_info(buffers: &mut Buffers) -> Result<Vec<u8>> {
   let time = Instant::now();
   let duration = Duration::from_secs_f64(DURATION);
 
-  buffers.send().push(Command::RequestInfo.get());
+  buffers.send().push(&Command::RequestInfo);
 
   loop {
     if time.elapsed() >= duration {

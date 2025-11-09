@@ -5,7 +5,7 @@ use tokio::time::{Duration, Instant};
 use crate::{
   errors::serial::KeypadError,
   hardware::{
-    buffers::{Buffers, BuffersIO},
+    buffers::Buffers,
     commands::{DURATION, Value},
   },
 };
@@ -16,6 +16,7 @@ use crate::{
 Содержит команды для работы со стиком: запрос позиции, установка кодов направлений,
 настройка параметров калибровки и мертвых зон.
 */
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Command {
   /**
@@ -122,7 +123,7 @@ pub async fn request_position_ascii(buffers: &mut Buffers) -> Result<[u8; 4]> {
 
   let mut stick_code = [0u8; 4];
 
-  buffers.send().push(Command::RequestPositionASCII.get());
+  buffers.send().push(&Command::RequestPositionASCII);
 
   loop {
     if time.elapsed() >= duration {
@@ -164,7 +165,7 @@ pub async fn calibration_request(buffers: &mut Buffers) -> Result<Vec<u8>> {
 
   buffers
     .send()
-    .push(Command::Calibration(OptionsCalibration::Request).get());
+    .push(&Command::Calibration(OptionsCalibration::Request));
 
   loop {
     if time.elapsed() >= duration {

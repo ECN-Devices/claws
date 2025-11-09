@@ -10,8 +10,7 @@ use crate::{
   State,
   data::{Config, device::Device, profiles::Profile, stick::Stick},
   hardware::{
-    buffers::BuffersIO,
-    commands::{Value, device, profile, stick},
+    commands::{device, profile, stick},
     serial::{DeviceIO, Keypad, profile::profile_all_request},
   },
   ui::pages::Pages,
@@ -305,15 +304,13 @@ impl State {
         let mut buffers = self.buffers.clone();
         Task::perform(
           async move {
-            buffers
-              .send()
-              .push(profile::Command::LoadRamToActive(id).get());
+            buffers.send().push(&profile::Command::LoadRamToActive(id));
 
             let profile = Keypad::profile_receive(&mut buffers).await;
 
-            buffers
-              .send()
-              .push(profile::Command::LoadRamToActive(request_active_profile_id).get());
+            buffers.send().push(&profile::Command::LoadRamToActive(
+              request_active_profile_id,
+            ));
 
             profile
           },
@@ -444,9 +441,7 @@ impl State {
           async move {
             tokio::task::spawn_blocking(move || {
               let _ = Keypad::profile_send(&mut buf, profile);
-              buf
-                .send()
-                .push(profile::Command::WriteActiveToRam(num).get())
+              buf.send().push(&profile::Command::WriteActiveToRam(num))
             })
             .await
           },
@@ -461,10 +456,8 @@ impl State {
           async move {
             tokio::task::spawn_blocking(move || {
               let _ = Keypad::profile_send(&mut buf, profile);
-              buf
-                .send()
-                .push(profile::Command::WriteActiveToFlash(num).get());
-              buf.send().push(profile::Command::LoadFlashToRam.get())
+              buf.send().push(&profile::Command::WriteActiveToFlash(num));
+              buf.send().push(&profile::Command::LoadFlashToRam)
             })
             .await
           },
@@ -507,7 +500,7 @@ impl State {
             Task::perform(
               async move {
                 tokio::task::spawn_blocking(move || {
-                  buf.send().push(profile::Command::LoadFlashToRam.get())
+                  buf.send().push(&profile::Command::LoadFlashToRam)
                 })
                 .await
               },
@@ -607,10 +600,9 @@ impl State {
       Message::StickStartCalibration => {
         self.stick_callibrate_time = Some(std::time::Instant::now());
 
-        self
-          .buffers
-          .send()
-          .push(stick::Command::Calibration(stick::OptionsCalibration::Calibrate).get());
+        self.buffers.send().push(&stick::Command::Calibration(
+          stick::OptionsCalibration::Calibrate,
+        ));
 
         Task::none()
       }

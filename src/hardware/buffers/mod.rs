@@ -3,7 +3,7 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use crate::hardware::commands::{KeypadCommands, Value};
+use crate::hardware::commands::Value;
 
 /// Очередь исходящих пакетов к устройству
 #[derive(Debug, Clone, Default)]
@@ -43,48 +43,36 @@ impl Send {
       false => self.buffer.pop_front(),
     }
   }
+
+  pub fn push(&mut self, data: &impl Value) {
+    self.buffer.push_back(data.get());
+  }
 }
 impl Receive {
   /// Извлекает первый пакет, соответствующий команде `command`
-  pub fn pull(&mut self, command: &KeypadCommands) -> Option<Vec<u8>> {
+  pub fn pull(&mut self, command: &impl Value) -> Option<Vec<u8>> {
     self
       .buffer
       .iter()
       .position(|data| data[0] == command.get()[0])
       .and_then(|i| self.buffer.remove(i))
   }
+
+  pub fn push(&mut self, data: Vec<u8>) {
+    self.buffer.push_back(data)
+  }
 }
 
 /// Унифицированный интерфейс добавления пакетов в очереди
 pub trait BuffersIO {
-  // fn len(&self) -> usize;
-  /// Добавляет пакет в очередь
-  fn push(&mut self, data: Vec<u8>);
-
   fn is_empty(&self) -> bool;
 }
 impl BuffersIO for Send {
-  // fn len(&self) -> usize {
-  //   self.buffer.len()
-  // }
-
-  fn push(&mut self, data: Vec<u8>) {
-    self.buffer.push_back(data);
-  }
-
   fn is_empty(&self) -> bool {
     self.buffer.is_empty()
   }
 }
 impl BuffersIO for Receive {
-  // fn len(&self) -> usize {
-  //   self.buffer.len()
-  // }
-
-  fn push(&mut self, data: Vec<u8>) {
-    self.buffer.push_back(data)
-  }
-
   fn is_empty(&self) -> bool {
     self.buffer.is_empty()
   }

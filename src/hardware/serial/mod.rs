@@ -12,8 +12,8 @@ use serialport::SerialPort;
 use crate::{
   errors::serial::KeypadError,
   hardware::{
-    buffers::{Buffers, BuffersIO},
-    commands::{KeypadCommands, Value, empty},
+    buffers::Buffers,
+    commands::{KeypadCommands, empty},
   },
   utils::{BYTE_END, BYTE_START},
 };
@@ -103,7 +103,7 @@ impl DeviceIO for Keypad {
         error!("Ошибка при установке DTR: {e}");
       }
 
-      buffers.send().push(empty::Command::VoidRequest.get());
+      buffers.send().push(&empty::Command::VoidRequest);
       Self::send(&mut serial_port, &mut buffers)?;
 
       loop {

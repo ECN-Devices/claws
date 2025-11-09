@@ -5,7 +5,7 @@ use tokio::time::{Duration, Instant};
 use crate::{
   errors::serial::KeypadError,
   hardware::{
-    buffers::{Buffers, BuffersIO},
+    buffers::Buffers,
     commands::{DURATION, Value},
   },
 };
@@ -16,6 +16,7 @@ use crate::{
 Содержит команды для работы с кнопками: запрос состояния, получение
 и установка ASCII-кодов для каждой из 16 кнопок устройства.
 */
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Command {
   /**
@@ -92,7 +93,7 @@ pub async fn request_code_ascii(buffers: &mut Buffers) -> Result<[[u8; 6]; 16]> 
   let mut received = [false; 16];
 
   (1..=switch_col).for_each(|i: u8| {
-    buffers.send().push(Command::RequestCodeASCII(i).get());
+    buffers.send().push(&Command::RequestCodeASCII(i));
   });
 
   loop {

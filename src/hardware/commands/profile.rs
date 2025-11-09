@@ -5,7 +5,7 @@ use tokio::time::{Duration, Instant};
 use crate::{
   errors::serial::KeypadError,
   hardware::{
-    buffers::{Buffers, BuffersIO},
+    buffers::Buffers,
     commands::{DURATION, Value},
   },
 };
@@ -109,7 +109,7 @@ pub async fn request_active_num(buffers: &mut Buffers) -> Result<u8> {
   let time = Instant::now();
   let duration = Duration::from_secs_f64(DURATION);
 
-  buffers.send().push(Command::RequestActiveNum.get());
+  buffers.send().push(&Command::RequestActiveNum);
 
   loop {
     if time.elapsed() >= duration {
@@ -148,7 +148,7 @@ pub async fn request_name(buffers: &mut Buffers) -> Result<Vec<u8>> {
   let time = Instant::now();
   let duration = Duration::from_secs_f64(DURATION);
 
-  buffers.send().push(Command::RequestName.get());
+  buffers.send().push(&Command::RequestName);
 
   loop {
     if time.elapsed() >= duration {
