@@ -111,7 +111,7 @@ claws/
   The Update tab shows the versions, but the firmware process is performed separately.
 
 ## 📄 License
-This project is licensed under the [MIT License](./LICENSE).
+This project is licensed under the [APACHE 2.0 License](./LICENSE).
 
 ## 👤 Author
 - **Yaroslav Malykh** — <fisuri@murena.io>
