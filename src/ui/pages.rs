@@ -24,7 +24,7 @@ use crate::{
     Message,
     styles::{
       self, BUTTON_HEIGH, BUTTON_HEIGH_PROFILE, BUTTON_WIDTH_PROFILE, HEADING_SIZE, PADDING,
-      SPACING,
+      RULE_WIDTH, SPACING,
     },
   },
 };
@@ -182,7 +182,12 @@ impl Pages {
     // Правая панель - активный профиль
     let active_profile_panel = Self::build_active_profile_panel(state, profile);
 
-    row![profiles_panel, vertical_rule(2), active_profile_panel].into()
+    row![
+      profiles_panel,
+      vertical_rule(RULE_WIDTH),
+      active_profile_panel
+    ]
+    .into()
   }
 
   /**
@@ -225,7 +230,7 @@ impl Pages {
       text("Профили").size(HEADING_SIZE),
       mode_toggle,
       ram_rom_buttons,
-      horizontal_rule(2),
+      horizontal_rule(RULE_WIDTH),
       profile_management,
       container(profile_list),
     ]

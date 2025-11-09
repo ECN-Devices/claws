@@ -9,7 +9,7 @@ use std::path::Path;
 
 use iced::Task;
 
-use crate::{assets::APPLICATION_NAME, data::profiles::Profile, ui::Message};
+use crate::{assets::APPLICATION_NAME, data::profiles::Profile, ui::update::Message};
 
 impl Profile {
   /**

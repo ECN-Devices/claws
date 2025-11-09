@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
   assets::APPLICATION_NAME,
   data::Config,
-  ui::{WINDOW_HEIGH, WINDOW_WIDTH},
+  ui::styles::{WINDOW_HEIGH, WINDOW_WIDTH},
 };
 
 /**

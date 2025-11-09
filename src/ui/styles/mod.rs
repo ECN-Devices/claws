@@ -9,6 +9,11 @@ pub mod button;
 pub mod container;
 pub mod text_input;
 
+/// Базовая ширина окна по умолчанию
+pub const WINDOW_WIDTH: f32 = 800.;
+/// Базовая высота окна по умолчанию
+pub const WINDOW_HEIGH: f32 = 600.;
+
 /// Радиус закругления углов элементов интерфейса
 pub const BORDER_RADIUS: f32 = 5.;
 
@@ -28,3 +33,5 @@ pub const BUTTON_HEIGH_PROFILE: u16 = 100;
 pub const BUTTON_WIDTH_PROFILE: u16 = 90;
 
 pub const BUTTON_HEIGH: u16 = 35;
+
+pub const RULE_WIDTH: u16 = 2;
