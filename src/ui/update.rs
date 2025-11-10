@@ -346,6 +346,11 @@ impl State {
           }
           false => {
             self.profiles_keypad_vec = res.0.clone();
+            if self.profile_on_keypad
+              && let Some(active_profile_id) = self.active_profile_id
+            {
+              self.profile = res.0.get(active_profile_id - 1).unwrap().clone();
+            }
           }
         };
 
