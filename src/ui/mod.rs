@@ -46,15 +46,10 @@ impl State {
         let serial_port = Arc::new(Mutex::new(
           serialport::new(&port_name, 115_200)
             .timeout(Duration::from_millis(10))
+            .dtr_on_open(true)
             .open()
             .expect("Ошибка открытия порта"),
         ));
-
-        if cfg!(windows)
-          && let Err(e) = serial_port.lock().unwrap().write_data_terminal_ready(true)
-        {
-          error!("Ошибка при установке DTR: {e}");
-        }
 
         Keypad {
           is_open: true,
