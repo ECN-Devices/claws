@@ -518,7 +518,10 @@ impl State {
       Message::DisallowWriteButtonCombination => {
         self.allow_write = false;
         self.time_write = None;
-        Task::done(Message::ProfilesExport)
+        Task::done(Message::ProfileSave((
+          self.local_profile_id.unwrap_or(0),
+          self.profile.clone(),
+        )))
       }
       Message::ClearButtonCombination(id, is_stick) => {
         match is_stick {
